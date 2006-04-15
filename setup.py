@@ -24,7 +24,7 @@ except ImportError, e:
     from distutils.core import setup, Extension
 
 setup(name='zope.configuration',
-      version='1.0',
+      version='3.0.0.0',
       url='http://svn.zope.org/zope.configuration',
       license='ZPL 2.1',
       description='Zope Configuration (ZCML)',
@@ -49,8 +49,7 @@ language be pluggable.  An XML language is provided by default.
 
       namespace_packages=['zope',],
       tests_require = ['zope.testing'],
-      install_requires=['zope.deprecation',
-                        'zope.i18n',
+      install_requires=['zope.i18n',
                         'zope.interface',
                         'zope.schema',
                        ],
