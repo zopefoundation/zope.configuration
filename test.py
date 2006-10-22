@@ -21,7 +21,8 @@ $Id$
 
 import os, sys
 
-src = os.path.join(os.path.split(sys.argv[0])[0], 'src')
+here = os.path.abspath(os.path.dirname(sys.argv[0]))
+src = os.path.join(here, 'src')
 sys.path.insert(0, src) # put at beginning to avoid one in site_packages
 
 from zope.testing import testrunner

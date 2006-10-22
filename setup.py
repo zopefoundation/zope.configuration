@@ -50,7 +50,7 @@ language be pluggable.  An XML language is provided by default.
       namespace_packages=['zope',],
       tests_require = ['zope.testing'],
       install_requires=['zope.deprecation',
-                        'zope.i18n',
+                        'zope.i18nmessageid',
                         'zope.interface',
                         'zope.schema',
                        ],
