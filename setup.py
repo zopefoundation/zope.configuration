@@ -18,13 +18,10 @@ $Id$
 
 import os
 
-try:
-    from setuptools import setup, Extension
-except ImportError, e:
-    from distutils.core import setup, Extension
+from setuptools import setup, find_packages
 
 setup(name='zope.configuration',
-      version='1.0',
+      version='1.1dev',
       url='http://svn.zope.org/zope.configuration',
       license='ZPL 2.1',
       description='Zope Configuration (ZCML)',
@@ -40,11 +37,7 @@ language that express configuration choices. The intent is that the
 language be pluggable.  An XML language is provided by default.
       ''',
       
-      packages=['zope',
-                'zope.configuration',
-                'zope.configuration.tests',
-                'zope.configuration.tests.samplepackage',
-               ],
+	  packages=find_packages('src'),
       package_dir = {'': 'src'},
 
       namespace_packages=['zope',],
