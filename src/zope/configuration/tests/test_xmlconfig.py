@@ -137,13 +137,13 @@ def test_ConfigurationHandler_err_end():
 def clean_info_path(s):
     part1 = s[:6]
     part2 = s[6:s.find('"', 6)]
-    part2 = part2[part2.find("tests"):]
+    part2 = part2[part2.rfind("tests"):]
     part2 = part2.replace(os.sep, '/')
     part3 = s[s.find('"', 6):].rstrip()
     return part1+part2+part3
 
 def clean_path(s):
-    s = s[s.find("tests"):]
+    s = s[s.rfind("tests"):]
     s = s.replace(os.sep, '/')
     return s
 
