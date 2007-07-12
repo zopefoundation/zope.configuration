@@ -1,0 +1,15 @@
+=======
+Changes
+=======
+
+3.5.0a1
+=======
+
+...
+
+Before 3.5
+==========
+
+This package was part of the Zope 3 distribution and did not have its own
+CHANGES.txt. For earlier changes please refer to either our subversion log or
+the CHANGES.txt of earlier Zope 3 releases.
