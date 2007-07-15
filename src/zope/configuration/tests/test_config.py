@@ -18,7 +18,9 @@ $Id$
 
 import sys
 import unittest
+import re
 from zope.testing.doctestunit import DocTestSuite
+from zope.testing import renormalizing
 from zope.configuration.config import metans, ConfigurationMachine
 from zope.configuration import config
 
@@ -332,9 +334,13 @@ def test_bad_sub_import():
     """
 
 def test_suite():
+    checker = renormalizing.RENormalizing([
+        (re.compile(r"<type 'exceptions.(\w+)Error'>:"),
+                    r'exceptions.\1Error:'),
+        ])
     return unittest.TestSuite((
         DocTestSuite('zope.configuration.fields'),
-        DocTestSuite('zope.configuration.config'),
+        DocTestSuite('zope.configuration.config',checker=checker),
         DocTestSuite(),
         ))
 
