@@ -2,13 +2,13 @@
 Changes
 =======
 
-3.5.0a1
-=======
+3.4.0 (2007-10-02)
+------------------
 
-...
+- Initial release as a standalone package.
 
-Before 3.5
-==========
+Before 3.4.0
+------------
 
 This package was part of the Zope 3 distribution and did not have its own
 CHANGES.txt. For earlier changes please refer to either our subversion log or

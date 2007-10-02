@@ -11,5 +11,3 @@ It is based on the idea of configuration directives. Users of the
 configuration system provide configuration directives in some
 language that express configuration choices. The intent is that the
 language be pluggable.  An XML language is provided by default.
-
-See 'src/zope/configuration/README.txt' for more information.
