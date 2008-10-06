@@ -20,7 +20,6 @@ $Id$
 __docformat__ = 'restructuredtext'
 import os.path
 import sys
-import sets
 
 import zope.schema
 
@@ -90,8 +89,8 @@ class ConfigurationContext(object):
 
     def __init__(self):
         super(ConfigurationContext, self).__init__()
-        self._seen_files = sets.Set()
-        self._features = sets.Set()
+        self._seen_files = set()
+        self._features = set()
 
     def resolve(self, dottedname):
         """Resolve a dotted name to an object
