@@ -2,8 +2,11 @@
 Changes
 =======
 
-3.4.1 (unreleased)
+3.4.1 (2008-10-06)
 ------------------
+
+- Use built-in 'set' type, rather than importin the 'sets' module,
+  which is deprecated in Python 2.6.
 
 - Added support to bootstrap on Jython.
 
