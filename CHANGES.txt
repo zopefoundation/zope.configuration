@@ -2,7 +2,7 @@
 Changes
 =======
 
-3.4.1 (2008-10-06)
+3.4.1 (2008-12-11)
 ------------------
 
 - Use built-in 'set' type, rather than importin the 'sets' module,
