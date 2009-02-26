@@ -437,16 +437,16 @@ def openInOrPlain(filename):
     return fp
 
 class IInclude(Interface):
-    """The ``zope:include`` directive
+    """The ``include``, ``includeOverrides`` and ``exclude`` directives
 
-    This directive allows you to include another ZCML file in the
-    configuration. This enables you to write configuration files in each
-    package and then link them together.
+    These directives allows you to include or preserve including of another
+    ZCML file in the configuration. This enables you to write configuration
+    files in each package and then link them together.
     """
 
     file = schema.BytesLine(
         title=u"Configuration file name",
-        description=u"The name of a configuration file to be included, "
+        description=u"The name of a configuration file to be included/excluded, "
                     u"relative to the directive containing the "
                     u"including configuration file.",
         required=False,
@@ -455,10 +455,10 @@ class IInclude(Interface):
     files = schema.BytesLine(
         title=u"Configuration file name pattern",
         description=u"""
-        The names of multiple configuration files to be included,
+        The names of multiple configuration files to be included/excluded,
         expressed as a file-name pattern, relative to the directive
-        containing the including configuration file.  The pattern can
-        include:
+        containing the including or excluding configuration file.  The pattern
+        can include:
 
         - ``*`` matches 0 or more characters
 
@@ -475,10 +475,10 @@ class IInclude(Interface):
         )
 
     package = config.fields.GlobalObject(
-        title=u"Include package",
+        title=u"Include or exclude package",
         description=u"""
-        Include the named file (or configure.zcml) from the directory of this
-        package.
+        Include or exclude the named file (or configure.zcml) from the directory
+        of this package.
         """,
         required=False,
         )
@@ -548,6 +548,40 @@ def include(_context, file=None, package=None, files=None):
             assert _context.stack[-1].context is context
             _context.stack.pop()
 
+def exclude(_context, file=None, package=None, files=None):
+    """Exclude a zcml file
+    
+    This directive should be used before any ZML that includes
+    configuration you want to exclude.
+    """
+
+    if files:
+        if file:
+            raise ValueError("Must specify only one of file or files")
+    elif not file:
+        file = 'configure.zcml'
+
+
+    context = config.GroupingContextDecorator(_context)
+    if package is not None:
+        context.package = package
+        context.basepath = None
+
+    if files:
+        paths = glob(context.path(files))
+        paths = zip([path.lower() for path in paths], paths)
+        paths.sort()
+        paths = [path for (l, path) in paths]
+    else:
+        paths = [context.path(file)]
+
+    for path in paths:
+        # processFile returns a boolean indicating if the file has been
+        # processed or not, it *also* marks the file as having been processed,
+        # here the side effect is used to keep the given file from being
+        # processed in the future
+        context.processFile(path)
+
 def includeOverrides(_context, file=None, package=None, files=None):
     """Include zcml file containing overrides
 
@@ -586,6 +620,9 @@ def registerCommonDirectives(context):
 
     config.defineSimpleDirective(
         context, "include", IInclude, include, namespace="*")
+
+    config.defineSimpleDirective(
+        context, "exclude", IInclude, exclude, namespace="*")
 
     config.defineSimpleDirective(
         context, "includeOverrides", IInclude, includeOverrides, namespace="*")

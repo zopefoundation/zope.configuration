@@ -2,10 +2,15 @@
 Changes
 =======
 
-3.4.2 (unreleased)
+3.5.0 (unreleased)
 ------------------
 
-- ...
+- Added the ``exclude`` directive to standard directives. It was
+  previously available via ``zc.configuration`` package and now it's
+  merged into ``zope.configuration``.
+
+- Changed package's mailing list address to zope-dev at zope.org,
+  change "cheeseshop" to "pypi" in the package's url.
 
 3.4.1 (2008-12-11)
 ------------------
