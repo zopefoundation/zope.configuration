@@ -683,8 +683,13 @@ def _getContext():
     global _context
     if _context is None:
         _clearContext()
-        from zope.testing.cleanup import addCleanUp
-        addCleanUp(_clearContext)
+        try:
+            from zope.testing.cleanup import addCleanUp
+        except ImportError:
+            pass
+        else:
+            addCleanUp(_clearContext)
+            del addCleanUp
     return _context
 
 class XMLConfig(object):

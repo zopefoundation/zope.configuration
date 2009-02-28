@@ -5,7 +5,7 @@ Changes
 3.5.1 (unreleased)
 ------------------
 
-- ...
+- Don't fail when zope.testing is not installed.
 
 3.5.0 (2009-02-26)
 ------------------
