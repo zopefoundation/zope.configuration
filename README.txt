@@ -1,5 +1,5 @@
-zope.configuration Package Readme
-=================================
+zope.configuration
+==================
 
 Overview
 --------
