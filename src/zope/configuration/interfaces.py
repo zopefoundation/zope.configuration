@@ -74,6 +74,15 @@ class IConfigurationContext(Interface):
         is better than an unlimited number of conflict errors.
         """
 
+    def processFile(filename):
+        """Check whether a file needs to be processed.
+
+        Return True if processing is needed and False otherwise.  If
+        the file needs to be processed, it will be marked as
+        processed, assuming that the caller will procces the file if
+        it needs to be procssed.
+        """
+
     def action(self, discriminator, callable, args=(), kw={}, order=0):
         """Record a configuration action
 
