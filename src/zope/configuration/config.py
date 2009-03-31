@@ -24,7 +24,6 @@ import sys
 import zope.schema
 
 from keyword import iskeyword
-import zope.deprecation
 from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.interfaces import IConfigurationContext
 from zope.configuration.interfaces import IGroupingContext
@@ -192,12 +191,9 @@ class ConfigurationContext(object):
 
 
         try:
-            zope.deprecation.__show__.off()
             obj = getattr(mod, oname)
-            zope.deprecation.__show__.on()
             return obj
         except AttributeError:
-            zope.deprecation.__show__.on()
             # No such name, maybe it's a module that we still need to import
             try:
                 return __import__(mname+'.'+oname, *_import_chickens)

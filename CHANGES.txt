@@ -2,8 +2,15 @@
 Changes
 =======
 
-3.5.1 (unreleased)
+3.6.0 (unreleased)
 ------------------
+
+- Removed dependency of `zope.deprecation` package.
+
+- Don't suppress deprecation warnings any more in 'zope.configuration'
+  package level. This makes it more likely other packages will generate
+  deprecation warnings now, which will allow us to remove more
+  outdated ones.
 
 - Don't fail when zope.testing is not installed.
 
