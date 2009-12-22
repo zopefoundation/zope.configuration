@@ -2,10 +2,12 @@
 Changes
 =======
 
-3.6.1 (unreleased)
+3.7.0 (unreleased)
 ------------------
 
-- ...
+- Adjust testing output to newer zope.schema.
+
+- Prefer zope.testing.doctest over doctestunit.
 
 3.6.0 (2009-04-01)
 ------------------

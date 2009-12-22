@@ -19,7 +19,7 @@ $Id$
 import sys
 import unittest
 import re
-from zope.testing.doctestunit import DocTestSuite
+from zope.testing.doctest import DocTestSuite
 from zope.testing import renormalizing
 from zope.configuration.config import metans, ConfigurationMachine
 from zope.configuration import config

@@ -100,7 +100,7 @@ class GlobalObject(schema.Field):
     >>> gg.fromUnicode("z")
     Traceback (most recent call last):
     ...
-    WrongType: ('zope', (<type 'int'>, <type 'long'>))
+    WrongType: ('zope', (<type 'int'>, <type 'long'>), '')
 
     >>> g = GlobalObject(constraint=lambda x: x%2 == 0)
     >>> gg = g.bind(fake)
@@ -171,7 +171,7 @@ class GlobalInterface(GlobalObject):
     >>> gg.fromUnicode('Foo')
     Traceback (most recent call last):
     ...
-    WrongType: An interface is required
+    WrongType: ('An interface is required', <class 'zope.configuration.fields.Foo'>, '')
     """
 
     def __init__(self, **kw):
@@ -211,7 +211,7 @@ class Tokens(schema.List):
     >>> gg.fromUnicode("z y")
     Traceback (most recent call last):
     ...
-    InvalidToken: ('zope', (<type 'int'>, <type 'long'>)) in z y
+    InvalidToken: ('zope', (<type 'int'>, <type 'long'>), '') in z y
     >>> gg.fromUnicode("y y")
     [42, 42]
     >>>
