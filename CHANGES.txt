@@ -2,7 +2,12 @@
 Changes
 =======
 
-3.7.1 (unreleased)
+3.7.2 (unreleased)
+------------------
+
+- ...
+
+3.7.1 (2010-01-05)
 ------------------
 
 - Jython support: use __builtin__ module import rather than assuming
