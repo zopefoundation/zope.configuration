@@ -209,7 +209,11 @@ class ConfigurationHandler(ContentHandler):
 
         data = {}
         for (ns, aname), value in attrs.items():
-            if ns is None:
+            # NB: even though on CPython, 'ns' will be ``None`` always,
+            # do not change the below to "if ns is None" because Jython's
+            # sax parser generates attrs that have empty strings for
+            # the namepace instead of ``None``.
+            if not ns:
                 aname = str(aname)
                 data[aname] = value
             if (ns, aname) == ZCML_CONDITION:

@@ -18,6 +18,7 @@ See README.txt.
 $Id$
 """
 __docformat__ = 'restructuredtext'
+import __builtin__
 import os.path
 import sys
 
@@ -142,7 +143,7 @@ class ConfigurationContext(object):
         if len(names) == 1:
             # Check for built-in objects
             marker = object()
-            obj = __builtins__.get(names[0], marker)
+            obj = getattr(__builtin__, names[0], marker)
             if obj is not marker:
                 return obj
 

@@ -5,6 +5,16 @@ Changes
 3.7.1 (unreleased)
 ------------------
 
+- Jython support: use __builtin__ module import rather than assuming
+  __builtins__ is available
+
+- Jython support: deal with the fact that the Jython SAX parser
+  returns attribute sets that have an empty string indicating no
+  namespace instead of ``None``.
+
+- Allow ``setup.py test`` to run at least a subset of the tests that
+  would be run when using the zope testrunner: ``setup.py test`` runs
+  53 tests, while ``bin/test`` runs 156.
 
 3.7.0 (2009-12-22)
 ------------------
