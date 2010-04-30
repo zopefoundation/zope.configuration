@@ -83,9 +83,9 @@ Now we need to clean up after ourselves::
 '''
 __docformat__ = "reStructuredText"
 
+import doctest
 import zope.interface
 import zope.schema
-import zope.testing.doctest
 
 
 class IRegister(zope.interface.Interface):
@@ -106,4 +106,4 @@ def register(context, id):
                    )
 
 def test_suite():
-    return zope.testing.doctest.DocTestSuite()
+    return doctest.DocTestSuite()

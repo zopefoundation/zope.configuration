@@ -185,7 +185,7 @@ $Id$
 """
 
 import unittest
-from zope.testing.doctest import DocTestSuite
+from doctest import DocTestSuite
 from zope import interface, schema
 from zope.configuration import config, xmlconfig, fields
 

@@ -5,13 +5,13 @@ Changes
 3.7.2 (unreleased)
 ------------------
 
-- ...
+- Prefer the standard libraries doctest module over zope.testing.doctest.
 
 3.7.1 (2010-01-05)
 ------------------
 
-- Jython support: use __builtin__ module import rather than assuming
-  __builtins__ is available
+- Jython support: use ``__builtin__`` module import rather than assuming
+  ``__builtins__`` is available.
 
 - Jython support: deal with the fact that the Jython SAX parser
   returns attribute sets that have an empty string indicating no

@@ -18,7 +18,7 @@ $Id$
 import unittest
 import os
 import re
-from zope.testing.doctest import DocTestSuite, DocFileSuite
+from doctest import DocTestSuite, DocFileSuite
 from zope.testing import renormalizing
 from zope.configuration import xmlconfig, config
 from zope.configuration.tests.samplepackage import foo

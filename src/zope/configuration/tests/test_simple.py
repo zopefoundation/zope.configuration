@@ -170,7 +170,7 @@ file_registry = []
 
 
 import unittest
-from zope.testing.doctest import DocTestSuite
+from doctest import DocTestSuite
 from zope import interface
 from zope import schema
 from zope.configuration import fields, xmlconfig
