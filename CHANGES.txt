@@ -2,7 +2,7 @@
 Changes
 =======
 
-3.7.2 (unreleased)
+3.7.2 (2010-04-30)
 ------------------
 
 - Prefer the standard libraries doctest module over zope.testing.doctest.

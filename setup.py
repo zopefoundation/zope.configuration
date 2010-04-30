@@ -60,7 +60,7 @@ def alltests():
     return suite
 
 setup(name='zope.configuration',
-      version = '3.7.2dev',
+      version = '3.7.2',
       author='Zope Foundation and Contributors',
       author_email='zope-dev@zope.org',
       description='Zope Configuration Markup Language (ZCML)',
@@ -74,7 +74,7 @@ setup(name='zope.configuration',
           + '\n\n' +
           read('CHANGES.txt')
           ),
-      keywords = "zope3 configuration zcml",
+      keywords = "zope configuration zcml",
       classifiers = [
           'Development Status :: 5 - Production/Stable',
           'Environment :: Web Environment',
