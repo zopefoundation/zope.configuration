@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Sample module used for testing
-
-$Id$
 """
 from zope.interface import Interface
 from zope import schema

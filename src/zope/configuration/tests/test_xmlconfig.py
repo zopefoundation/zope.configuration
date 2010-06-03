@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Test XML configuration (ZCML) machinery.
-
-$Id$
 """
 import unittest
 import os

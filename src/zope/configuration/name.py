@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Provide configuration object name resolution
-
-$Id$
 """
 
 import os

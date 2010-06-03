@@ -180,8 +180,6 @@ Let's see what happens if we declare duplicate fields:
 >>> print v
 File "<string>", line 5.7-5.24
     ValueError: ('Duplicate field', 'x')
-
-$Id$
 """
 
 import unittest

@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Zope Configuration (ZCML) interfaces
-
-$Id$
 """
 from zope.interface import Interface
 from zope.schema import BytesLine

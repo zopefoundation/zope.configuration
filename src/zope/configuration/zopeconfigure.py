@@ -96,8 +96,6 @@ documentation, which is provided by the schema.
 (The Zope ``configuration`` directive is actually registered using a
 lower-level Python API because it is registered for all namespaces,
 which isn't supported using the meta-configuration directives.)
-
-$Id$
 """
 __docformat__ = 'restructuredtext'
 import os

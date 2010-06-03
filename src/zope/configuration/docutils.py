@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Helper Utility to wrap a text to a set width of characters
-
-$Id$
 """
 __docformat__ = 'restructuredtext'
 

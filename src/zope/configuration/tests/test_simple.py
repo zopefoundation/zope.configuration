@@ -162,8 +162,6 @@ File "tests/simple.zcml", line 32.2-32.67
 We'll clean up after ourselves:
 
 >>> del file_registry[:]
-
-$Id$
 """
 
 file_registry = []

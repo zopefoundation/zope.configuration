@@ -26,8 +26,6 @@ Options:
         Specifies a directory, relative to the current location in which the
         documentation is stored. Note that this tool will create
         sub-directories with files in them. 
-
-$Id$
 """
 import sys, os, getopt
 import zope.configuration

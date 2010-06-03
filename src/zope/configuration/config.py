@@ -14,8 +14,6 @@
 """Configuration processor
 
 See README.txt.
-
-$Id$
 """
 __docformat__ = 'restructuredtext'
 import __builtin__

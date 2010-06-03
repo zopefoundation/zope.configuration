@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Doc Tests for for zope.configuration.docutils
-
-$Id$
 """
 import unittest
 from doctest import DocTestSuite

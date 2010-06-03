@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Test directives
-
-$Id$
 """
 from zope.interface import Interface, implements
 from zope.schema import Text, BytesLine

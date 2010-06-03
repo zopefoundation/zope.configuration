@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Standard configuration errors
-
-$Id$
 """
 
 class ConfigurationError(Exception):

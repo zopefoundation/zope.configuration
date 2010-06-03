@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Configuration-specific schema fields
-
-$Id$
 """
 __docformat__ = 'restructuredtext'
 import os, re, warnings
