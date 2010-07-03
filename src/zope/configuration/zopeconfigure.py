@@ -32,7 +32,7 @@ To define a grouping directive, we need to do three things:
 - Register the class
 
 The parameter schema is given by IZopeConfigure. It specifies a
-package parameter and an i18n_domain paramter.  The package parameter
+package parameter and an i18n_domain parameter.  The package parameter
 is specified as a ``GlobalObject``. This means it must be given as a
 dotted name that can be resolved through import.  The i18n domain is
 just a plain (not unicode) string.
