@@ -314,7 +314,8 @@ class ConfigurationContext(object):
         self._seen_files.add(path)
         return True
 
-    def action(self, discriminator, callable=None, args=(), kw={}, order=0):
+    def action(self, discriminator, callable=None, args=(), kw={}, order=0,
+               includepath=None, info=None):
         """Add an action with the given discriminator, callable and arguments
 
         For testing purposes, the callable and arguments may be omitted.
@@ -352,19 +353,37 @@ class ConfigurationContext(object):
         >>> c.actions[-1]
         (None, None, (), {}, ('foo.zcml',), '?')
 
-        Finally, we can add an order argument to crudely control the order
+        We can add an order argument to crudely control the order
         of execution:
 
         >>> c.action(None, order=99999)
         >>> c.actions[-1]
         (None, None, (), {}, ('foo.zcml',), '?', 99999)
 
+        We can also pass an includepath argument, which will be used as the the
+        includepath for the action.  (if includepath is None, self.includepath
+        will be used):
+
+        >>> c.action(None, includepath=('abc',))
+        >>> c.actions[-1]
+        (None, None, (), {}, ('abc',), '?')
+
+        We can also pass an info argument, which will be used as the the
+        source line info for the action.  (if info is None, self.info will be
+        used):
+
+        >>> c.action(None, info='abc')
+        >>> c.actions[-1]
+        (None, None, (), {}, ('foo.zcml',), 'abc')
+        
         """
-        action = (discriminator, callable, args, kw,
-                  getattr(self, 'includepath', ()),
-                  getattr(self, 'info', ''),
-                  order,
-                  )
+        if info is None:
+            info = getattr(self, 'info', '')
+
+        if includepath is None:
+            includepath = getattr(self, 'includepath', ())
+            
+        action = (discriminator, callable, args, kw, includepath, info, order)
 
         # remove trailing false items
         while (len(action) > 2) and not action[-1]:

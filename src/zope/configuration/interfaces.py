@@ -81,7 +81,8 @@ class IConfigurationContext(Interface):
         it needs to be procssed.
         """
 
-    def action(self, discriminator, callable, args=(), kw={}, order=0):
+    def action(self, discriminator, callable, args=(), kw={}, order=0,
+               includepath=None, info=None):
         """Record a configuration action
 
         The job of most directives is to compute actions for later
@@ -92,7 +93,9 @@ class IConfigurationContext(Interface):
         the discriminator with the value None. An actions with a
         discriminator of None never conflicts with other actions. This
         is possible to add an order argument to crudely control the
-        order of execution
+        order of execution.  'info' is optional source line information,
+        'includepath' is None (the default) or a tuple of include paths for
+        this action.
         """
 
     def provideFeature(name):

@@ -5,6 +5,7 @@ Changes
 3.7.3 (unreleased)
 ------------------
 
+- Allow "info" and "includepath" to be passed optionally to context.action.
 
 3.7.2 (2010-04-30)
 ------------------
