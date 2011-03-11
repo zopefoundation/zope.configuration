@@ -241,7 +241,10 @@ class ConfigurationContext(object):
             if self.package is None:
                 basepath = os.getcwd()
             else:
-                basepath = os.path.dirname(self.package.__file__)
+                if hasattr(self.package, '__path__'):
+                    basepath = self.package.__path__[0]
+                else:
+                    basepath = os.path.dirname(self.package.__file__)
                 basepath = os.path.abspath(basepath)
             self.basepath = basepath
 

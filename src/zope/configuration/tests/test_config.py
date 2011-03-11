@@ -244,6 +244,19 @@ def test_basepath_absolute():
     True
     """
 
+def test_basepath_uses_dunder_path():
+    """Determine package path using __path__ if __file__ isn't available.
+    (i.e. namespace package installed with --single-version-externally-managed)
+
+    >>> import os
+    >>> class stub:
+    ...     __path__ = [os.path.join('relative', 'path')]
+    >>> c = config.ConfigurationContext()
+    >>> c.package = stub()
+
+    >>> c.path('y/z').endswith('relative/path/y/z')
+    True
+    """
 
 def test_trailing_dot_in_resolve():
     """Dotted names are no longer allowed to end in dots
