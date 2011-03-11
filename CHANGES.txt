@@ -2,7 +2,7 @@
 Changes
 =======
 
-3.7.3 (unreleased)
+3.7.3 (2011-03-11)
 ------------------
 
 - Correctly locate packages with a __path__ attribute but no
