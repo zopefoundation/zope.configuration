@@ -254,7 +254,7 @@ def test_basepath_uses_dunder_path():
     >>> c = config.ConfigurationContext()
     >>> c.package = stub()
 
-    >>> c.path('y/z').endswith('relative/path/y/z')
+    >>> os.path.isabs(c.path('y/z'))
     True
     """
 
