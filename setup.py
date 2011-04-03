@@ -16,10 +16,7 @@
 # When developing and releasing this package, please follow the documented
 # Zope Toolkit policies as described by this documentation.
 ##############################################################################
-"""Setup for zope.configuration package
 
-$Id$
-"""
 import os
 from setuptools import setup, find_packages
 
@@ -60,7 +57,7 @@ def alltests():
     return suite
 
 setup(name='zope.configuration',
-      version = '3.7.4dev',
+      version = '3.7.4',
       author='Zope Foundation and Contributors',
       author_email='zope-dev@zope.org',
       description='Zope Configuration Markup Language (ZCML)',
