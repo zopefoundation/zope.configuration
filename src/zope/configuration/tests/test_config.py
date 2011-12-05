@@ -68,19 +68,26 @@ def test_config_extended_example():
     >>> pprint=PrettyPrinter(width=50).pprint
 
     >>> pprint(machine.actions)
-    [(('simple', u'aa', u'xxx', 'cc'),
-      f,
-      (u'aa', u'xxx', 'cc'),
-      {},
-      (),
-      'first'),
-     (('newsimple', u'naa', u'nbb', 'ncc'),
-      f,
-      (u'naa', u'nbb', 'ncc'),
-      {},
-      (),
-      'second')]
-
+    [{'args': (u'aa', u'xxx', 'cc'),
+      'callable': f,
+      'discriminator': ('simple',
+                        u'aa',
+                        u'xxx',
+                        'cc'),
+      'includepath': (),
+      'info': 'first',
+      'kw': {},
+      'order': 0},
+     {'args': (u'naa', u'nbb', 'ncc'),
+      'callable': f,
+      'discriminator': ('newsimple',
+                        u'naa',
+                        u'nbb',
+                        'ncc'),
+      'includepath': (),
+      'info': 'second',
+      'kw': {},
+      'order': 0}]
 
     Define and try a simple directive that uses a component:
 
@@ -91,7 +98,13 @@ def test_config_extended_example():
 
     >>> machine((ns, "factory"), factory=u".f")
     >>> pprint(machine.actions[-1:])
-    [(('factory', 1, 2), f)]
+    [{'args': (),
+      'callable': f,
+      'discriminator': ('factory', 1, 2),
+      'includepath': (),
+      'info': None,
+      'kw': {},
+      'order': 0}]
 
     Define and try a complex directive:
 
@@ -118,32 +131,54 @@ def test_config_extended_example():
 
     >>> machine.end()
     >>> pprint(machine.actions)
-    [(('simple', u'aa', u'xxx', 'cc'),
-      f,
-      (u'aa', u'xxx', 'cc'),
-      {},
-      (),
-      'first'),
-     (('newsimple', u'naa', u'nbb', 'ncc'),
-      f,
-      (u'naa', u'nbb', 'ncc'),
-      {},
-      (),
-      'second'),
-     (('factory', 1, 2), f),
-     ('Complex.__init__', None, (), {}, (), 'third'),
-     (('Complex.factory', 1, 2),
-      f,
-      (u'ca',),
-      {},
-      (),
-      'fourth'),
-     (('Complex', 1, 2),
-      f,
-      (u'xxx', 'cc'),
-      {},
-      (),
-      'third')]
+    [{'args': (u'aa', u'xxx', 'cc'),
+      'callable': f,
+      'discriminator': ('simple',
+                        u'aa',
+                        u'xxx',
+                        'cc'),
+      'includepath': (),
+      'info': 'first',
+      'kw': {},
+      'order': 0},
+     {'args': (u'naa', u'nbb', 'ncc'),
+      'callable': f,
+      'discriminator': ('newsimple',
+                        u'naa',
+                        u'nbb',
+                        'ncc'),
+      'includepath': (),
+      'info': 'second',
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': f,
+      'discriminator': ('factory', 1, 2),
+      'includepath': (),
+      'info': None,
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': None,
+      'discriminator': 'Complex.__init__',
+      'includepath': (),
+      'info': 'third',
+      'kw': {},
+      'order': 0},
+     {'args': (u'ca',),
+      'callable': f,
+      'discriminator': ('Complex.factory', 1, 2),
+      'includepath': (),
+      'info': 'fourth',
+      'kw': {},
+      'order': 0},
+     {'args': (u'xxx', 'cc'),
+      'callable': f,
+      'discriminator': ('Complex', 1, 2),
+      'includepath': (),
+      'info': 'third',
+      'kw': {},
+      'order': 0}]
 
     Done with the package
 
@@ -164,35 +199,64 @@ def test_config_extended_example():
        """ "Can't use leading dots in dotted names, no package has been set.")
 
     >>> pprint(machine.actions)
-    [(('simple', u'aa', u'xxx', 'cc'),
-      f,
-      (u'aa', u'xxx', 'cc'),
-      {},
-      (),
-      'first'),
-     (('newsimple', u'naa', u'nbb', 'ncc'),
-      f,
-      (u'naa', u'nbb', 'ncc'),
-      {},
-      (),
-      'second'),
-     (('factory', 1, 2), f),
-     ('Complex.__init__', None, (), {}, (), 'third'),
-     (('Complex.factory', 1, 2),
-      f,
-      (u'ca',),
-      {},
-      (),
-      'fourth'),
-     (('Complex', 1, 2),
-      f,
-      (u'xxx', 'cc'),
-      {},
-      (),
-      'third'),
-     (('simple', u'oaa', u'obb', 'occ'),
-      f,
-      (u'oaa', u'obb', 'occ'))]
+    [{'args': (u'aa', u'xxx', 'cc'),
+      'callable': f,
+      'discriminator': ('simple',
+                        u'aa',
+                        u'xxx',
+                        'cc'),
+      'includepath': (),
+      'info': 'first',
+      'kw': {},
+      'order': 0},
+     {'args': (u'naa', u'nbb', 'ncc'),
+      'callable': f,
+      'discriminator': ('newsimple',
+                        u'naa',
+                        u'nbb',
+                        'ncc'),
+      'includepath': (),
+      'info': 'second',
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': f,
+      'discriminator': ('factory', 1, 2),
+      'includepath': (),
+      'info': None,
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': None,
+      'discriminator': 'Complex.__init__',
+      'includepath': (),
+      'info': 'third',
+      'kw': {},
+      'order': 0},
+     {'args': (u'ca',),
+      'callable': f,
+      'discriminator': ('Complex.factory', 1, 2),
+      'includepath': (),
+      'info': 'fourth',
+      'kw': {},
+      'order': 0},
+     {'args': (u'xxx', 'cc'),
+      'callable': f,
+      'discriminator': ('Complex', 1, 2),
+      'includepath': (),
+      'info': 'third',
+      'kw': {},
+      'order': 0},
+     {'args': (u'oaa', u'obb', 'occ'),
+      'callable': f,
+      'discriminator': ('simple',
+                        u'oaa',
+                        u'obb',
+                        'occ'),
+      'includepath': (),
+      'info': None,
+      'kw': {},
+      'order': 0}]
 
     """
     #'
@@ -227,8 +291,16 @@ def test_keyword_handling():
 
     >>> machine((ns, "k"), "yee ha", **{"for": u"f", "class": u"c", "x": u"x"})
 
-    >>> machine.actions
-    [(('k', 'f'), f, ('f', 'c', 'x'), {}, (), 'yee ha')]
+    >>> from pprint import PrettyPrinter
+    >>> pprint=PrettyPrinter(width=60).pprint
+    >>> pprint(machine.actions)
+    [{'args': ('f', 'c', 'x'),
+      'callable': f,
+      'discriminator': ('k', 'f'),
+      'includepath': (),
+      'info': 'yee ha',
+      'kw': {},
+      'order': 0}]
     """
 
 def test_basepath_absolute():

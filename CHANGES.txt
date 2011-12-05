@@ -2,9 +2,11 @@
 Changes
 =======
 
-3.7.5 (unreleased)
+3.8.0 (unreleased)
 ------------------
 
+- Action structures changed from tuples to dictionaries to allow for action
+  structure extensibility (merged chrism-dictactions branch).
 
 3.7.4 (2011-04-03)
 ------------------

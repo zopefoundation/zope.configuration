@@ -606,14 +606,11 @@ def includeOverrides(_context, file=None, package=None, files=None):
     # Now we'll grab the new actions, resolve conflicts,
     # and munge the includepath:
     newactions = []
-    for action in config.resolveConflicts(_context.actions[nactions:]):
-        (discriminator, callable, args, kw, oldincludepath, info, order
-         ) = config.expand_action(*action)
-        newactions.append(
-            (discriminator, callable, args, kw, includepath, info, order)
-            )
 
-    # and replace the new actions with the munched new actions:
+    for action in config.resolveConflicts(_context.actions[nactions:]):
+        action['includepath'] = includepath
+        newactions.append(action)
+
     _context.actions[nactions:] = newactions
 
 def registerCommonDirectives(context):

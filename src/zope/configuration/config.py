@@ -17,6 +17,7 @@ See README.txt.
 """
 __docformat__ = 'restructuredtext'
 import __builtin__
+import operator
 import os.path
 import sys
 
@@ -64,24 +65,22 @@ class ConfigurationContext(object):
     The ``info`` attribute contains descriptive information helpful
     when reporting errors.  If not set, it defaults to an empty string.
 
-    The actions attribute is a sequence of tuples with items:
+    The actions attribute is a sequence of dictionaries where each dictionary
+    has the following keys:
 
-      - discriminator, a value that identifies the action. Two actions
+      - ``discriminator``, a value that identifies the action. Two actions
         that have the same (non None) discriminator conflict.
 
-      - an object that is called to execute the action,
+      - ``callable``, an object that is called to execute the action,
 
-      - positional arguments for the action
+      - ``args``, positional arguments for the action
 
-      - keyword arguments for the action
+      - ``kw`, keyword arguments for the action
 
-      - a tuple of include file names (defaults to ())
+      - ``includepath``, a tuple of include file names (defaults to ())
 
-      - an object that has descriptive information about
+      - ``info``, an object that has descriptive information about
         the action (defaults to '')
-
-    For brevity, trailing items after the callable in the tuples are
-    ommitted if they are empty.
 
     """
 
@@ -317,8 +316,8 @@ class ConfigurationContext(object):
         self._seen_files.add(path)
         return True
 
-    def action(self, discriminator, callable=None, args=(), kw={}, order=0,
-               includepath=None, info=None):
+    def action(self, discriminator, callable=None, args=(), kw=None, order=0,
+               includepath=None, info=None, **extra):
         """Add an action with the given discriminator, callable and arguments
 
         For testing purposes, the callable and arguments may be omitted.
@@ -341,56 +340,112 @@ class ConfigurationContext(object):
         >>> from zope.configuration.tests.directives import f
 
         >>> c.action(1, f, (1, ), {'x': 1})
-        >>> c.actions
-        [(1, f, (1,), {'x': 1})]
+        >>> from pprint import PrettyPrinter
+        >>> pprint=PrettyPrinter(width=60).pprint
+        >>> pprint(c.actions)
+        [{'args': (1,),
+          'callable': f,
+          'discriminator': 1,
+          'includepath': (),
+          'info': '',
+          'kw': {'x': 1},
+          'order': 0}]
 
         >>> c.action(None)
-        >>> c.actions
-        [(1, f, (1,), {'x': 1}), (None, None)]
+        >>> pprint(c.actions)
+        [{'args': (1,),
+          'callable': f,
+          'discriminator': 1,
+          'includepath': (),
+          'info': '',
+          'kw': {'x': 1},
+          'order': 0},
+         {'args': (),
+          'callable': None,
+          'discriminator': None,
+          'includepath': (),
+          'info': '',
+          'kw': {},
+          'order': 0}]
 
         Now set the include path and info:
 
         >>> c.includepath = ('foo.zcml',)
         >>> c.info = "?"
         >>> c.action(None)
-        >>> c.actions[-1]
-        (None, None, (), {}, ('foo.zcml',), '?')
+        >>> pprint(c.actions[-1])
+        {'args': (),
+         'callable': None,
+         'discriminator': None,
+         'includepath': ('foo.zcml',),
+         'info': '?',
+         'kw': {},
+         'order': 0}
 
         We can add an order argument to crudely control the order
         of execution:
 
         >>> c.action(None, order=99999)
-        >>> c.actions[-1]
-        (None, None, (), {}, ('foo.zcml',), '?', 99999)
+        >>> pprint(c.actions[-1])
+        {'args': (),
+         'callable': None,
+         'discriminator': None,
+         'includepath': ('foo.zcml',),
+         'info': '?',
+         'kw': {},
+         'order': 99999}
 
         We can also pass an includepath argument, which will be used as the the
         includepath for the action.  (if includepath is None, self.includepath
         will be used):
 
         >>> c.action(None, includepath=('abc',))
-        >>> c.actions[-1]
-        (None, None, (), {}, ('abc',), '?')
+        >>> pprint(c.actions[-1])
+        {'args': (),
+         'callable': None,
+         'discriminator': None,
+         'includepath': ('abc',),
+         'info': '?',
+         'kw': {},
+         'order': 0}
 
         We can also pass an info argument, which will be used as the the
         source line info for the action.  (if info is None, self.info will be
         used):
 
         >>> c.action(None, info='abc')
-        >>> c.actions[-1]
-        (None, None, (), {}, ('foo.zcml',), 'abc')
+        >>> pprint(c.actions[-1])
+        {'args': (),
+         'callable': None,
+         'discriminator': None,
+         'includepath': ('foo.zcml',),
+         'info': 'abc',
+         'kw': {},
+         'order': 0}
         
         """
+        if kw is None:
+            kw = {}
+
+        action = extra
+
         if info is None:
             info = getattr(self, 'info', '')
 
         if includepath is None:
             includepath = getattr(self, 'includepath', ())
             
-        action = (discriminator, callable, args, kw, includepath, info, order)
-
-        # remove trailing false items
-        while (len(action) > 2) and not action[-1]:
-            action = action[:-1]
+        action.update(
+            dict(
+                discriminator=discriminator,
+                callable=callable,
+                args=args,
+                kw=kw,
+                includepath=includepath,
+                info=info,
+                order=order,
+                )
+            )
 
         self.actions.append(action)
 
@@ -524,9 +579,16 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
     and try it out:
 
     >>> machine((ns, "simple"), a=u"aa", c=u"cc")
-
-    >>> machine.actions
-    [(('simple', u'aa', u'xxx', 'cc'), f, (u'aa', u'xxx', 'cc'))]
+    >>> from pprint import PrettyPrinter
+    >>> pprint=PrettyPrinter(width=60).pprint
+    >>> pprint(machine.actions)
+    [{'args': (u'aa', u'xxx', 'cc'),
+      'callable': f,
+      'discriminator': ('simple', u'aa', u'xxx', 'cc'),
+      'includepath': (),
+      'info': None,
+      'kw': {},
+      'order': 0}]
 
     A more extensive example can be found in the unit tests.
     """
@@ -616,26 +678,32 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
 
 
         """
+
         try:
             for action in resolveConflicts(self.actions):
-                (discriminator, callable, args, kw, includepath, info, order
-                 ) = expand_action(*action)
+                callable = action['callable']
                 if callable is None:
                     continue
+                args = action['args']
+                kw = action['kw']
+                info = action['info']
                 try:
                     callable(*args, **kw)
-                except (KeyboardInterrupt, SystemExit):
+                except (KeyboardInterrupt, SystemExit): # pragma: no cover
                     raise
                 except:
                     if testing:
                         raise
                     t, v, tb = sys.exc_info()
-                    raise ConfigurationExecutionError(t, v, info), None, tb
+                    try:
+                        raise ConfigurationExecutionError(t, v, info), None, tb
+                    finally:
+                       del t, v, tb
+                
         finally:
             if clear:
                 del self.actions[:]
-
-
+        
 class ConfigurationExecutionError(ConfigurationError):
     """An error occurred during execution of a configuration action
     """
@@ -707,7 +775,9 @@ class SimpleStackItem(object):
         if actions:
             # we allow the handler to return nothing
             for action in actions:
-                context.action(*action)
+                if not isinstance(action, dict):
+                    action = expand_action(*action) # b/c
+                context.action(**action)
 
 class RootStackItem(object):
 
@@ -812,18 +882,47 @@ class GroupingStackItem(RootStackItem):
     >>> pprint=PrettyPrinter(width=60).pprint
 
     >>> pprint(context.actions)
-    [(('before', 1, 2), f),
-     (('simple', 1, 2, {'z': 'zope'}), f)]
+    [{'args': (),
+      'callable': f,
+      'discriminator': ('before', 1, 2),
+      'includepath': (),
+      'info': '',
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': f,
+      'discriminator': ('simple', 1, 2, {'z': 'zope'}),
+      'includepath': (),
+      'info': '',
+      'kw': {},
+      'order': 0}]
 
     Finally, we call finish, which calls the decorator after method:
 
     >>> item.finish()
 
     >>> pprint(context.actions)
-    [(('before', 1, 2), f),
-     (('simple', 1, 2, {'z': 'zope'}), f),
-     ('after', f)]
-
+    [{'args': (),
+      'callable': f,
+      'discriminator': ('before', 1, 2),
+      'includepath': (),
+      'info': '',
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': f,
+      'discriminator': ('simple', 1, 2, {'z': 'zope'}),
+      'includepath': (),
+      'info': '',
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': f,
+      'discriminator': 'after',
+      'includepath': (),
+      'info': '',
+      'kw': {},
+      'order': 0}]
 
     If there were no nested directives:
 
@@ -835,8 +934,20 @@ class GroupingStackItem(RootStackItem):
     Then before will be when we call finish:
 
     >>> pprint(context.actions)
-    [(('before', 1, 2), f), ('after', f)]
-
+    [{'args': (),
+      'callable': f,
+      'discriminator': ('before', 1, 2),
+      'includepath': (),
+      'info': '',
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': f,
+      'discriminator': 'after',
+      'includepath': (),
+      'info': '',
+      'kw': {},
+      'order': 0}]
     """
 
     implements(IStackItem)
@@ -848,7 +959,9 @@ class GroupingStackItem(RootStackItem):
         actions = self.context.before()
         if actions:
             for action in actions:
-                self.context.action(*action)
+                if not isinstance(action, dict):
+                    action = expand_action(*action)
+                self.context.action(**action)
         self.__callBefore = noop
 
     def contained(self, name, data, info):
@@ -860,7 +973,9 @@ class GroupingStackItem(RootStackItem):
         actions = self.context.after()
         if actions:
             for action in actions:
-                self.context.action(*action)
+                if not isinstance(action, dict):
+                    action = expand_action(*action)
+                self.context.action(**action)
 
 def noop():
     pass
@@ -919,8 +1034,16 @@ class ComplexStackItem(object):
 
     When we created the definition, the handler (factory) was called.
 
-    >>> context.actions
-    [('init', f, (), {}, (), 'foo')]
+    >>> from pprint import PrettyPrinter
+    >>> pprint=PrettyPrinter(width=60).pprint
+    >>> pprint(context.actions)
+    [{'args': (),
+      'callable': f,
+      'discriminator': 'init',
+      'includepath': (),
+      'info': 'foo',
+      'kw': {},
+      'order': 0}]
 
     If a subdirective is provided, the ``contained`` method of the stack item
     is called. It will lookup the subdirective schema and call the
@@ -937,8 +1060,20 @@ class ComplexStackItem(object):
     >>> pprint=PrettyPrinter(width=60).pprint
 
     >>> pprint(context.actions)
-    [('init', f, (), {}, (), 'foo'),
-     (('sub', u'av', u'bv'), f, (), {}, (), 'baz')]
+    [{'args': (),
+      'callable': f,
+      'discriminator': 'init',
+      'includepath': (),
+      'info': 'foo',
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': f,
+      'discriminator': ('sub', u'av', u'bv'),
+      'includepath': (),
+      'info': 'baz',
+      'kw': {},
+      'order': 0}]
 
     The new stack item returned by contained is one that doesn't allow
     any more subdirectives,
@@ -951,11 +1086,27 @@ class ComplexStackItem(object):
     The stack item will call the handler if it is callable.
 
     >>> pprint(context.actions)
-    [('init', f, (), {}, (), 'foo'),
-     (('sub', u'av', u'bv'), f, (), {}, (), 'baz'),
-     (('call', u'xv', u'yv'), f, (), {}, (), 'foo')]
-
-
+    [{'args': (),
+      'callable': f,
+      'discriminator': 'init',
+      'includepath': (),
+      'info': 'foo',
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': f,
+      'discriminator': ('sub', u'av', u'bv'),
+      'includepath': (),
+      'info': 'baz',
+      'kw': {},
+      'order': 0},
+     {'args': (),
+      'callable': f,
+      'discriminator': ('call', u'xv', u'yv'),
+      'includepath': (),
+      'info': 'foo',
+      'kw': {},
+      'order': 0}]
     """
 
     implements(IStackItem)
@@ -1001,7 +1152,9 @@ class ComplexStackItem(object):
         if actions:
             # we allow the handler to return nothing
             for action in actions:
-                self.context.action(*action)
+                if not isinstance(action, dict):
+                    action = expand_action(*action)
+                self.context.action(**action)
 
 ##############################################################################
 # Helper classes
@@ -1118,8 +1271,16 @@ def defineSimpleDirective(context, name, schema, handler,
     >>> defineSimpleDirective(context, 's', Ixy, s, testns)
 
     >>> context((testns, "s"), x=u"vx", y=u"vy")
-    >>> context.actions
-    [(('s', u'vx', u'vy'), f)]
+    >>> from pprint import PrettyPrinter
+    >>> pprint=PrettyPrinter(width=60).pprint
+    >>> pprint(context.actions)
+    [{'args': (),
+      'callable': f,
+      'discriminator': ('s', u'vx', u'vy'),
+      'includepath': (),
+      'info': None,
+      'kw': {},
+      'order': 0}]
 
     >>> context(('http://www.zope.com/t1', "s"), x=u"vx", y=u"vy")
     Traceback (most recent call last):
@@ -1130,8 +1291,14 @@ def defineSimpleDirective(context, name, schema, handler,
     >>> defineSimpleDirective(context, 's', Ixy, s, "*")
 
     >>> context(('http://www.zope.com/t1', "s"), x=u"vx", y=u"vy")
-    >>> context.actions
-    [(('s', u'vx', u'vy'), f)]
+    >>> pprint(context.actions)
+    [{'args': (),
+      'callable': f,
+      'discriminator': ('s', u'vx', u'vy'),
+      'includepath': (),
+      'info': None,
+      'kw': {},
+      'order': 0}]
 
     """
 
@@ -1424,118 +1591,102 @@ def toargs(context, schema, data):
 ##############################################################################
 # Conflict resolution
 
-def expand_action(discriminator, callable=None, args=(), kw={},
-                   includepath=(), info='', order=0):
-    return (discriminator, callable, args, kw,
-            includepath, info, order)
+def expand_action(discriminator, callable=None, args=(), kw=None,
+                  includepath=(), info=None, order=0, **extra):
+    if kw is None:
+        kw = {}
+    action = extra
+    action.update(
+        dict(
+            discriminator=discriminator,
+            callable=callable,
+            args=args,
+            kw=kw,
+            includepath=includepath,
+            info=info,
+            order=order,
+            )
+        )
+    return action
 
 def resolveConflicts(actions):
     """Resolve conflicting actions
 
     Given an actions list, identify and try to resolve conflicting actions.
-    Actions conflict if they have the same non-null discriminator.
+    Actions conflict if they have the same non-None discriminator.
     Conflicting actions can be resolved if the include path of one of
     the actions is a prefix of the includepaths of the other
     conflicting actions and is unequal to the include paths in the
     other conflicting actions.
-
-    Here are some examples to illustrate how this works:
-
-    >>> from zope.configuration.tests.directives import f
-    >>> from pprint import PrettyPrinter
-    >>> pprint=PrettyPrinter(width=60).pprint
-    >>> pprint(resolveConflicts([
-    ...    (None, f),
-    ...    (1, f, (1,), {}, (), 'first'),
-    ...    (1, f, (2,), {}, ('x',), 'second'),
-    ...    (1, f, (3,), {}, ('y',), 'third'),
-    ...    (4, f, (4,), {}, ('y',), 'should be last', 99999),
-    ...    (3, f, (3,), {}, ('y',)),
-    ...    (None, f, (5,), {}, ('y',)),
-    ... ]))
-    [(None, f),
-     (1, f, (1,), {}, (), 'first'),
-     (3, f, (3,), {}, ('y',)),
-     (None, f, (5,), {}, ('y',)),
-     (4, f, (4,), {}, ('y',), 'should be last')]
-
-    >>> try:
-    ...     v = resolveConflicts([
-    ...        (None, f),
-    ...        (1, f, (2,), {}, ('x',), 'eek'),
-    ...        (1, f, (3,), {}, ('y',), 'ack'),
-    ...        (4, f, (4,), {}, ('y',)),
-    ...        (3, f, (3,), {}, ('y',)),
-    ...        (None, f, (5,), {}, ('y',)),
-    ...     ])
-    ... except ConfigurationConflictError, v:
-    ...    pass
-    >>> print v
-    Conflicting configuration actions
-      For: 1
-        eek
-        ack
-
     """
 
     # organize actions by discriminators
     unique = {}
     output = []
-    for i in range(len(actions)):
-        (discriminator, callable, args, kw, includepath, info, order
-         ) = expand_action(*(actions[i]))
+    for i, action in enumerate(actions):
+        if not isinstance(action, dict):
+            # old-style tuple action
+            action = expand_action(*action)
 
-        order = order or i
+        # "order" is an integer grouping. Actions in a lower order will be
+        # executed before actions in a higher order.  Within an order,
+        # actions are executed sequentially based on original action ordering
+        # ("i").
+        order = action['order'] or 0
+        discriminator = action['discriminator']
+
+        # "ainfo" is a tuple of (order, i, action) where "order" is a
+        # user-supplied grouping, "i" is an integer expressing the relative
+        # position of this action in the action list being resolved, and
+        # "action" is an action dictionary.  The purpose of an ainfo is to
+        # associate an "order" and an "i" with a particular action; "order"
+        # and "i" exist for sorting purposes after conflict resolution.
+        ainfo = (order, i, action)
+
         if discriminator is None:
-            # The discriminator is None, so this directive can
-            # never conflict. We can add it directly to the
-            # configuration actions.
-            output.append(
-                (order, discriminator, callable, args, kw, includepath, info)
-                )
+            # The discriminator is None, so this action can never conflict.
+            # We can add it directly to the result.
+            output.append(ainfo)
             continue
 
-
-        a = unique.setdefault(discriminator, [])
-        a.append(
-            (includepath, order, callable, args, kw, info)
-            )
+        L = unique.setdefault(discriminator, [])
+        L.append(ainfo)
 
     # Check for conflicts
     conflicts = {}
-    for discriminator, dups in unique.items():
 
-        # We need to sort the actions by the paths so that the shortest
-        # path with a given prefix comes first:
-        dups.sort()
-        (basepath, i, callable, args, kw, baseinfo) = dups[0]
-        output.append(
-            (i, discriminator, callable, args, kw, basepath, baseinfo)
-            )
-        for includepath, i, callable, args, kw, info in dups[1:]:
+    for discriminator, ainfos in unique.items():
+
+        # We use (includepath, order, i) as a sort key because we need to
+        # sort the actions by the paths so that the shortest path with a
+        # given prefix comes first.  The "first" action is the one with the
+        # shortest include path.  We break sorting ties using "order", then
+        # "i".
+        def bypath(ainfo):
+            path, order, i = ainfo[2]['includepath'], ainfo[0], ainfo[1]
+            return path, order, i
+
+        ainfos.sort(key=bypath)
+        ainfo, rest = ainfos[0], ainfos[1:]
+        output.append(ainfo)
+        _, _, action = ainfo
+        basepath, baseinfo, discriminator = (action['includepath'],
+                                             action['info'],
+                                             action['discriminator'])
+
+        for _, _, action in rest:
+            includepath = action['includepath']
             # Test whether path is a prefix of opath
             if (includepath[:len(basepath)] != basepath # not a prefix
-                or
-                (includepath == basepath)
-                ):
-                if discriminator not in conflicts:
-                    conflicts[discriminator] = [baseinfo]
-                conflicts[discriminator].append(info)
-
+                or includepath == basepath):
+                L = conflicts.setdefault(discriminator, [baseinfo])
+                L.append(action['info'])
 
     if conflicts:
         raise ConfigurationConflictError(conflicts)
 
-    # Now put the output back in the original order, and return it:
-    output.sort()
-    r = []
-    for o in output:
-        action = o[1:]
-        while len(action) > 2 and not action[-1]:
-            action = action[:-1]
-        r.append(action)
-
-    return r
+    # sort conflict-resolved actions by (order, i) and return them
+    return [ x[2] for x in sorted(output, key=operator.itemgetter(0, 1))]
 
 class ConfigurationConflictError(ConfigurationError):
 

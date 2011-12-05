@@ -321,12 +321,11 @@ def test_include_by_file_glob():
 
 def clean_actions(actions):
     return [
-      {'discriminator': discriminator,
-       'info': clean_info_path(`info`),
-       'includepath': [clean_path(p) for p in includepath],
+      {'discriminator': action['discriminator'],
+       'info': clean_info_path(`action['info']`),
+       'includepath': [clean_path(p) for p in action['includepath']],
        }
-      for (discriminator, callable, args, kw, includepath, info, order)
-      in [config.expand_action(*action) for action in actions]
+      for action in actions
       ]
 
 def clean_text_w_paths(error):
