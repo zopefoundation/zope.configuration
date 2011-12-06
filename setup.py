@@ -57,7 +57,7 @@ def alltests():
     return suite
 
 setup(name='zope.configuration',
-      version = '3.8.0dev',
+      version = '3.8.0',
       author='Zope Foundation and Contributors',
       author_email='zope-dev@zope.org',
       description='Zope Configuration Markup Language (ZCML)',

@@ -2,7 +2,7 @@
 Changes
 =======
 
-3.8.0 (unreleased)
+3.8.0 (2011-12-06)
 ------------------
 
 - Action structures changed from tuples to dictionaries to allow for action
