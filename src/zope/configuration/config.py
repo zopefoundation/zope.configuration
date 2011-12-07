@@ -1685,8 +1685,10 @@ def resolveConflicts(actions):
     if conflicts:
         raise ConfigurationConflictError(conflicts)
 
-    # sort conflict-resolved actions by (order, i) and return them
-    return [ x[2] for x in sorted(output, key=operator.itemgetter(0, 1))]
+    # Sort conflict-resolved actions by (order, i) and return them.  Wanted
+    # to use operator.itemgetter(0, 1) instead of the lambda below but that
+    # doesn't work on Py24.
+    return [ x[2] for x in sorted( output, key=lambda ai: (ai[0], ai[1]) ) ]
 
 class ConfigurationConflictError(ConfigurationError):
 
