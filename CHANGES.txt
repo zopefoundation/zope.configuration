@@ -2,6 +2,12 @@
 Changes
 =======
 
+4.0.0 (unreleased)
+------------------
+
+- Added ``setup.py dev`` alias (runs ``setup.py develop`` plus installs
+  ``nose`` and ``coverage``).
+
 3.8.1 (2012-05-05)
 ------------------
 

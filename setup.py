@@ -56,8 +56,10 @@ def alltests():
                     suite.addTest(mod.test_suite())
     return suite
 
+TESTS_REQUIRE = ['zope.testing']
+
 setup(name='zope.configuration',
-      version = '3.8.1dev',
+      version = '4.0.0dev',
       author='Zope Foundation and Contributors',
       author_email='zope-dev@zope.org',
       description='Zope Configuration Markup Language (ZCML)',
@@ -87,8 +89,10 @@ setup(name='zope.configuration',
       packages=find_packages('src'),
       package_dir={'': 'src'},
       namespace_packages=['zope'],
-      extras_require=dict(
-          test=['zope.testing']),
+      extras_require={
+        'test': TESTS_REQUIRE,
+        'testing': TESTS_REQUIRE + ['nose', 'coverage'],
+      },
       install_requires=['zope.i18nmessageid',
                         'zope.interface',
                         'zope.schema',
