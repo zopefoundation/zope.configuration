@@ -2,11 +2,12 @@
 Changes
 =======
 
-3.8.1 (unreleased)
+3.8.1 (2012-05-05)
 ------------------
 
 - Fixed Python 2.4 backwards incompat (itemgetter used with multiple args);
   Python 2.4 now works (at least if you use zope.schema == 3.8.1).
+  This is the last release which will support Python 2.4 or 2.5.
 
 3.8.0 (2011-12-06)
 ------------------
