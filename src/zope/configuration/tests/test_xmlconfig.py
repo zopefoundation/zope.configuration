@@ -11,16 +11,372 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Test XML configuration (ZCML) machinery.
+"""Test zope.configuration.xmlconfig.
 """
 import unittest
-import os
-import re
-from doctest import DocTestSuite, DocFileSuite
-from zope.testing import renormalizing
-from zope.configuration import xmlconfig, config
-from zope.configuration.tests.samplepackage import foo
-from pprint import PrettyPrinter, pprint
+
+NS = u'ns'
+FOO = u'foo'
+XXX = u'xxx'
+SPLAT = u'splat'
+SPLATV = u'splatv'
+A = u'a'
+AVALUE = u'avalue'
+B = u'b'
+BVALUE = u'bvalue'
+
+
+class ZopeXMLConfigurationErrorTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from zope.configuration.xmlconfig import ZopeXMLConfigurationError
+        return ZopeXMLConfigurationError
+
+    def _makeOne(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
+
+
+class ZopeSAXParseExceptionTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from zope.configuration.xmlconfig import ZopeSAXParseException
+        return ZopeSAXParseException
+
+    def _makeOne(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
+
+
+class ParserInfoTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from zope.configuration.xmlconfig import ParserInfo
+        return ParserInfo
+
+    def _makeOne(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
+
+
+class ConfigurationHandlerTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from zope.configuration.xmlconfig import ConfigurationHandler
+        return ConfigurationHandler
+
+    def _makeOne(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
+
+    def test_normal(self):
+        context = FauxContext()
+        locator = FauxLocator('tests//sample.zcml', 1, 1)
+        handler = self._makeOne(context)
+        handler.setDocumentLocator(locator)
+
+        handler.startElementNS((NS, FOO), FOO,
+                               {(XXX, SPLAT): SPLATV,
+                                (None, A): AVALUE,
+                                (None, B): BVALUE,
+                               })
+        self.assertEqual(repr(context.info),
+                         'File "tests//sample.zcml", line 1.1')
+        self.assertEqual(context.begin_args,
+                         ((NS, FOO),
+                          {'a': AVALUE, 'b': BVALUE}))
+        self.assertEqual(getattr(context, "end_called", 0), 0)
+
+        locator.line, locator.column = 7, 16
+        handler.endElementNS((NS, FOO), FOO)
+        self.assertEqual(repr(context.info),
+                         'File "tests//sample.zcml", line 1.1-7.16')
+        self.assertEqual(context.end_called, 1)
+
+    def test_err_start(self):
+        from zope.configuration.xmlconfig import ZopeXMLConfigurationError
+        class ErrorContext(FauxContext):
+          def begin(self, *args):
+            raise AttributeError("xxx")
+        context = ErrorContext()
+        locator = FauxLocator('tests//sample.zcml', 1, 1)
+        handler = self._makeOne(context)
+        handler.setDocumentLocator(locator)
+        self.assertRaises(ZopeXMLConfigurationError,
+                    handler.startElementNS, (NS, FOO), FOO,
+                                     {(XXX, SPLAT): SPLATV,
+                                      (None, A): AVALUE,
+                                      (None, B): BVALUE,
+                                     })
+
+    def test_err_end(self):
+        from zope.configuration.xmlconfig import ZopeXMLConfigurationError
+        class ErrorContext(FauxContext):
+          def end(self):
+            raise AttributeError("xxx")
+        context = ErrorContext()
+        locator = FauxLocator('tests//sample.zcml', 1, 1)
+        handler = self._makeOne(context)
+        handler.setDocumentLocator(locator)
+        handler.startElementNS((NS, FOO), FOO,
+                               {(XXX, SPLAT): SPLATV,
+                                (None, A): AVALUE,
+                                (None, B): BVALUE,
+                               })
+
+        locator.line, locator.column = 7, 16
+        self.assertRaises(ZopeXMLConfigurationError,
+                          handler.endElementNS, (NS, FOO), FOO)
+
+
+class Test_processxmlfile(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.xmlconfig import processxmlfile
+        return processxmlfile(*args, **kw)
+
+    def test_it(self):
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration.tests.samplepackage import foo
+        file = open(path("samplepackage", "configure.zcml"))
+        context = ConfigurationMachine()
+        registerCommonDirectives(context)
+        self._callFUT(file, context)
+        self.assertEqual(foo.data, [])
+        context.execute_actions()
+        data = foo.data.pop()
+        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
+        self.assertEqual(clean_info_path(`data.info`),
+                'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
+        self.assertEqual(clean_info_path(str(data.info)),
+                'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n'
+                + '    <test:foo x="blah" y="0" />')
+        self.assertEqual(data.package, None)
+        self.assertEqual(data.basepath, None)
+
+
+class Test_openInOrPlain(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.xmlconfig import openInOrPlain
+        return openInOrPlain(*args, **kw)
+
+
+class Test_include(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.xmlconfig import include
+        return include(*args, **kw)
+
+    def test_include_by_package(self):
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration.tests.samplepackage import foo
+        import zope.configuration.tests.samplepackage as package
+        context = ConfigurationMachine()
+        registerCommonDirectives(context)
+        self._callFUT(context, 'configure.zcml', package)
+        context.execute_actions()
+        data = foo.data.pop()
+        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
+        self.assertEqual(clean_info_path(`data.info`),
+                'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
+        self.assertEqual(clean_info_path(str(data.info)),
+                'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n'
+                + '    <test:foo x="blah" y="0" />')
+        self.assertTrue(data.package is package)
+        self.assertEqual(data.basepath[-13:], 'samplepackage')
+        self.assertEqual([clean_path(p) for p in data.includepath],
+                         ['tests/samplepackage/configure.zcml'])
+
+    # Not any more
+    ##     Including the same file more than once produces an error:
+
+    ##     >>> try:
+    ##     ...   xmlconfig.include(context, 'configure.zcml', package)
+    ##     ... except xmlconfig.ConfigurationError, e:
+    ##     ...   'OK'
+    ##     ...
+    ##     'OK'
+
+    def test_include_by_file(self):
+        import os
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration.tests.samplepackage import foo
+        context = ConfigurationMachine()
+        registerCommonDirectives(context)
+        here = os.path.dirname(__file__)
+        path = os.path.join(here, "samplepackage", "foo.zcml")
+        self._callFUT(context, path)
+        context.execute_actions()
+        data = foo.data.pop()
+        self.assertEqual(data.args, (('x', 'foo'), ('y', 2)))
+        self.assertEqual(clean_info_path(`data.info`),
+                    'File "tests/samplepackage/foo.zcml.in", line 12.2-12.28')
+        self.assertEqual(clean_info_path(str(data.info)),
+                    'File "tests/samplepackage/foo.zcml.in", line 12.2-12.28\n'
+                    + '    <test:foo x="foo" y="2" />')
+        self.assertEqual(data.package, None)
+        self.assertEqual(data.basepath[-13:], 'samplepackage')
+        self.assertEqual([clean_path(p) for p in data.includepath],
+                         ['tests/samplepackage/foo.zcml.in'])
+
+    def test_include_by_file_glob(self):
+        import os
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration.tests.samplepackage import foo
+        context = ConfigurationMachine()
+        registerCommonDirectives(context)
+        here = os.path.dirname(__file__)
+        path = os.path.join(here, "samplepackage/baz*.zcml")
+        self._callFUT(context, files=path)
+        context.execute_actions()
+
+        data = foo.data.pop()
+        self.assertEqual(data.args, (('x', 'foo'), ('y', 3)))
+        self.assertEqual(clean_info_path(`data.info`),
+                        'File "tests/samplepackage/baz3.zcml", line 5.2-5.28')
+
+        self.assertEqual(clean_info_path(str(data.info)), 
+                        'File "tests/samplepackage/baz3.zcml", line 5.2-5.28\n'
+                        + '    <test:foo x="foo" y="3" />')
+        self.assertEqual(data.package, None)
+        self.assertEqual(data.basepath[-13:], 'samplepackage')
+        self.assertEqual([clean_path(p) for p in data.includepath],
+                         ['tests/samplepackage/baz3.zcml'])
+
+        data = foo.data.pop()
+        self.assertEqual(data.args, (('x', 'foo'), ('y', 2)))
+        self.assertEqual(clean_info_path(`data.info`),
+                        'File "tests/samplepackage/baz2.zcml", line 5.2-5.28')
+        self.assertEqual(clean_info_path(str(data.info)),
+                        'File "tests/samplepackage/baz2.zcml", line 5.2-5.28\n'
+                        + '    <test:foo x="foo" y="2" />')
+        self.assertEqual(data.package, None)
+        self.assertEqual(data.basepath[-13:], 'samplepackage')
+        self.assertEqual([clean_path(p) for p in data.includepath],
+                        ['tests/samplepackage/baz2.zcml'])
+
+
+class Test_exclude(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.xmlconfig import exclude
+        return exclude(*args, **kw)
+
+
+class Test_includeOverrides(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.xmlconfig import includeOverrides
+        return includeOverrides(*args, **kw)
+
+
+class Test_file(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.xmlconfig import file
+        return file(*args, **kw)
+
+    def test_simple(self):
+        from zope.configuration.tests.samplepackage import foo
+        file_name = path("samplepackage", "configure.zcml")
+        context = self._callFUT(file_name)
+        data = foo.data.pop()
+        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
+        self.assertEqual(clean_info_path(`data.info`),
+                'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
+        self.assertEqual(clean_info_path(str(data.info)),
+                'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n' +
+                '    <test:foo x="blah" y="0" />')
+        self.assertEqual(data.package, None)
+        self.assertEqual(clean_path(data.basepath),
+                         'tests/samplepackage')
+
+
+class Test_string(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.xmlconfig import string
+        return string(*args, **kw)
+
+
+class XMLConfigTests(unittest.TestCase):
+
+    def setUp(self):
+        from zope.testing.cleanup import CleanUp
+        CleanUp().cleanUp()
+
+    def tearDown(self):
+        from zope.testing.cleanup import CleanUp
+        CleanUp().cleanUp()
+
+    def _getTargetClass(self):
+        from zope.configuration.xmlconfig import XMLConfig
+        return XMLConfig
+
+    def _makeOne(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
+
+    def test_XMLConfig(self):
+        import os
+        from zope.configuration.tests.samplepackage import foo
+        here = os.path.dirname(__file__)
+        path = os.path.join(here, "samplepackage", "baro.zcml")
+        x = self._makeOne(path)
+        x() # call to process the actions
+        self.assertEqual(len(foo.data), 3)
+
+        data = foo.data.pop(0)
+        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
+        self.assertEqual(clean_info_path(`data.info`),
+                        'File "tests/samplepackage/bar21.zcml", line 3.2-3.24')
+
+        data = foo.data.pop(0)
+        self.assertEqual(data.args, (('x', 'blah'), ('y', 2)))
+        self.assertEqual(clean_info_path(`data.info`),
+                        'File "tests/samplepackage/bar2.zcml", line 5.2-5.24')
+
+        data = foo.data.pop(0)
+        self.assertEqual(data.args, (('x', 'blah'), ('y', 1)))
+        self.assertEqual(clean_info_path(`data.info`),
+                         'File "tests/samplepackage/bar2.zcml", line 6.2-6.24')
+
+    def test_XMLConfig_w_module(self):
+        from zope.configuration.tests.samplepackage import foo
+        from zope.configuration.tests import samplepackage as module
+        x = self._makeOne("baro.zcml", module)
+        x() # call to process the actions
+        self.assertEqual(len(foo.data), 3)
+
+        data = foo.data.pop(0)
+        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
+        self.assertEqual(clean_info_path(`data.info`),
+                        'File "tests/samplepackage/bar21.zcml", line 3.2-3.24')
+
+        data = foo.data.pop(0)
+        self.assertEqual(data.args, (('x', 'blah'), ('y', 2)))
+        self.assertEqual(clean_info_path(`data.info`),
+                        'File "tests/samplepackage/bar2.zcml", line 5.2-5.24')
+
+        data = foo.data.pop(0)
+        self.assertEqual(data.args, (('x', 'blah'), ('y', 1)))
+        self.assertEqual(clean_info_path(`data.info`),
+                         'File "tests/samplepackage/bar2.zcml", line 6.2-6.24')
+
+
+class Test_xmlconfig(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.xmlconfig import xmlconfig
+        return xmlconfig(*args, **kw)
+
+
+class Test_testxmlconfig(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.xmlconfig import testxmlconfig
+        return testxmlconfig(*args, **kw)
+
 
 
 class FauxLocator(object):
@@ -32,6 +388,7 @@ class FauxLocator(object):
     return self.line
   def getColumnNumber(self):
     return self.column
+
 
 class FauxContext(object):
 
@@ -45,96 +402,13 @@ class FauxContext(object):
   def end(self):
     self.end_called = 1
 
+
 def path(*p):
+    import os
     return os.path.join(os.path.dirname(__file__), *p)
 
-def test_ConfigurationHandler_normal():
-    """
-    >>> context = FauxContext()
-    >>> locator = FauxLocator('tests//sample.zcml', 1, 1)
-    >>> handler = xmlconfig.ConfigurationHandler(context)
-    >>> handler.setDocumentLocator(locator)
-
-    >>> handler.startElementNS((u"ns", u"foo"), u"foo",
-    ...                        {(u"xxx", u"splat"): u"splatv",
-    ...                         (None, u"a"): u"avalue",
-    ...                         (None, u"b"): u"bvalue",
-    ...                        })
-    >>> context.info
-    File "tests//sample.zcml", line 1.1
-    >>> from pprint import PrettyPrinter
-    >>> pprint=PrettyPrinter(width=50).pprint
-    >>> pprint(context.begin_args)
-    ((u'ns', u'foo'),
-     {'a': u'avalue', 'b': u'bvalue'})
-    >>> getattr(context, "end_called", 0)
-    0
-
-    >>> locator.line, locator.column = 7, 16
-    >>> handler.endElementNS((u"ns", u"foo"), u"foo")
-    >>> context.info
-    File "tests//sample.zcml", line 1.1-7.16
-    >>> context.end_called
-    1
-
-    """
-
-def test_ConfigurationHandler_err_start():
-    """
-
-    >>> class FauxContext(FauxContext):
-    ...   def begin(self, *args):
-    ...     raise AttributeError("xxx")
-
-    >>> context = FauxContext()
-    >>> locator = FauxLocator('tests//sample.zcml', 1, 1)
-    >>> handler = xmlconfig.ConfigurationHandler(context)
-    >>> handler.setDocumentLocator(locator)
-
-    >>> try:
-    ...   v = handler.startElementNS((u"ns", u"foo"), u"foo",
-    ...                              {(u"xxx", u"splat"): u"splatv",
-    ...                               (None, u"a"): u"avalue",
-    ...                               (None, u"b"): u"bvalue",
-    ...                              })
-    ... except xmlconfig.ZopeXMLConfigurationError, v:
-    ...   pass
-    >>> print v
-    File "tests//sample.zcml", line 1.1
-        AttributeError: xxx
-
-    """
-
-def test_ConfigurationHandler_err_end():
-    """
-
-    >>> class FauxContext(FauxContext):
-    ...   def end(self):
-    ...     raise AttributeError("xxx")
-
-    >>> context = FauxContext()
-    >>> locator = FauxLocator('tests//sample.zcml', 1, 1)
-    >>> handler = xmlconfig.ConfigurationHandler(context)
-    >>> handler.setDocumentLocator(locator)
-
-    >>> handler.startElementNS((u"ns", u"foo"), u"foo",
-    ...                        {(u"xxx", u"splat"): u"splatv",
-    ...                         (None, u"a"): u"avalue",
-    ...                         (None, u"b"): u"bvalue",
-    ...                        })
-
-    >>> locator.line, locator.column = 7, 16
-    >>> try:
-    ...   v = handler.endElementNS((u"ns", u"foo"), u"foo")
-    ... except xmlconfig.ZopeXMLConfigurationError, v:
-    ...   pass
-    >>> print v
-    File "tests//sample.zcml", line 1.1-7.16
-        AttributeError: xxx
-
-    """
-
 def clean_info_path(s):
+    import os
     part1 = s[:6]
     part2 = s[6:s.find('"', 6)]
     part2 = part2[part2.rfind("tests"):]
@@ -143,181 +417,10 @@ def clean_info_path(s):
     return part1+part2+part3
 
 def clean_path(s):
+    import os
     s = s[s.rfind("tests"):]
     s = s.replace(os.sep, '/')
     return s
-
-def test_processxmlfile():
-    """
-
-    >>> file = open(path("samplepackage", "configure.zcml"))
-    >>> context = config.ConfigurationMachine()
-    >>> xmlconfig.registerCommonDirectives(context)
-    >>> xmlconfig.processxmlfile(file, context)
-
-    >>> foo.data
-    []
-
-    >>> context.execute_actions()
-
-    >>> data = foo.data.pop()
-
-    >>> data.args
-    (('x', 'blah'), ('y', 0))
-
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/configure.zcml", line 12.2-12.29
-
-    >>> print clean_info_path(str(data.info))
-    File "tests/samplepackage/configure.zcml", line 12.2-12.29
-        <test:foo x="blah" y="0" />
-
-    >>> data.package
-    >>> data.basepath
-    """
-
-def test_file():
-    """
-
-    >>> file_name = path("samplepackage", "configure.zcml")
-    >>> context = xmlconfig.file(file_name)
-
-    >>> data = foo.data.pop()
-
-    >>> data.args
-    (('x', 'blah'), ('y', 0))
-
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/configure.zcml", line 12.2-12.29
-
-    >>> print clean_info_path(str(data.info))
-    File "tests/samplepackage/configure.zcml", line 12.2-12.29
-        <test:foo x="blah" y="0" />
-
-    >>> data.package
-    >>> print clean_path(data.basepath)
-    tests/samplepackage
-    """
-
-def test_include_by_package():
-    """
-    >>> context = config.ConfigurationMachine()
-    >>> xmlconfig.registerCommonDirectives(context)
-    >>> import zope.configuration.tests.samplepackage as package
-    >>> xmlconfig.include(context, 'configure.zcml', package)
-    >>> context.execute_actions()
-
-    >>> data = foo.data.pop()
-
-    >>> data.args
-    (('x', 'blah'), ('y', 0))
-
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/configure.zcml", line 12.2-12.29
-
-    >>> print clean_info_path(str(data.info))
-    File "tests/samplepackage/configure.zcml", line 12.2-12.29
-        <test:foo x="blah" y="0" />
-
-    >>> data.package is package
-    1
-
-    >>> data.basepath[-13:]
-    'samplepackage'
-
-    >>> [clean_path(p) for p in data.includepath]
-    ['tests/samplepackage/configure.zcml']
-
-
-    """
-
-# Not any more
-##     Including the same file more than once produces an error:
-
-##     >>> try:
-##     ...   xmlconfig.include(context, 'configure.zcml', package)
-##     ... except xmlconfig.ConfigurationError, e:
-##     ...   'OK'
-##     ...
-##     'OK'
-
-def test_include_by_file():
-    """
-    >>> context = config.ConfigurationMachine()
-    >>> xmlconfig.registerCommonDirectives(context)
-    >>> here = os.path.dirname(__file__)
-    >>> path = os.path.join(here, "samplepackage", "foo.zcml")
-    >>> xmlconfig.include(context, path)
-    >>> context.execute_actions()
-
-    >>> data = foo.data.pop()
-
-    >>> data.args
-    (('x', 'foo'), ('y', 2))
-
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/foo.zcml.in", line 12.2-12.28
-
-    >>> print clean_info_path(str(data.info))
-    File "tests/samplepackage/foo.zcml.in", line 12.2-12.28
-        <test:foo x="foo" y="2" />
-
-    >>> data.package
-
-    >>> data.basepath[-13:]
-    'samplepackage'
-
-    >>> [clean_path(p) for p in data.includepath]
-    ['tests/samplepackage/foo.zcml.in']
-    """
-
-def test_include_by_file_glob():
-    """
-    >>> context = config.ConfigurationMachine()
-    >>> xmlconfig.registerCommonDirectives(context)
-    >>> here = os.path.dirname(__file__)
-    >>> path = os.path.join(here, "samplepackage/baz*.zcml")
-    >>> xmlconfig.include(context, files=path)
-    >>> context.execute_actions()
-
-    >>> data = foo.data.pop()
-    >>> data.args
-    (('x', 'foo'), ('y', 3))
-
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/baz3.zcml", line 5.2-5.28
-
-    >>> print clean_info_path(str(data.info))
-    File "tests/samplepackage/baz3.zcml", line 5.2-5.28
-        <test:foo x="foo" y="3" />
-
-    >>> data.package
-
-    >>> data.basepath[-13:]
-    'samplepackage'
-
-    >>> [clean_path(p) for p in data.includepath]
-    ['tests/samplepackage/baz3.zcml']
-
-    >>> data = foo.data.pop()
-    >>> data.args
-    (('x', 'foo'), ('y', 2))
-
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/baz2.zcml", line 5.2-5.28
-
-    >>> print clean_info_path(str(data.info))
-    File "tests/samplepackage/baz2.zcml", line 5.2-5.28
-        <test:foo x="foo" y="2" />
-
-    >>> data.package
-
-    >>> data.basepath[-13:]
-    'samplepackage'
-
-    >>> [clean_path(p) for p in data.includepath]
-    ['tests/samplepackage/baz2.zcml']
-    """
 
 def clean_actions(actions):
     return [
@@ -340,291 +443,21 @@ def clean_text_w_paths(error):
       r.append(line)
     return '\n'.join(r)
 
-def test_includeOverrides():
-    """
-    When we have conflicting directives, we can resolve them if one of
-    the conflicting directives was from a file that included all of
-    the others.  The problem with this is that this requires that all
-    of the overriding directives be in one file, typically the
-    top-most including file. This isn't very convenient.  Fortunately,
-    we can overcome this with the includeOverrides directive. Let's
-    look at an example to see how this works.
-
-    Look at the file bar.zcml. It includes bar1.zcml and bar2.zcml.
-    bar2.zcml includes configure.zcml and has a foo
-    directive. bar2.zcml includes bar21.zcml.  bar2.zcml has a foo
-    directive that conflicts with one in bar1.zcml.  bar2.zcml also
-    overrides a foo directive in bar21.zcml.  bar21.zcml has a foo
-    directive that conflicts with one in in configure.zcml. Whew!
-
-    Let's see what happens when we try to process bar.zcml.
-
-    >>> context = config.ConfigurationMachine()
-    >>> xmlconfig.registerCommonDirectives(context)
-
-    >>> here = os.path.dirname(__file__)
-    >>> path = os.path.join(here, "samplepackage", "bar.zcml")
-    >>> xmlconfig.include(context, path)
-
-    So far so good, let's look at the configuration actions:
-
-    >>> pprint=PrettyPrinter(width=70).pprint
-    >>> pprint(clean_actions(context.actions))
-    [{'discriminator': (('x', 'blah'), ('y', 0)),
-      'includepath': ['tests/samplepackage/bar.zcml',
-                      'tests/samplepackage/bar1.zcml',
-                      'tests/samplepackage/configure.zcml'],
-      'info': 'File "tests/samplepackage/configure.zcml", line 12.2-12.29'},
-     {'discriminator': (('x', 'blah'), ('y', 1)),
-      'includepath': ['tests/samplepackage/bar.zcml',
-                      'tests/samplepackage/bar1.zcml'],
-      'info': 'File "tests/samplepackage/bar1.zcml", line 5.2-5.24'},
-     {'discriminator': (('x', 'blah'), ('y', 0)),
-      'includepath': ['tests/samplepackage/bar.zcml',
-                      'tests/samplepackage/bar2.zcml',
-                      'tests/samplepackage/bar21.zcml'],
-      'info': 'File "tests/samplepackage/bar21.zcml", line 3.2-3.24'},
-     {'discriminator': (('x', 'blah'), ('y', 2)),
-      'includepath': ['tests/samplepackage/bar.zcml',
-                      'tests/samplepackage/bar2.zcml',
-                      'tests/samplepackage/bar21.zcml'],
-      'info': 'File "tests/samplepackage/bar21.zcml", line 4.2-4.24'},
-     {'discriminator': (('x', 'blah'), ('y', 2)),
-      'includepath': ['tests/samplepackage/bar.zcml',
-                      'tests/samplepackage/bar2.zcml'],
-      'info': 'File "tests/samplepackage/bar2.zcml", line 5.2-5.24'},
-     {'discriminator': (('x', 'blah'), ('y', 1)),
-      'includepath': ['tests/samplepackage/bar.zcml',
-                      'tests/samplepackage/bar2.zcml'],
-      'info': 'File "tests/samplepackage/bar2.zcml", line 6.2-6.24'}]
-
-    As you can see, there are a number of conflicts (actions with the same
-    discriminator).  Some of these can be resolved, but many can't, as
-    we'll find if we try to execuse the actions:
-
-    >>> try:
-    ...    v = context.execute_actions()
-    ... except config.ConfigurationConflictError, v:
-    ...    pass
-    >>> print clean_text_w_paths(str(v))
-    Conflicting configuration actions
-      For: (('x', 'blah'), ('y', 0))
-        File "tests/samplepackage/configure.zcml", line 12.2-12.29
-            <test:foo x="blah" y="0" />
-        File "tests/samplepackage/bar21.zcml", line 3.2-3.24
-            <foo x="blah" y="0" />
-      For: (('x', 'blah'), ('y', 1))
-        File "tests/samplepackage/bar1.zcml", line 5.2-5.24
-            <foo x="blah" y="1" />
-        File "tests/samplepackage/bar2.zcml", line 6.2-6.24
-            <foo x="blah" y="1" />
-
-    Note that the conflicts for (('x', 'blah'), ('y', 2)) aren't
-    included in the error because they could be resolved.
-
-    Let's try this again using includeOverrides.  We'll include
-    baro.zcml which includes bar2.zcml as overrides.
-
-    >>> context = config.ConfigurationMachine()
-    >>> xmlconfig.registerCommonDirectives(context)
-    >>> path = os.path.join(here, "samplepackage", "baro.zcml")
-    >>> xmlconfig.include(context, path)
-
-    Now, if we look at the actions:
-
-    >>> pprint(clean_actions(context.actions))
-    [{'discriminator': (('x', 'blah'), ('y', 0)),
-      'includepath': ['tests/samplepackage/baro.zcml',
-                      'tests/samplepackage/bar1.zcml',
-                      'tests/samplepackage/configure.zcml'],
-      'info': 'File "tests/samplepackage/configure.zcml", line 12.2-12.29'},
-     {'discriminator': (('x', 'blah'), ('y', 1)),
-      'includepath': ['tests/samplepackage/baro.zcml',
-                      'tests/samplepackage/bar1.zcml'],
-      'info': 'File "tests/samplepackage/bar1.zcml", line 5.2-5.24'},
-     {'discriminator': (('x', 'blah'), ('y', 0)),
-      'includepath': ['tests/samplepackage/baro.zcml'],
-      'info': 'File "tests/samplepackage/bar21.zcml", line 3.2-3.24'},
-     {'discriminator': (('x', 'blah'), ('y', 2)),
-      'includepath': ['tests/samplepackage/baro.zcml'],
-      'info': 'File "tests/samplepackage/bar2.zcml", line 5.2-5.24'},
-     {'discriminator': (('x', 'blah'), ('y', 1)),
-      'includepath': ['tests/samplepackage/baro.zcml'],
-      'info': 'File "tests/samplepackage/bar2.zcml", line 6.2-6.24'}]
-
-    We see that:
-
-    - The conflicting actions between bar2.zcml and bar21.zcml have
-      been resolved, and
-
-    - The remaining (after conflict resolution) actions from bar2.zcml
-      and bar21.zcml have the includepath that they would have if they
-      were defined in baro.zcml and this override the actions from
-      bar1.zcml and configure.zcml.
-
-    We can now execute the actions without problem, since the
-    remaining conflicts are resolvable:
-
-    >>> context.execute_actions()
-
-    We should now have three entries in foo.data:
-
-    >>> len(foo.data)
-    3
-
-    >>> data = foo.data.pop(0)
-    >>> data.args
-    (('x', 'blah'), ('y', 0))
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/bar21.zcml", line 3.2-3.24
-
-    >>> data = foo.data.pop(0)
-    >>> data.args
-    (('x', 'blah'), ('y', 2))
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/bar2.zcml", line 5.2-5.24
-
-    >>> data = foo.data.pop(0)
-    >>> data.args
-    (('x', 'blah'), ('y', 1))
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/bar2.zcml", line 6.2-6.24
-
-
-    We expect the exact same results when using includeOverrides with
-    the ``files`` argument instead of the ``file`` argument.  The
-    baro2.zcml file uses the former:
-
-    >>> context = config.ConfigurationMachine()
-    >>> xmlconfig.registerCommonDirectives(context)
-    >>> path = os.path.join(here, "samplepackage", "baro2.zcml")
-    >>> xmlconfig.include(context, path)
-
-    Actions look like above:
-
-    >>> pprint(clean_actions(context.actions))
-    [{'discriminator': (('x', 'blah'), ('y', 0)),
-      'includepath': ['tests/samplepackage/baro2.zcml',
-                      'tests/samplepackage/bar1.zcml',
-                      'tests/samplepackage/configure.zcml'],
-      'info': 'File "tests/samplepackage/configure.zcml", line 12.2-12.29'},
-     {'discriminator': (('x', 'blah'), ('y', 1)),
-      'includepath': ['tests/samplepackage/baro2.zcml',
-                      'tests/samplepackage/bar1.zcml'],
-      'info': 'File "tests/samplepackage/bar1.zcml", line 5.2-5.24'},
-     {'discriminator': (('x', 'blah'), ('y', 0)),
-      'includepath': ['tests/samplepackage/baro2.zcml'],
-      'info': 'File "tests/samplepackage/bar21.zcml", line 3.2-3.24'},
-     {'discriminator': (('x', 'blah'), ('y', 2)),
-      'includepath': ['tests/samplepackage/baro2.zcml'],
-      'info': 'File "tests/samplepackage/bar2.zcml", line 5.2-5.24'},
-     {'discriminator': (('x', 'blah'), ('y', 1)),
-      'includepath': ['tests/samplepackage/baro2.zcml'],
-      'info': 'File "tests/samplepackage/bar2.zcml", line 6.2-6.24'}]
-
-    >>> context.execute_actions()
-    >>> len(foo.data)
-    3
-    >>> del foo.data[:]
-
-    """
-
-def test_XMLConfig():
-    """Test processing a configuration file.
-
-    We'll use the same example from test_includeOverrides:
-
-    >>> here = os.path.dirname(__file__)
-    >>> path = os.path.join(here, "samplepackage", "baro.zcml")
-
-    First, process the configuration file:
-
-    >>> x = xmlconfig.XMLConfig(path)
-
-    Second, call the resulting object to process the actions:
-
-    >>> x()
-
-    And verify the data as above:
-
-    >>> len(foo.data)
-    3
-
-    >>> data = foo.data.pop(0)
-    >>> data.args
-    (('x', 'blah'), ('y', 0))
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/bar21.zcml", line 3.2-3.24
-
-    >>> data = foo.data.pop(0)
-    >>> data.args
-    (('x', 'blah'), ('y', 2))
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/bar2.zcml", line 5.2-5.24
-
-    >>> data = foo.data.pop(0)
-    >>> data.args
-    (('x', 'blah'), ('y', 1))
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/bar2.zcml", line 6.2-6.24
-
-    Finally, clean up.
-
-    >>> from zope.testing.cleanup import CleanUp
-    >>> CleanUp().cleanUp()
-    """
-
-def test_XMLConfig_w_module():
-    """Test processing a configuration file for a module.
-
-    We'll use the same example from test_includeOverrides:
-
-    >>> import zope.configuration.tests.samplepackage as module
-
-    First, process the configuration file:
-
-    >>> x = xmlconfig.XMLConfig("baro.zcml", module)
-
-    Second, call the resulting object to process the actions:
-
-    >>> x()
-
-    And verify the data as above:
-
-    >>> len(foo.data)
-    3
-
-    >>> data = foo.data.pop(0)
-    >>> data.args
-    (('x', 'blah'), ('y', 0))
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/bar21.zcml", line 3.2-3.24
-
-    >>> data = foo.data.pop(0)
-    >>> data.args
-    (('x', 'blah'), ('y', 2))
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/bar2.zcml", line 5.2-5.24
-
-    >>> data = foo.data.pop(0)
-    >>> data.args
-    (('x', 'blah'), ('y', 1))
-    >>> print clean_info_path(`data.info`)
-    File "tests/samplepackage/bar2.zcml", line 6.2-6.24
-
-    Finally, clean up.
-
-    >>> from zope.testing.cleanup import CleanUp
-    >>> CleanUp().cleanUp()
-    """
-
-
 
 def test_suite():
     return unittest.TestSuite((
-        DocTestSuite('zope.configuration.xmlconfig'),
-        DocTestSuite(),
-        ))
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')
+        unittest.makeSuite(ZopeXMLConfigurationErrorTests),
+        unittest.makeSuite(ZopeSAXParseExceptionTests),
+        unittest.makeSuite(ParserInfoTests),
+        unittest.makeSuite(ConfigurationHandlerTests),
+        unittest.makeSuite(Test_processxmlfile),
+        unittest.makeSuite(Test_openInOrPlain),
+        unittest.makeSuite(Test_include),
+        unittest.makeSuite(Test_exclude),
+        unittest.makeSuite(Test_includeOverrides),
+        unittest.makeSuite(Test_file),
+        unittest.makeSuite(Test_string),
+        unittest.makeSuite(XMLConfigTests),
+        unittest.makeSuite(Test_xmlconfig),
+        unittest.makeSuite(Test_testxmlconfig),
+    ))

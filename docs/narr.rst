@@ -338,6 +338,232 @@ inside a package directive:
      'order': 0}]
 
 
+Overriding Included Configuration
+==================================
+
+When we have conflicting directives, we can resolve them if one of
+the conflicting directives was from a file that included all of
+the others.  The problem with this is that this requires that all
+of the overriding directives be in one file, typically the
+top-most including file. This isn't very convenient.  Fortunately,
+we can overcome this with the includeOverrides directive. Let's
+look at an example to see how this works.
+
+Look at the file ``bar.zcml`` (in ``zope/configuration/tests/samplepackage``):
+
+- It includes ``bar1.zcml`` and ``bar2.zcml``.
+
+- ``bar1.zcml`` includes ``configure.zcml`` and has a ``foo``
+  directive.
+  
+- ``bar2.zcml`` includes ``bar21.zcml``, and has a ``foo``
+  directive that conflicts with one in ``bar1.zcml``.
+  
+- ``bar2.zcml`` also overrides a foo directive in ``bar21.zcml``.
+
+- ``bar21.zcml`` has a ``foo`` directive that conflicts with one in in
+  ``configure.zcml``. Whew!
+
+Let's see what happens when we try to process ``bar.zcml``.
+
+.. doctest::
+
+   >>> import os
+   >>> from zope.configuration.config import ConfigurationMachine
+   >>> from zope.configuration.xmlconfig import include
+   >>> from zope.configuration.xmlconfig import registerCommonDirectives
+   >>> context = ConfigurationMachine()
+   >>> registerCommonDirectives(context)
+
+   >>> from zope.configuration.tests import __file__
+   >>> here = os.path.dirname(__file__)
+   >>> path = os.path.join(here, "samplepackage", "bar.zcml")
+   >>> include(context, path)
+
+So far so good, let's look at the configuration actions:
+
+.. doctest::
+
+   >>> from zope.configuration.tests.test_xmlconfig import clean_actions
+   >>> pprint = PrettyPrinter(width=70).pprint
+   >>> pprint(clean_actions(context.actions))
+   [{'discriminator': (('x', 'blah'), ('y', 0)),
+     'includepath': ['tests/samplepackage/bar.zcml',
+                     'tests/samplepackage/bar1.zcml',
+                     'tests/samplepackage/configure.zcml'],
+     'info': 'File "tests/samplepackage/configure.zcml", line 12.2-12.29'},
+    {'discriminator': (('x', 'blah'), ('y', 1)),
+     'includepath': ['tests/samplepackage/bar.zcml',
+                     'tests/samplepackage/bar1.zcml'],
+     'info': 'File "tests/samplepackage/bar1.zcml", line 5.2-5.24'},
+    {'discriminator': (('x', 'blah'), ('y', 0)),
+     'includepath': ['tests/samplepackage/bar.zcml',
+                     'tests/samplepackage/bar2.zcml',
+                     'tests/samplepackage/bar21.zcml'],
+     'info': 'File "tests/samplepackage/bar21.zcml", line 3.2-3.24'},
+    {'discriminator': (('x', 'blah'), ('y', 2)),
+     'includepath': ['tests/samplepackage/bar.zcml',
+                     'tests/samplepackage/bar2.zcml',
+                     'tests/samplepackage/bar21.zcml'],
+     'info': 'File "tests/samplepackage/bar21.zcml", line 4.2-4.24'},
+    {'discriminator': (('x', 'blah'), ('y', 2)),
+     'includepath': ['tests/samplepackage/bar.zcml',
+                     'tests/samplepackage/bar2.zcml'],
+     'info': 'File "tests/samplepackage/bar2.zcml", line 5.2-5.24'},
+    {'discriminator': (('x', 'blah'), ('y', 1)),
+     'includepath': ['tests/samplepackage/bar.zcml',
+                     'tests/samplepackage/bar2.zcml'],
+     'info': 'File "tests/samplepackage/bar2.zcml", line 6.2-6.24'}]
+
+As you can see, there are a number of conflicts (actions with the same
+discriminator).  Some of these can be resolved, but many can't, as
+we'll find if we try to execuse the actions:
+
+.. doctest::
+
+   >>> from zope.configuration.config import ConfigurationConflictError
+   >>> from zope.configuration.tests.test_xmlconfig import clean_text_w_paths
+   >>> try:
+   ...    v = context.execute_actions()
+   ... except ConfigurationConflictError, v:
+   ...    pass
+   >>> print clean_text_w_paths(str(v))
+   Conflicting configuration actions
+     For: (('x', 'blah'), ('y', 0))
+       File "tests/samplepackage/configure.zcml", line 12.2-12.29
+           <test:foo x="blah" y="0" />
+       File "tests/samplepackage/bar21.zcml", line 3.2-3.24
+           <foo x="blah" y="0" />
+     For: (('x', 'blah'), ('y', 1))
+       File "tests/samplepackage/bar1.zcml", line 5.2-5.24
+           <foo x="blah" y="1" />
+       File "tests/samplepackage/bar2.zcml", line 6.2-6.24
+           <foo x="blah" y="1" />
+
+Note that the conflicts for (('x', 'blah'), ('y', 2)) aren't
+included in the error because they could be resolved.
+
+Let's try this again using includeOverrides.  We'll include
+baro.zcml which includes bar2.zcml as overrides.
+
+.. doctest::
+
+   >>> context = ConfigurationMachine()
+   >>> registerCommonDirectives(context)
+   >>> path = os.path.join(here, "samplepackage", "baro.zcml")
+   >>> include(context, path)
+
+Now, if we look at the actions:
+
+.. doctest::
+
+   >>> pprint(clean_actions(context.actions))
+   [{'discriminator': (('x', 'blah'), ('y', 0)),
+     'includepath': ['tests/samplepackage/baro.zcml',
+                     'tests/samplepackage/bar1.zcml',
+                     'tests/samplepackage/configure.zcml'],
+     'info': 'File "tests/samplepackage/configure.zcml", line 12.2-12.29'},
+    {'discriminator': (('x', 'blah'), ('y', 1)),
+     'includepath': ['tests/samplepackage/baro.zcml',
+                     'tests/samplepackage/bar1.zcml'],
+     'info': 'File "tests/samplepackage/bar1.zcml", line 5.2-5.24'},
+    {'discriminator': (('x', 'blah'), ('y', 0)),
+     'includepath': ['tests/samplepackage/baro.zcml'],
+     'info': 'File "tests/samplepackage/bar21.zcml", line 3.2-3.24'},
+    {'discriminator': (('x', 'blah'), ('y', 2)),
+     'includepath': ['tests/samplepackage/baro.zcml'],
+     'info': 'File "tests/samplepackage/bar2.zcml", line 5.2-5.24'},
+    {'discriminator': (('x', 'blah'), ('y', 1)),
+     'includepath': ['tests/samplepackage/baro.zcml'],
+     'info': 'File "tests/samplepackage/bar2.zcml", line 6.2-6.24'}]
+
+We see that:
+
+- The conflicting actions between bar2.zcml and bar21.zcml have
+  been resolved, and
+
+- The remaining (after conflict resolution) actions from bar2.zcml
+  and bar21.zcml have the includepath that they would have if they
+  were defined in baro.zcml and this override the actions from
+  bar1.zcml and configure.zcml.
+
+We can now execute the actions without problem, since the
+remaining conflicts are resolvable:
+
+.. doctest::
+
+   >>> context.execute_actions()
+
+We should now have three entries in foo.data:
+
+.. doctest::
+
+   >>> from zope.configuration.tests.samplepackage import foo
+   >>> from zope.configuration.tests.test_xmlconfig import clean_info_path
+   >>> len(foo.data)
+   3
+
+   >>> data = foo.data.pop(0)
+   >>> data.args
+   (('x', 'blah'), ('y', 0))
+   >>> print clean_info_path(`data.info`)
+   File "tests/samplepackage/bar21.zcml", line 3.2-3.24
+
+   >>> data = foo.data.pop(0)
+   >>> data.args
+   (('x', 'blah'), ('y', 2))
+   >>> print clean_info_path(`data.info`)
+   File "tests/samplepackage/bar2.zcml", line 5.2-5.24
+
+   >>> data = foo.data.pop(0)
+   >>> data.args
+   (('x', 'blah'), ('y', 1))
+   >>> print clean_info_path(`data.info`)
+   File "tests/samplepackage/bar2.zcml", line 6.2-6.24
+
+
+We expect the exact same results when using includeOverrides with
+the ``files`` argument instead of the ``file`` argument.  The
+baro2.zcml file uses the former:
+
+.. doctest::
+
+   >>> context = ConfigurationMachine()
+   >>> registerCommonDirectives(context)
+   >>> path = os.path.join(here, "samplepackage", "baro2.zcml")
+   >>> include(context, path)
+
+Actions look like above:
+
+.. doctest::
+
+   >>> pprint(clean_actions(context.actions))
+   [{'discriminator': (('x', 'blah'), ('y', 0)),
+     'includepath': ['tests/samplepackage/baro2.zcml',
+                     'tests/samplepackage/bar1.zcml',
+                     'tests/samplepackage/configure.zcml'],
+     'info': 'File "tests/samplepackage/configure.zcml", line 12.2-12.29'},
+    {'discriminator': (('x', 'blah'), ('y', 1)),
+     'includepath': ['tests/samplepackage/baro2.zcml',
+                     'tests/samplepackage/bar1.zcml'],
+     'info': 'File "tests/samplepackage/bar1.zcml", line 5.2-5.24'},
+    {'discriminator': (('x', 'blah'), ('y', 0)),
+     'includepath': ['tests/samplepackage/baro2.zcml'],
+     'info': 'File "tests/samplepackage/bar21.zcml", line 3.2-3.24'},
+    {'discriminator': (('x', 'blah'), ('y', 2)),
+     'includepath': ['tests/samplepackage/baro2.zcml'],
+     'info': 'File "tests/samplepackage/bar2.zcml", line 5.2-5.24'},
+    {'discriminator': (('x', 'blah'), ('y', 1)),
+     'includepath': ['tests/samplepackage/baro2.zcml'],
+     'info': 'File "tests/samplepackage/bar2.zcml", line 6.2-6.24'}]
+
+   >>> context.execute_actions()
+   >>> len(foo.data)
+   3
+   >>> del foo.data[:]
+
+
+
 Making specific directives conditional
 ======================================
 
@@ -455,8 +681,8 @@ Now, we'll include the zope.configuration.tests.excludedemo config:
 
 .. doctest::
 
-   >>> from zope.configuration import xmlconfig
-   >>> _ = xmlconfig.string('<include package="zope.configuration.tests.excludedemo" />')
+   >>> from zope.configuration.xmlconfig import string
+   >>> _ = string('<include package="zope.configuration.tests.excludedemo" />')
    >>> len(handler.buffer)
    3
    >>> logged = [x.msg for x in handler.buffer]
@@ -479,7 +705,7 @@ rerunning gives the same thing:
 
 .. doctest::
 
-   >>> _ = xmlconfig.string('<include package="zope.configuration.tests.excludedemo" />')
+   >>> _ = string('<include package="zope.configuration.tests.excludedemo" />')
    >>> len(handler.buffer)
    3
    >>> logged = [x.msg for x in handler.buffer]
@@ -502,7 +728,7 @@ by the configuration file in zope.configuration.tests.excludedemo:
 
 .. doctest::
 
-   >>> _ = xmlconfig.string(
+   >>> _ = string(
    ... '''
    ... <configure  xmlns="http://namespaces.zope.org/zope">
    ...   <exclude package="zope.configuration.tests.excludedemo.sub" />
