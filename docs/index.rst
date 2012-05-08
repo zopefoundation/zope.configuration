@@ -15,6 +15,7 @@ Contents:
    :maxdepth: 2
 
    api/config
+   api/docutils
 
 
 Indices and tables
