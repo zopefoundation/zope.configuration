@@ -17,6 +17,7 @@ Contents:
    api/config
    api/docutils
    api/exceptions
+   api/fields
 
 
 Indices and tables
