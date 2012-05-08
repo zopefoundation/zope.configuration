@@ -18,7 +18,7 @@ __docformat__ = 'restructuredtext'
 import re
 
 para_sep = re.compile('\n{2,}')
-whitespace=re.compile('[ \t\n\r]+')
+whitespace = re.compile('[ \t\n\r]+')
 
 def wrap(text, width=78, indent=0):
     """Makes sure that we keep a line length of a certain width.
