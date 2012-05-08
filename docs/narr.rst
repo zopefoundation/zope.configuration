@@ -77,6 +77,94 @@ the directive.  There are four kinds of directives:
 .. todo::
    Flesh out narrative docs.
 
+
+Making specific directives conditional
+======================================
+
+There is a ``condition`` attribute in the
+"http://namespaces.zope.org/zcml" namespace which is honored on all
+elements in ZCML.  The value of the attribute is an expression
+which is used to determine if that element and its descendents are
+used.  If the condition is true, processing continues normally,
+otherwise that element and its descendents are ignored.
+
+Currently the expression is always of the form "have featurename", and it
+checks for the presence of a ``<meta:provides feature="featurename" />``.
+
+Our demonstration uses a trivial registry; each registration consists
+of a simple id inserted in the global `registry` in this module.  We
+can checked that a registration was made by checking whether the id is
+present in `registry`.
+
+.. doctest::
+
+   >>> from zope.configuration.tests.test_conditions import registry
+   >>> registry
+   []
+
+We start by loading the example ZCML file, *conditions.zcml*:
+
+.. doctest::
+
+  >>> import zope.configuration.tests
+  >>> from zope.configuration.xmlconfig import file
+  >>> context = file("conditions.zcml", zope.configuration.tests)
+
+To show that our sample directive works, we see that the unqualified
+registration was successful:
+
+.. doctest::
+
+  >>> "unqualified.registration" in registry
+  True
+
+When the expression specified with ``zcml:condition`` evaluates to
+true, the element it is attached to and all contained elements (not
+otherwise conditioned) should be processed normally:
+
+.. doctest::
+
+  >>> "direct.true.condition" in registry
+  True
+  >>> "nested.true.condition" in registry
+  True
+
+However, when the expression evaluates to false, the conditioned
+element and all contained elements should be ignored:
+
+.. doctest::
+
+  >>> "direct.false.condition" in registry
+  False
+  >>> "nested.false.condition" in registry
+  False
+
+Conditions on container elements affect the conditions in nested
+elements in a reasonable way.  If an "outer" condition is true, nested
+conditions are processed normally:
+
+.. doctest::
+
+  >>> "true.condition.nested.in.true" in registry
+  True
+  >>> "false.condition.nested.in.true" in registry
+  False
+
+If the outer condition is false, inner conditions are not even
+evaluated, and the nested elements are ignored:
+
+.. doctest::
+
+  >>> "true.condition.nested.in.false" in registry
+  False
+  >>> "false.condition.nested.in.false" in registry
+  False
+
+.. testcleanup::
+
+  del registry[:]
+
+
 Filtering and Inhibiting Configuration
 ======================================
 
