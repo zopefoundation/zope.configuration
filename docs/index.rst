@@ -21,6 +21,7 @@ Contents:
    api/interfaces
    api/name
    api/stxdocs
+   api/xmlconfig
 
 
 Indices and tables

@@ -52,16 +52,9 @@ ZCML_CONDITION = (ZCML_NAMESPACE, u"condition")
 class ZopeXMLConfigurationError(ConfigurationError):
     """Zope XML Configuration error
 
-    These errors are wrappers for other errors. The include configuration
-    info and the wrapped error type and value:
-
-    >>> v = ZopeXMLConfigurationError("blah", AttributeError, "xxx")
-    >>> print v
-    'blah'
-        AttributeError: xxx
-
+    These errors are wrappers for other errors. They include configuration
+    info and the wrapped error type and value.
     """
-
     def __init__(self, info, etype, evalue):
         self.info, self.etype, self.evalue = info, etype, evalue
 
@@ -73,13 +66,7 @@ class ZopeXMLConfigurationError(ConfigurationError):
 
 class ZopeSAXParseException(ConfigurationError):
     """Sax Parser errors, reformatted in an emacs friendly way
-
-    >>> v = ZopeSAXParseException("foo.xml:12:3:Not well formed")
-    >>> print v
-    File "foo.xml", line 12.3, Not well formed
-
     """
-
     def __init__(self, v):
         self._v = v
 
@@ -96,36 +83,7 @@ class ParserInfo(object):
 
     This includes the directive location, as well as text data
     contained in the directive.
-
-    >>> info = ParserInfo('tests//sample.zcml', 1, 0)
-    >>> info
-    File "tests//sample.zcml", line 1.0
-
-    >>> print info
-    File "tests//sample.zcml", line 1.0
-
-    >>> info.characters("blah\\n")
-    >>> info.characters("blah")
-    >>> info.text
-    u'blah\\nblah'
-
-    >>> info.end(7, 0)
-    >>> info
-    File "tests//sample.zcml", line 1.0-7.0
-
-    >>> print info
-    File "tests//sample.zcml", line 1.0-7.0
-      <configure xmlns='http://namespaces.zope.org/zope'>
-        <!-- zope.configure -->
-        <directives namespace="http://namespaces.zope.org/zope">
-          <directive name="hook" attributes="name implementation module"
-             handler="zope.configuration.metaconfigure.hook" />
-        </directives>
-      </configure>
-
-
     """
-
     text = u''
 
     def __init__(self, file, line, column):
@@ -251,71 +209,10 @@ class ConfigurationHandler(ContentHandler):
     def evaluateCondition(self, expression):
         """Evaluate a ZCML condition.
 
-        `expression` is a string of the form "verb arguments".
+        ``expression`` is a string of the form "verb arguments".
 
-        Currently the supported verbs are 'have', 'not-have',
-        'installed' and 'not-installed'.
-
-        The 'have' verb takes one argument: the name of a feature.
-
-        >>> from zope.configuration.config import ConfigurationContext
-        >>> context = ConfigurationContext()
-        >>> context.provideFeature('apidoc')
-        >>> c = ConfigurationHandler(context, testing=True)
-        >>> c.evaluateCondition("have apidoc")
-        True
-        >>> c.evaluateCondition("not-have apidoc")
-        False
-        >>> c.evaluateCondition("have onlinehelp")
-        False
-        >>> c.evaluateCondition("not-have onlinehelp")
-        True
-
-        Ill-formed expressions raise an error
-
-        >>> c.evaluateCondition("want apidoc")
-        Traceback (most recent call last):
-          ...
-        ValueError: Invalid ZCML condition: 'want apidoc'
-
-        >>> c.evaluateCondition("have x y")
-        Traceback (most recent call last):
-          ...
-        ValueError: Only one feature allowed: 'have x y'
-
-        >>> c.evaluateCondition("have")
-        Traceback (most recent call last):
-          ...
-        ValueError: Feature name missing: 'have'
-
-
-        The 'installed' verb takes one argument: the dotted name of a
-        pacakge. If the pacakge is found, in other words, can be imported,
-        then the condition will return true.
-
-        >>> from zope.configuration.config import ConfigurationContext
-        >>> context = ConfigurationContext()
-        >>> c = ConfigurationHandler(context, testing=True)
-        >>> c.evaluateCondition('installed zope.interface')
-        True
-        >>> c.evaluateCondition('not-installed zope.interface')
-        False
-        >>> c.evaluateCondition('installed zope.foo')
-        False
-        >>> c.evaluateCondition('not-installed zope.foo')
-        True
-
-        Ill-formed expressions raise an error
-
-        >>> c.evaluateCondition("installed foo bar")
-        Traceback (most recent call last):
-          ...
-        ValueError: Only one package allowed: 'installed foo bar'
-
-        >>> c.evaluateCondition("installed")
-        Traceback (most recent call last):
-          ...
-        ValueError: Package name missing: 'installed'
+        Currently the supported verbs are ``have``, ``not-have``,
+        ``installed`` and ``not-installed``.
         """
         arguments = expression.split(None)
         verb = arguments.pop(0)
@@ -396,42 +293,6 @@ def openInOrPlain(filename):
     If the requested file does not exist and filename.in does, fall
     back to filename.in.  If opening the original filename fails for
     any other reason, allow the failure to propogate.
-
-    For example, the tests/samplepackage dirextory has files:
-
-       configure.zcml
-       configure.zcml.in
-       foo.zcml.in
-
-    If we open configure.zcml, we'll get that file:
-
-    >>> here = os.path.dirname(__file__)
-    >>> path = os.path.join(here, 'tests', 'samplepackage', 'configure.zcml')
-    >>> f = openInOrPlain(path)
-    >>> f.name[-14:]
-    'configure.zcml'
-
-    But if we open foo.zcml, we'll get foo.zcml.in, since there isn't a
-    foo.zcml:
-
-    >>> path = os.path.join(here, 'tests', 'samplepackage', 'foo.zcml')
-    >>> f = openInOrPlain(path)
-    >>> f.name[-11:]
-    'foo.zcml.in'
-
-    Make sure other IOErrors are re-raised.  We need to do this in a
-    try-except block because different errors are raised on Windows and
-    on Linux.
-
-    >>> try:
-    ...     f = openInOrPlain('.')
-    ... except IOError:
-    ...     print "passed"
-    ... else:
-    ...     print "failed"
-    ...
-    passed
-
     """
     try:
         fp = open(filename)
