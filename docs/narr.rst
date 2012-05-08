@@ -98,7 +98,7 @@ present in `registry`.
 
 .. doctest::
 
-   >>> from zope.configuration.tests.test_conditions import registry
+   >>> from zope.configuration.tests.conditions import registry
    >>> registry
    []
 

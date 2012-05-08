@@ -13,8 +13,6 @@
 ##############################################################################
 """ Enable "Making specific directives condition" section of narrative docs.
 """
-import unittest
-
 from zope.interface import Interface
 from zope.schema import Id
 
@@ -35,7 +33,3 @@ def register(context, id):
                    callable=registry.append,
                    args=(id,)
                    )
-
-def test_suite():
-    # dead chicken for the test finder
-    return unittest.TestSuite()

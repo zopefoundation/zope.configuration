@@ -8,8 +8,8 @@
   <meta:directive
       name="register"
       namespace="http://sample.namespaces.zope.org/test"
-      schema=".test_conditions.IRegister"
-      handler=".test_conditions.register"
+      schema=".conditions.IRegister"
+      handler=".conditions.register"
       >
     This registers a directive which creates registrations we can test.
   </meta:directive>
