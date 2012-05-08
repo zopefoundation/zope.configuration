@@ -20,20 +20,28 @@ test_includeOverrides in tests/test_xmlconfig.py
 __docformat__ = 'restructuredtext'
 
 import errno
+from glob import glob
+import logging
 import os
 import sys
-import logging
-import zope.configuration.config as config
-
-from glob import glob
 from xml.sax import make_parser
 from xml.sax.xmlreader import InputSource
 from xml.sax.handler import ContentHandler, feature_namespaces
 from xml.sax import SAXParseException
-from zope import schema
-from zope.configuration.exceptions import ConfigurationError
-from zope.configuration.zopeconfigure import IZopeConfigure, ZopeConfigure
+
 from zope.interface import Interface
+from zope.schema import BytesLine
+
+from zope.configuration.config import ConfigurationMachine
+from zope.configuration.config import defineGroupingDirective
+from zope.configuration.config import defineSimpleDirective
+from zope.configuration.config import GroupingContextDecorator
+from zope.configuration.config import GroupingStackItem
+from zope.configuration.config import resolveConflicts
+from zope.configuration.exceptions import ConfigurationError
+from zope.configuration.fields import GlobalObject
+from zope.configuration.zopeconfigure import IZopeConfigure
+from zope.configuration.zopeconfigure import ZopeConfigure
 
 logger = logging.getLogger("config")
 
@@ -446,7 +454,7 @@ class IInclude(Interface):
     files in each package and then link them together.
     """
 
-    file = schema.BytesLine(
+    file = BytesLine(
         title=u"Configuration file name",
         description=u"The name of a configuration file to be included/excluded, "
                     u"relative to the directive containing the "
@@ -454,7 +462,7 @@ class IInclude(Interface):
         required=False,
         )
 
-    files = schema.BytesLine(
+    files = BytesLine(
         title=u"Configuration file name pattern",
         description=u"""
         The names of multiple configuration files to be included/excluded,
@@ -476,7 +484,7 @@ class IInclude(Interface):
         required=False,
         )
 
-    package = config.fields.GlobalObject(
+    package = GlobalObject(
         title=u"Include or exclude package",
         description=u"""
         Include or exclude the named file (or configure.zcml) from the directory
@@ -523,7 +531,7 @@ def include(_context, file=None, package=None, files=None):
 
     # This is a tad tricky. We want to behave as a grouping directive.
 
-    context = config.GroupingContextDecorator(_context)
+    context = GroupingContextDecorator(_context)
     if package is not None:
         context.package = package
         context.basepath = None
@@ -543,7 +551,7 @@ def include(_context, file=None, package=None, files=None):
 
             context.basepath = os.path.dirname(path)
             context.includepath = _context.includepath + (f.name, )
-            _context.stack.append(config.GroupingStackItem(context))
+            _context.stack.append(GroupingStackItem(context))
 
             processxmlfile(f, context)
             f.close()
@@ -564,7 +572,7 @@ def exclude(_context, file=None, package=None, files=None):
         file = 'configure.zcml'
 
 
-    context = config.GroupingContextDecorator(_context)
+    context = GroupingContextDecorator(_context)
     if package is not None:
         context.package = package
         context.basepath = None
@@ -607,7 +615,7 @@ def includeOverrides(_context, file=None, package=None, files=None):
     # and munge the includepath:
     newactions = []
 
-    for action in config.resolveConflicts(_context.actions[nactions:]):
+    for action in resolveConflicts(_context.actions[nactions:]):
         action['includepath'] = includepath
         newactions.append(action)
 
@@ -617,16 +625,16 @@ def registerCommonDirectives(context):
     # We have to use the direct definition functions to define
     # a directive for all namespaces.
 
-    config.defineSimpleDirective(
+    defineSimpleDirective(
         context, "include", IInclude, include, namespace="*")
 
-    config.defineSimpleDirective(
+    defineSimpleDirective(
         context, "exclude", IInclude, exclude, namespace="*")
 
-    config.defineSimpleDirective(
+    defineSimpleDirective(
         context, "includeOverrides", IInclude, includeOverrides, namespace="*")
 
-    config.defineGroupingDirective(
+    defineGroupingDirective(
         context,
         name="configure",
         namespace="*",
@@ -639,7 +647,7 @@ def file(name, package=None, context=None, execute=True):
     """
 
     if context is None:
-        context = config.ConfigurationMachine()
+        context = ConfigurationMachine()
         registerCommonDirectives(context)
         context.package = package
 
@@ -655,7 +663,7 @@ def string(s, context=None, name="<string>", execute=True):
     from StringIO import StringIO
 
     if context is None:
-        context = config.ConfigurationMachine()
+        context = ConfigurationMachine()
         registerCommonDirectives(context)
 
     f = StringIO(s)
@@ -675,7 +683,7 @@ def string(s, context=None, name="<string>", execute=True):
 _context = None
 def _clearContext():
     global _context
-    _context = config.ConfigurationMachine()
+    _context = ConfigurationMachine()
     registerCommonDirectives(_context)
 
 def _getContext():

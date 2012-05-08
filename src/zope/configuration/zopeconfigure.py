@@ -99,9 +99,12 @@ which isn't supported using the meta-configuration directives.)
 """
 __docformat__ = 'restructuredtext'
 import os
-import zope.configuration.config as config
-from zope import schema
+
 from zope.interface import Interface
+from zope.schema import BytesLine
+
+from zope.configuration.config import GroupingContextDecorator
+from zope.configuration.fields import GlobalObject
 
 class IZopeConfigure(Interface):
     """The ``zope:configure`` Directive
@@ -116,13 +119,13 @@ class IZopeConfigure(Interface):
     be applied whereever it is convenient. 
     """
 
-    package = config.fields.GlobalObject(
+    package = GlobalObject(
         title=u"Package",
         description=u"The package to be used for evaluating relative imports "
                     u"and file names.",
         required=False)
 
-    i18n_domain = schema.BytesLine(
+    i18n_domain = BytesLine(
         title=u"Internationalization domain",
         description=u"This is a name for the software project. It must be a "
                     u"legal file-system name as it will be used to contruct "
@@ -133,7 +136,7 @@ class IZopeConfigure(Interface):
         required=False)
 
 
-class ZopeConfigure(config.GroupingContextDecorator):
+class ZopeConfigure(GroupingContextDecorator):
     __doc__ = __doc__
 
     def __init__(self, context, **kw):
