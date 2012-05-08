@@ -105,6 +105,7 @@ from zope.schema import BytesLine
 
 from zope.configuration.config import GroupingContextDecorator
 from zope.configuration.fields import GlobalObject
+from zope.configuration._compat import u
 
 class IZopeConfigure(Interface):
     """The ``zope:configure`` Directive
@@ -120,19 +121,19 @@ class IZopeConfigure(Interface):
     """
 
     package = GlobalObject(
-        title=u"Package",
-        description=u"The package to be used for evaluating relative imports "
-                    u"and file names.",
+        title=u("Package"),
+        description=u("The package to be used for evaluating relative imports "
+                      "and file names."),
         required=False)
 
     i18n_domain = BytesLine(
-        title=u"Internationalization domain",
-        description=u"This is a name for the software project. It must be a "
-                    u"legal file-system name as it will be used to contruct "
-                    u"names for directories containing translation data. "
-                    u"\n"
-                    u"The domain defines a namespace for the message ids "
-                    u"used by a project.",
+        title=u("Internationalization domain"),
+        description=u("This is a name for the software project. It must be a "
+                      "legal file-system name as it will be used to contruct "
+                      "names for directories containing translation data. "
+                      "\n"
+                      "The domain defines a namespace for the message ids "
+                      "used by a project."),
         required=False)
 
 

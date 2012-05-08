@@ -13,7 +13,6 @@
 ##############################################################################
 """Configuration processor
 """
-import __builtin__
 from keyword import iskeyword
 import operator
 import os.path
@@ -21,7 +20,7 @@ import sys
 
 from zope.interface.adapter import AdapterRegistry
 from zope.interface import Interface
-from zope.interface import implements
+from zope.interface import implementer
 from zope.interface import providedBy
 from zope.schema import TextLine
 from zope.schema import URI
@@ -32,6 +31,11 @@ from zope.configuration.interfaces import IConfigurationContext
 from zope.configuration.interfaces import IGroupingContext
 from zope.configuration.fields import GlobalInterface
 from zope.configuration.fields import GlobalObject
+from zope.configuration._compat import builtins
+from zope.configuration._compat import reraise
+from zope.configuration._compat import string_types
+from zope.configuration._compat import text_type
+from zope.configuration._compat import u
 
 
 zopens = 'http://namespaces.zope.org/zope'
@@ -112,7 +116,7 @@ class ConfigurationContext(object):
         if len(names) == 1:
             # Check for built-in objects
             marker = object()
-            obj = getattr(__builtin__, names[0], marker)
+            obj = getattr(builtins, names[0], marker)
             if obj is not marker:
                 return obj
 
@@ -148,7 +152,7 @@ class ConfigurationContext(object):
 
         try:
             mod = __import__(mname, *_import_chickens)
-        except ImportError, v:
+        except ImportError as v:
             if sys.exc_info()[2].tb_next is not None:
                 # ImportError was caused deeper
                 raise
@@ -296,7 +300,7 @@ class ConfigurationAdapterRegistry(object):
         r.register([interface], Interface, '', factory)
 
     def document(self, name, schema, usedIn, handler, info, parent=None):
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, string_types):
             name = ('', name)
         self._docRegistry.append((name, schema, usedIn, handler, info, parent))
 
@@ -315,11 +319,10 @@ class ConfigurationAdapterRegistry(object):
                 "The directive %s cannot be used in this context" % (name, ))
         return f
 
+@implementer(IConfigurationContext)
 class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
     """Configuration machine
     """
-    implements(IConfigurationContext)
-
     package = None
     basepath = None
     includepath = ()
@@ -376,7 +379,8 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                         raise
                     t, v, tb = sys.exc_info()
                     try:
-                        raise ConfigurationExecutionError(t, v, info), None, tb
+                        reraise(ConfigurationExecutionError(t, v, info),
+                                None, tb)
                     finally:
                        del t, v, tb
                 
@@ -420,6 +424,7 @@ class IStackItem(Interface):
         """Finish processing a directive
         """
 
+@implementer(IStackItem)
 class SimpleStackItem(object):
     """Simple stack item
 
@@ -430,8 +435,6 @@ class SimpleStackItem(object):
     It also defers any computation until the end of the directive
     has been reached.
     """
-    implements(IStackItem)
-
     def __init__(self, context, handler, info, *argdata):
         newcontext = GroupingContextDecorator(context)
         newcontext.info = info
@@ -457,8 +460,8 @@ class SimpleStackItem(object):
                     action = expand_action(*action) # b/c
                 context.action(**action)
 
+@implementer(IStackItem)
 class RootStackItem(object):
-    implements(IStackItem)
 
     def __init__(self, context):
         self.context = context
@@ -478,6 +481,7 @@ class RootStackItem(object):
     def finish(self):
         pass
 
+@implementer(IStackItem)
 class GroupingStackItem(RootStackItem):
     """Stack item for a grouping directive
 
@@ -489,7 +493,6 @@ class GroupingStackItem(RootStackItem):
     A grouping stack item is created with a grouping directive
     definition, a configuration context, and directive data.
     """
-    implements(IStackItem)
 
     def __init__(self, context):
         super(GroupingStackItem, self).__init__(context)
@@ -519,6 +522,8 @@ class GroupingStackItem(RootStackItem):
 def noop():
     pass
 
+
+@implementer(IStackItem)
 class ComplexStackItem(object):
     """Complex stack item
 
@@ -529,7 +534,6 @@ class ComplexStackItem(object):
     definition (IComplexDirectiveContext), a configuration context,
     and directive data.
     """
-    implements(IStackItem)
 
     def __init__(self, meta, context, data, info):
         newcontext = GroupingContextDecorator(context)
@@ -559,7 +563,7 @@ class ComplexStackItem(object):
         # Need to save and restore old info
         try:
             actions = self.handler()
-        except AttributeError, v:
+        except AttributeError as v:
             if v[0] == '__call__':
                 return # noncallable
             raise
@@ -576,12 +580,12 @@ class ComplexStackItem(object):
 ##############################################################################
 # Helper classes
 
+@implementer(IConfigurationContext, IGroupingContext)
 class GroupingContextDecorator(ConfigurationContext):
     """Helper mix-in class for building grouping directives
 
     See the discussion (and test) in GroupingStackItem.
     """
-    implements(IConfigurationContext, IGroupingContext)
 
     def __init__(self, context, **kw):
         self.context = context
@@ -613,13 +617,17 @@ class IDirectivesInfo(Interface):
     """
 
     namespace = URI(
-        title=u"Namespace",
-        description=u"The namespace in which directives' names will be defined",
+        title=u("Namespace"),
+        description=u("The namespace in which directives' names "
+                      "will be defined"),
         )
+
 
 class IDirectivesContext(IDirectivesInfo, IConfigurationContext):
     pass
 
+
+@implementer(IDirectivesContext)
 class DirectivesHandler(GroupingContextDecorator):
     """Handler for the directives directive
 
@@ -627,7 +635,6 @@ class DirectivesHandler(GroupingContextDecorator):
     to the normal directive context.
 
     """
-    implements(IDirectivesContext)
 
 
 class IDirectiveInfo(Interface):
@@ -635,13 +642,13 @@ class IDirectiveInfo(Interface):
     """
 
     name = TextLine(
-        title = u"Directive name",
-        description = u"The name of the directive being defined",
+        title = u("Directive name"),
+        description = u("The name of the directive being defined"),
         )
 
     schema = DirectiveSchema(
-        title = u"Directive handler",
-        description = u"The dotted name of the directive handler",
+        title = u("Directive handler"),
+        description = u("The dotted name of the directive handler"),
         )
 
 class IFullInfo(IDirectiveInfo):
@@ -649,14 +656,14 @@ class IFullInfo(IDirectiveInfo):
     """
 
     handler = GlobalObject(
-        title = u"Directive handler",
-        description = u"The dotted name of the directive handler",
+        title = u("Directive handler"),
+        description = u("The dotted name of the directive handler"),
         )
 
     usedIn = GlobalInterface(
-        title = u"The directive types the directive can be used in",
-        description = (u"The interface of the directives that can contain "
-                       u"the directive"
+        title = u("The directive types the directive can be used in"),
+        description = u("The interface of the directives that can contain "
+                        "the directive"
                        ),
         default = IConfigurationContext,
         )
@@ -711,13 +718,13 @@ def defineGroupingDirective(context, name, schema, handler,
 class IComplexDirectiveContext(IFullInfo, IConfigurationContext):
     pass
 
+
+@implementer(IComplexDirectiveContext)
 class ComplexDirectiveDefinition(GroupingContextDecorator, dict):
     """Handler for defining complex directives
 
     See the description and tests for ComplexStackItem.
     """
-    implements(IComplexDirectiveContext)
-
     def before(self):
 
         def factory(context, data, info):
@@ -741,11 +748,11 @@ class IProvidesDirectiveInfo(Interface):
     """Information for a <meta:provides> directive"""
 
     feature = TextLine(
-        title = u"Feature name",
-        description = u"""The name of the feature being provided
+        title = u("Feature name"),
+        description = u("""The name of the feature being provided
 
         You can test available features with zcml:condition="have featurename".
-        """,
+        """),
         )
 
 def provides(context, feature):
@@ -782,14 +789,14 @@ def toargs(context, schema, data):
 
         s = data.get(n, data)
         if s is not data:
-            s = unicode(s)
+            s = text_type(s)
             del data[n]
 
             try:
                 args[str(name)] = field.fromUnicode(s)
-            except ValidationError, v:
-                raise ConfigurationError(
-                    "Invalid value for", n, str(v)), None, sys.exc_info()[2]
+            except ValidationError as v:
+                reraise(ConfigurationError("Invalid value for", n, str(v)),
+                        None, sys.exc_info()[2])
         elif field.required:
             # if the default is valid, we can use that:
             default = field.default
@@ -926,8 +933,8 @@ class ConfigurationConflictError(ConfigurationError):
         for discriminator, infos in items:
             r.append("  For: %s" % (discriminator, ))
             for info in infos:
-                for line in unicode(info).rstrip().split(u'\n'):
-                    r.append(u"    "+line)
+                for line in text_type(info).rstrip().split(u('\n')):
+                    r.append(u("    ") + line)
 
         return "\n".join(r)
 

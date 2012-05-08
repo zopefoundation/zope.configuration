@@ -30,7 +30,7 @@ from xml.sax.handler import ContentHandler, feature_namespaces
 from xml.sax import SAXParseException
 
 from zope.interface import Interface
-from zope.schema import BytesLine
+from zope.schema import NativeStringLine
 
 from zope.configuration.config import ConfigurationMachine
 from zope.configuration.config import defineGroupingDirective
@@ -42,11 +42,13 @@ from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.fields import GlobalObject
 from zope.configuration.zopeconfigure import IZopeConfigure
 from zope.configuration.zopeconfigure import ZopeConfigure
+from zope.configuration._compat import u
+from zope.configuration._compat import reraise
 
 logger = logging.getLogger("config")
 
 ZCML_NAMESPACE = "http://namespaces.zope.org/zcml"
-ZCML_CONDITION = (ZCML_NAMESPACE, u"condition")
+ZCML_CONDITION = (ZCML_NAMESPACE, u("condition"))
 
 
 class ZopeXMLConfigurationError(ConfigurationError):
@@ -62,7 +64,7 @@ class ZopeXMLConfigurationError(ConfigurationError):
         # Only use the repr of the info. This is because we expect to
         # get a parse info and we only want the location information.
         return "%s\n    %s: %s" % (
-            `self.info`, self.etype.__name__, self.evalue)
+            repr(self.info), self.etype.__name__, self.evalue)
 
 class ZopeSAXParseException(ConfigurationError):
     """Sax Parser errors, reformatted in an emacs friendly way
@@ -84,7 +86,7 @@ class ParserInfo(object):
     This includes the directive location, as well as text data
     contained in the directive.
     """
-    text = u''
+    text = u('')
 
     def __init__(self, file, line, column):
         self.file, self.line, self.column = file, line, column
@@ -133,17 +135,19 @@ class ParserInfo(object):
                 # Remove text before start if it's noy whitespace
                 lines[0] = lines[0][self.column:]
 
+            pad = u('  ')
+            blank = u('')
             try:
-                src = u''.join([u"  "+l for l in lines])
+                src = blank.join([pad + l for l in lines])
             except UnicodeDecodeError:
                 # XXX:
                 # I hope so most internation zcml will use UTF-8 as encoding
                 # otherwise this code must be made more clever
-                src = u''.join([u"  "+l.decode('utf-8') for l in lines])
+                src = blank.join([pad + l.decode('utf-8') for l in lines])
                 # unicode won't be printable, at least on my console
                 src = src.encode('ascii','replace')
 
-        return "%s\n%s" % (`self`, src)
+        return "%s\n%s" % (repr(self), src)
 
     def characters(self, characters):
         self.text += characters
@@ -201,8 +205,10 @@ class ConfigurationHandler(ContentHandler):
         except:
             if self.testing:
                 raise
-            raise ZopeXMLConfigurationError(info, sys.exc_info()[0],
-                sys.exc_info()[1]), None, sys.exc_info()[2]
+            reraise(ZopeXMLConfigurationError(info,
+                                              sys.exc_info()[0],
+                                              sys.exc_info()[1]),
+                    None, sys.exc_info()[2])
 
         self.context.setInfo(info)
 
@@ -267,8 +273,10 @@ class ConfigurationHandler(ContentHandler):
         except:
             if self.testing:
                 raise
-            raise ZopeXMLConfigurationError(info, sys.exc_info()[0],
-                sys.exc_info()[1]), None, sys.exc_info()[2]
+            reraise(ZopeXMLConfigurationError(info,
+                                              sys.exc_info()[0],
+                                              sys.exc_info()[1]),
+                    None, sys.exc_info()[2])
 
 
 def processxmlfile(file, context, testing=False):
@@ -284,7 +292,8 @@ def processxmlfile(file, context, testing=False):
     try:
         parser.parse(src)
     except SAXParseException:
-        raise ZopeSAXParseException(sys.exc_info()[1]), None, sys.exc_info()[2]
+        reraise(ZopeSAXParseException(sys.exc_info()[1]),
+                None, sys.exc_info()[2])
 
 
 def openInOrPlain(filename):
@@ -296,7 +305,8 @@ def openInOrPlain(filename):
     """
     try:
         fp = open(filename)
-    except IOError, (code, msg):
+    except IOError as e:
+        code, msg = e.args
         if code == errno.ENOENT:
             fn = filename + ".in"
             if os.path.exists(fn):
@@ -315,17 +325,17 @@ class IInclude(Interface):
     files in each package and then link them together.
     """
 
-    file = BytesLine(
-        title=u"Configuration file name",
-        description=u"The name of a configuration file to be included/excluded, "
-                    u"relative to the directive containing the "
-                    u"including configuration file.",
+    file = NativeStringLine(
+        title=u("Configuration file name"),
+        description=u("The name of a configuration file to be included/excluded, "
+                      "relative to the directive containing the "
+                      "including configuration file."),
         required=False,
         )
 
-    files = BytesLine(
-        title=u"Configuration file name pattern",
-        description=u"""
+    files = NativeStringLine(
+        title=u("Configuration file name pattern"),
+        description=u("""
         The names of multiple configuration files to be included/excluded,
         expressed as a file-name pattern, relative to the directive
         containing the including or excluding configuration file.  The pattern
@@ -341,16 +351,16 @@ class IInclude(Interface):
 
         The file names are included in sorted order, where sorting is
         without regard to case.
-        """,
+        """),
         required=False,
         )
 
     package = GlobalObject(
-        title=u"Include or exclude package",
-        description=u"""
+        title=u("Include or exclude package"),
+        description=u("""
         Include or exclude the named file (or configure.zcml) from the directory
         of this package.
-        """,
+        """),
         required=False,
         )
 
@@ -376,8 +386,7 @@ def include(_context, file=None, package=None, files=None):
 
     if files:
         paths = glob(context.path(files))
-        paths = zip([path.lower() for path in paths], paths)
-        paths.sort()
+        paths = sorted(zip([path.lower() for path in paths], paths))
         paths = [path for (l, path) in paths]
     else:
         paths = [context.path(file)]

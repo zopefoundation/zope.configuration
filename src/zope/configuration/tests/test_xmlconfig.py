@@ -15,15 +15,17 @@
 """
 import unittest
 
-NS = u'ns'
-FOO = u'foo'
-XXX = u'xxx'
-SPLAT = u'splat'
-SPLATV = u'splatv'
-A = u'a'
-AVALUE = u'avalue'
-B = u'b'
-BVALUE = u'bvalue'
+from zope.configuration._compat import u
+
+NS = u('ns')
+FOO = u('foo')
+XXX = u('xxx')
+SPLAT = u('splat')
+SPLATV = u('splatv')
+A = u('a')
+AVALUE = u('avalue')
+B = u('b')
+BVALUE = u('bvalue')
 
 
 class ZopeXMLConfigurationErrorTests(unittest.TestCase):
@@ -134,6 +136,7 @@ class Test_processxmlfile(unittest.TestCase):
     def test_it(self):
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         file = open(path("samplepackage", "configure.zcml"))
         context = ConfigurationMachine()
@@ -142,8 +145,8 @@ class Test_processxmlfile(unittest.TestCase):
         self.assertEqual(foo.data, [])
         context.execute_actions()
         data = foo.data.pop()
-        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                 'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
         self.assertEqual(clean_info_path(str(data.info)),
                 'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n'
@@ -168,6 +171,7 @@ class Test_include(unittest.TestCase):
     def test_include_by_package(self):
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         import zope.configuration.tests.samplepackage as package
         context = ConfigurationMachine()
@@ -175,8 +179,8 @@ class Test_include(unittest.TestCase):
         self._callFUT(context, 'configure.zcml', package)
         context.execute_actions()
         data = foo.data.pop()
-        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                 'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
         self.assertEqual(clean_info_path(str(data.info)),
                 'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n'
@@ -200,6 +204,7 @@ class Test_include(unittest.TestCase):
         import os
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         context = ConfigurationMachine()
         registerCommonDirectives(context)
@@ -208,8 +213,8 @@ class Test_include(unittest.TestCase):
         self._callFUT(context, path)
         context.execute_actions()
         data = foo.data.pop()
-        self.assertEqual(data.args, (('x', 'foo'), ('y', 2)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('foo')), ('y', 2)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                     'File "tests/samplepackage/foo.zcml.in", line 12.2-12.28')
         self.assertEqual(clean_info_path(str(data.info)),
                     'File "tests/samplepackage/foo.zcml.in", line 12.2-12.28\n'
@@ -223,6 +228,7 @@ class Test_include(unittest.TestCase):
         import os
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         context = ConfigurationMachine()
         registerCommonDirectives(context)
@@ -232,8 +238,8 @@ class Test_include(unittest.TestCase):
         context.execute_actions()
 
         data = foo.data.pop()
-        self.assertEqual(data.args, (('x', 'foo'), ('y', 3)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('foo')), ('y', 3)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                         'File "tests/samplepackage/baz3.zcml", line 5.2-5.28')
 
         self.assertEqual(clean_info_path(str(data.info)), 
@@ -245,8 +251,8 @@ class Test_include(unittest.TestCase):
                          ['tests/samplepackage/baz3.zcml'])
 
         data = foo.data.pop()
-        self.assertEqual(data.args, (('x', 'foo'), ('y', 2)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('foo')), ('y', 2)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                         'File "tests/samplepackage/baz2.zcml", line 5.2-5.28')
         self.assertEqual(clean_info_path(str(data.info)),
                         'File "tests/samplepackage/baz2.zcml", line 5.2-5.28\n'
@@ -278,12 +284,13 @@ class Test_file(unittest.TestCase):
         return file(*args, **kw)
 
     def test_simple(self):
+        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         file_name = path("samplepackage", "configure.zcml")
         context = self._callFUT(file_name)
         data = foo.data.pop()
-        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                 'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
         self.assertEqual(clean_info_path(str(data.info)),
                 'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n' +
@@ -319,6 +326,7 @@ class XMLConfigTests(unittest.TestCase):
 
     def test_XMLConfig(self):
         import os
+        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         here = os.path.dirname(__file__)
         path = os.path.join(here, "samplepackage", "baro.zcml")
@@ -327,21 +335,22 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(foo.data), 3)
 
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                         'File "tests/samplepackage/bar21.zcml", line 3.2-3.24')
 
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', 'blah'), ('y', 2)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 2)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                         'File "tests/samplepackage/bar2.zcml", line 5.2-5.24')
 
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', 'blah'), ('y', 1)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 1)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                          'File "tests/samplepackage/bar2.zcml", line 6.2-6.24')
 
     def test_XMLConfig_w_module(self):
+        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         from zope.configuration.tests import samplepackage as module
         x = self._makeOne("baro.zcml", module)
@@ -349,18 +358,18 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(foo.data), 3)
 
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', 'blah'), ('y', 0)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                         'File "tests/samplepackage/bar21.zcml", line 3.2-3.24')
 
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', 'blah'), ('y', 2)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 2)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                         'File "tests/samplepackage/bar2.zcml", line 5.2-5.24')
 
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', 'blah'), ('y', 1)))
-        self.assertEqual(clean_info_path(`data.info`),
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 1)))
+        self.assertEqual(clean_info_path(repr(data.info)),
                          'File "tests/samplepackage/bar2.zcml", line 6.2-6.24')
 
 
@@ -425,7 +434,7 @@ def clean_path(s):
 def clean_actions(actions):
     return [
       {'discriminator': action['discriminator'],
-       'info': clean_info_path(`action['info']`),
+       'info': clean_info_path(repr(action['info'])),
        'includepath': [clean_path(p) for p in action['includepath']],
        }
       for action in actions

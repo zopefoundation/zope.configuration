@@ -34,7 +34,7 @@ class ConfigurationContextTests(unittest.TestCase):
         else:
             if hasattr(excClass,'__name__'): excName = excClass.__name__
             else: excName = str(excClass)
-            raise self.failureException, "%s not raised" % excName
+            raise self.failureException("%s not raised" % excName)
 
     def test_resolve_trailing_dot_in_resolve(self):
         #Dotted names are no longer allowed to end in dots
@@ -134,6 +134,8 @@ class ConfigurationMachineTests(unittest.TestCase):
     def test_keyword_handling(self):
         from zope.configuration.config import metans
         from zope.configuration.tests.directives import f
+        from zope.configuration._compat import b
+        from zope.configuration._compat import u
         machine = self._makeOne()
         ns = "http://www.zope.org/testing"
 
@@ -157,13 +159,13 @@ class ConfigurationMachineTests(unittest.TestCase):
                 schema=".Ik", handler=".k")
 
         machine((ns, "k"), "yee ha",
-                **{"for": u"f", "class": u"c", "x": u"x"})
+                **{"for": u("f"), "class": u("c"), "x": u("x")})
 
         self.assertEqual(len(machine.actions), 1)
         self.assertEqual(machine.actions[0],
-                         {'args': ('f', 'c', 'x'),
+                         {'args': (b('f'), b('c'), b('x')),
                           'callable': f,
-                          'discriminator': ('k', 'f'),
+                          'discriminator': ('k', b('f')),
                           'includepath': (),
                           'info': 'yee ha',
                           'kw': {},

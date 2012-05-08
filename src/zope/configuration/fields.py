@@ -13,36 +13,43 @@
 ##############################################################################
 """Configuration-specific schema fields
 """
-__docformat__ = 'restructuredtext'
-import os, re, warnings
-from zope import schema
-from zope.schema.interfaces import IFromUnicode
-from zope.schema.interfaces import ConstraintNotSatisfied
-from zope.configuration.exceptions import ConfigurationError
-from zope.interface import implements
-from zope.configuration.interfaces import InvalidToken
+import os
+import re
+import warnings
 
-PYIDENTIFIER_REGEX = u'\\A[a-zA-Z_]+[a-zA-Z0-9_]*\\Z'
+from zope.interface import implementer
+from zope.schema import Bool
+from zope.schema import Field
+from zope.schema import InterfaceField
+from zope.schema import List
+from zope.schema import Text
+from zope.schema import TextLine
+from zope.schema import ValidationError
+from zope.schema.interfaces import IFromUnicode
+
+from zope.configuration.exceptions import ConfigurationError
+from zope.configuration.interfaces import InvalidToken
+from zope.configuration._compat import u
+
+PYIDENTIFIER_REGEX = u('\\A[a-zA-Z_]+[a-zA-Z0-9_]*\\Z')
 pyidentifierPattern = re.compile(PYIDENTIFIER_REGEX)
 
-class PythonIdentifier(schema.TextLine):
+@implementer(IFromUnicode)
+class PythonIdentifier(TextLine):
     """This field describes a python identifier, i.e. a variable name.
     """
-    implements(IFromUnicode)
-
     def fromUnicode(self, u):
         return u.strip()
 
     def _validate(self, value):
         super(PythonIdentifier, self)._validate(value)
         if pyidentifierPattern.match(value) is None:
-            raise schema.ValidationError(value)
+            raise ValidationError(value)
 
-class GlobalObject(schema.Field):
+@implementer(IFromUnicode)
+class GlobalObject(Field):
     """An object that can be accessed as a module global.
     """
-    implements(IFromUnicode)
-
     def __init__(self, value_type=None, **kw):
         self.value_type = value_type
         super(GlobalObject, self).__init__(**kw)
@@ -61,8 +68,8 @@ class GlobalObject(schema.Field):
 
         try:
             value = self.context.resolve(name)
-        except ConfigurationError, v:
-            raise schema.ValidationError(v)
+        except ConfigurationError as v:
+            raise ValidationError(v)
 
         self.validate(value)
         return value
@@ -71,13 +78,12 @@ class GlobalInterface(GlobalObject):
     """An interface that can be accessed from a module.
     """
     def __init__(self, **kw):
-        super(GlobalInterface, self).__init__(schema.InterfaceField(), **kw)
+        super(GlobalInterface, self).__init__(InterfaceField(), **kw)
 
-class Tokens(schema.List):
+@implementer(IFromUnicode)
+class Tokens(List):
     """A list that can be read from a space-separated string.
     """
-    implements(IFromUnicode)
-
     def fromUnicode(self, u):
         u = u.strip()
         if u:
@@ -86,7 +92,7 @@ class Tokens(schema.List):
             for s in u.split():
                 try:
                     v = vt.fromUnicode(s)
-                except schema.ValidationError, v:
+                except ValidationError as v:
                     raise InvalidToken("%s in %s" % (v, u))
                 else:
                     values.append(v)
@@ -97,14 +103,12 @@ class Tokens(schema.List):
 
         return values
 
-class Path(schema.Text):
+@implementer(IFromUnicode)
+class Path(Text):
     """A file path name, which may be input as a relative path
 
     Input paths are converted to absolute paths and normalized.
     """
-
-    implements(IFromUnicode)
-
     def fromUnicode(self, u):
         u = u.strip()
         if os.path.isabs(u):
@@ -113,29 +117,28 @@ class Path(schema.Text):
         return self.context.path(u)
 
 
-class Bool(schema.Bool):
+@implementer(IFromUnicode)
+class Bool(Bool):
     """A boolean value
 
     Values may be input (in upper or lower case) as any of:
        yes, no, y, n, true, false, t, or f.
     """
-    implements(IFromUnicode)
-
     def fromUnicode(self, u):
         u = u.lower()
         if u in ('1', 'true', 'yes', 't', 'y'):
             return True
         if u in ('0', 'false', 'no', 'f', 'n'):
             return False
-        raise schema.ValidationError
+        raise ValidationError
 
-class MessageID(schema.Text):
+@implementer(IFromUnicode)
+class MessageID(Text):
     """Text string that should be translated.
 
     When a string is converted to a message ID, it is also
     recorded in the context.
     """
-    implements(IFromUnicode)
 
     __factories = {}
 

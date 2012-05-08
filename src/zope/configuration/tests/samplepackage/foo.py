@@ -28,8 +28,7 @@ class stuff(object):
          ) = args, info, basepath, package, includepath
 
 def handler(_context, **kw):
-    args = kw.items()
-    args.sort()
+    args = sorted(kw.items())
     args = tuple(args)
     discriminator = args
     args = (stuff(args, _context.info, _context.basepath, _context.package,
