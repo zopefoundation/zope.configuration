@@ -195,3 +195,15 @@
 .. autofunction:: includeOverrides
 
 .. autofunction:: registerCommonDirectives
+
+.. autofunction:: file
+
+.. autofunction:: string
+
+.. autoclass:: XMLConfig
+   :members:
+   :member-order: bysource
+
+.. autofunction:: xmlconfig
+
+.. autofunction:: testxmlconfig
