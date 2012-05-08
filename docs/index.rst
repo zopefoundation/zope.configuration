@@ -18,6 +18,7 @@ Contents:
    api/docutils
    api/exceptions
    api/fields
+   api/interfaces
 
 
 Indices and tables
