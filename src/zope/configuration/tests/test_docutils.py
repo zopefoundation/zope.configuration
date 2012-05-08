@@ -11,14 +11,31 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Doc Tests for for zope.configuration.docutils
+"""Tests for for zope.configuration.docutils
 """
 import unittest
-from doctest import DocTestSuite
+
+
+class Test_wrap(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.docutils import wrap
+        return wrap(*args, **kw)
+
+    # TODO:  coverage
+
+
+class Test_makeDocStructures(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.docutils import makeDocStructures
+        return makeDocStructures(*args, **kw)
+
+    # TODO:  coverage
+
 
 def test_suite():
     return unittest.TestSuite((
-        DocTestSuite('zope.configuration.docutils'),
-        ))
-
-if __name__ == '__main__': unittest.main()
+        unittest.makeSuite(Test_wrap),
+        unittest.makeSuite(Test_makeDocStructures),
+    ))
