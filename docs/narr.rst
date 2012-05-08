@@ -76,6 +76,266 @@ the directive.  There are four kinds of directives:
 
 .. todo::
    Flesh out narrative docs.
+    
+Using the configuration machinery programattically
+==================================================
+
+An extended example:
+
+.. doctest::
+
+   >>> from zope.configuration.config import ConfigurationMachine
+   >>> from zope.configuration.config import metans
+   >>> machine = ConfigurationMachine()
+   >>> ns = "http://www.zope.org/testing"
+
+Register some test directives:
+
+Start with a grouping directive that sets a package:
+
+.. doctest::
+
+   >>> machine((metans, "groupingDirective"),
+   ...         name="package", namespace=ns,
+   ...         schema="zope.configuration.tests.directives.IPackaged",
+   ...         handler="zope.configuration.tests.directives.Packaged",
+   ...         )
+
+Now we can set the package:
+
+.. doctest::
+
+   >>> machine.begin((ns, "package"),
+   ...               package="zope.configuration.tests.directives",
+   ...               )
+
+Which makes it easier to define the other directives:
+
+First, define some simple directives:
+
+.. doctest::
+
+   >>> machine((metans, "directive"),
+   ...         namespace=ns, name="simple",
+   ...         schema=".ISimple", handler=".simple")
+
+   >>> machine((metans, "directive"),
+   ...         namespace=ns, name="newsimple",
+   ...         schema=".ISimple", handler=".newsimple")
+
+
+and try them out:
+
+.. doctest::
+
+   >>> machine((ns, "simple"), "first", a=u"aa", c=u"cc")
+   >>> machine((ns, "newsimple"), "second", a=u"naa", c=u"ncc", b=u"nbb")
+
+   >>> from pprint import PrettyPrinter
+   >>> pprint = PrettyPrinter(width=50).pprint
+
+   >>> pprint(machine.actions)
+   [{'args': (u'aa', u'xxx', 'cc'),
+     'callable': f,
+     'discriminator': ('simple',
+                       u'aa',
+                       u'xxx',
+                       'cc'),
+     'includepath': (),
+     'info': 'first',
+     'kw': {},
+     'order': 0},
+    {'args': (u'naa', u'nbb', 'ncc'),
+     'callable': f,
+     'discriminator': ('newsimple',
+                       u'naa',
+                       u'nbb',
+                       'ncc'),
+     'includepath': (),
+     'info': 'second',
+     'kw': {},
+     'order': 0}]
+
+Define and try a simple directive that uses a component:
+
+.. doctest::
+
+   >>> machine((metans, "directive"),
+   ...         namespace=ns, name="factory",
+   ...         schema=".IFactory", handler=".factory")
+
+
+   >>> machine((ns, "factory"), factory=u".f")
+   >>> pprint(machine.actions[-1:])
+   [{'args': (),
+     'callable': f,
+     'discriminator': ('factory', 1, 2),
+     'includepath': (),
+     'info': None,
+     'kw': {},
+     'order': 0}]
+
+Define and try a complex directive:
+
+.. doctest::
+
+   >>> machine.begin((metans, "complexDirective"),
+   ...               namespace=ns, name="testc",
+   ...               schema=".ISimple", handler=".Complex")
+
+   >>> machine((metans, "subdirective"),
+   ...         name="factory", schema=".IFactory")
+
+   >>> machine.end()
+
+   >>> machine.begin((ns, "testc"), None, "third", a=u'ca', c='cc')
+   >>> machine((ns, "factory"), "fourth", factory=".f")
+
+Note that we can't call a complex method unless there is a directive for
+it:
+
+.. doctest::
+
+   >>> machine((ns, "factory2"), factory=".f")
+   Traceback (most recent call last):
+   ...
+   ConfigurationError: ('Invalid directive', 'factory2')
+
+
+   >>> machine.end()
+   >>> pprint(machine.actions)
+   [{'args': (u'aa', u'xxx', 'cc'),
+     'callable': f,
+     'discriminator': ('simple',
+                       u'aa',
+                       u'xxx',
+                       'cc'),
+     'includepath': (),
+     'info': 'first',
+     'kw': {},
+     'order': 0},
+    {'args': (u'naa', u'nbb', 'ncc'),
+     'callable': f,
+     'discriminator': ('newsimple',
+                       u'naa',
+                       u'nbb',
+                       'ncc'),
+     'includepath': (),
+     'info': 'second',
+     'kw': {},
+     'order': 0},
+    {'args': (),
+     'callable': f,
+     'discriminator': ('factory', 1, 2),
+     'includepath': (),
+     'info': None,
+     'kw': {},
+     'order': 0},
+    {'args': (),
+     'callable': None,
+     'discriminator': 'Complex.__init__',
+     'includepath': (),
+     'info': 'third',
+     'kw': {},
+     'order': 0},
+    {'args': (u'ca',),
+     'callable': f,
+     'discriminator': ('Complex.factory', 1, 2),
+     'includepath': (),
+     'info': 'fourth',
+     'kw': {},
+     'order': 0},
+    {'args': (u'xxx', 'cc'),
+     'callable': f,
+     'discriminator': ('Complex', 1, 2),
+     'includepath': (),
+     'info': 'third',
+     'kw': {},
+     'order': 0}]
+
+Done with the package
+
+.. doctest::
+
+   >>> machine.end()
+
+
+Verify that we can use a simple directive outside of the package:
+
+.. doctest::
+
+   >>> machine((ns, "simple"), a=u"oaa", c=u"occ", b=u"obb")
+
+But we can't use the factory directive, because it's only valid
+inside a package directive:
+
+.. doctest::
+
+   >>> machine((ns, "factory"), factory=u".F")
+   Traceback (most recent call last):
+   ...
+   ConfigurationError: ('Invalid value for', 'factory',""" \
+      """ "Can't use leading dots in dotted names, no package has been set.")
+
+   >>> pprint(machine.actions)
+   [{'args': (u'aa', u'xxx', 'cc'),
+     'callable': f,
+     'discriminator': ('simple',
+                       u'aa',
+                       u'xxx',
+                       'cc'),
+     'includepath': (),
+     'info': 'first',
+     'kw': {},
+     'order': 0},
+    {'args': (u'naa', u'nbb', 'ncc'),
+     'callable': f,
+     'discriminator': ('newsimple',
+                       u'naa',
+                       u'nbb',
+                       'ncc'),
+     'includepath': (),
+     'info': 'second',
+     'kw': {},
+     'order': 0},
+    {'args': (),
+     'callable': f,
+     'discriminator': ('factory', 1, 2),
+     'includepath': (),
+     'info': None,
+     'kw': {},
+     'order': 0},
+    {'args': (),
+     'callable': None,
+     'discriminator': 'Complex.__init__',
+     'includepath': (),
+     'info': 'third',
+     'kw': {},
+     'order': 0},
+    {'args': (u'ca',),
+     'callable': f,
+     'discriminator': ('Complex.factory', 1, 2),
+     'includepath': (),
+     'info': 'fourth',
+     'kw': {},
+     'order': 0},
+    {'args': (u'xxx', 'cc'),
+     'callable': f,
+     'discriminator': ('Complex', 1, 2),
+     'includepath': (),
+     'info': 'third',
+     'kw': {},
+     'order': 0},
+    {'args': (u'oaa', u'obb', 'occ'),
+     'callable': f,
+     'discriminator': ('simple',
+                       u'oaa',
+                       u'obb',
+                       'occ'),
+     'includepath': (),
+     'info': None,
+     'kw': {},
+     'order': 0}]
 
 
 Making specific directives conditional
