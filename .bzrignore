@@ -9,3 +9,4 @@ docs/_build
 .coverage
 nosetests.xml
 src/coverage.xml
+__pycache__
