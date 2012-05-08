@@ -12,24 +12,26 @@
 #
 ##############################################################################
 """Configuration processor
-
-See README.txt.
 """
-__docformat__ = 'restructuredtext'
 import __builtin__
+from keyword import iskeyword
 import operator
 import os.path
 import sys
 
-import zope.schema
+from zope.interface.adapter import AdapterRegistry
+from zope.interface import Interface
+from zope.interface import implements
+from zope.interface import providedBy
+from zope.schema import TextLine
+from zope.schema import URI
+from zope.schema import ValidationError
 
-from keyword import iskeyword
 from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.interfaces import IConfigurationContext
 from zope.configuration.interfaces import IGroupingContext
-from zope.interface.adapter import AdapterRegistry
-from zope.interface import Interface, implements, providedBy
-from zope.configuration import fields
+from zope.configuration.fields import GlobalInterface
+from zope.configuration.fields import GlobalObject
 
 
 zopens = 'http://namespaces.zope.org/zope'
@@ -37,6 +39,7 @@ metans = 'http://namespaces.zope.org/meta'
 testns = 'http://namespaces.zope.org/test'
 
 _import_chickens = {}, {}, ("*",) # dead chickens needed by __import__
+
 
 class ConfigurationContext(object):
     """Mix-in that implements IConfigurationContext
@@ -75,7 +78,7 @@ class ConfigurationContext(object):
 
       - ``args``, positional arguments for the action
 
-      - ``kw`, keyword arguments for the action
+      - ``kw``, keyword arguments for the action
 
       - ``includepath``, a tuple of include file names (defaults to ())
 
@@ -90,42 +93,10 @@ class ConfigurationContext(object):
         self._features = set()
 
     def resolve(self, dottedname):
-        """Resolve a dotted name to an object
-
-        Examples:
-
-
-        >>> c = ConfigurationContext()
-        >>> import zope, zope.interface
-        >>> c.resolve('zope') is zope
-        1
-        >>> c.resolve('zope.interface') is zope.interface
-        1
-
-        >>> c.resolve('zope.configuration.eek') #doctest: +NORMALIZE_WHITESPACE
-        Traceback (most recent call last):
-        ...
-        ConfigurationError:
-        ImportError: Module zope.configuration has no global eek
-
-        >>> c.resolve('.config.ConfigurationContext')
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'ConfigurationContext' object has no attribute """ \
-                                                                  """'package'
-        >>> import zope.configuration
-        >>> c.package = zope.configuration
-        >>> c.resolve('.') is zope.configuration
-        1
-        >>> c.resolve('.config.ConfigurationContext') is ConfigurationContext
-        1
-        >>> c.resolve('..interface') is zope.interface
-        1
-        >>> c.resolve('unicode')
-        <type 'unicode'>
+        """Resolve a dotted name to an object.
         """
-
         name = dottedname.strip()
+
         if not name:
             raise ValueError("The given name is blank")
 
@@ -133,6 +104,7 @@ class ConfigurationContext(object):
             return self.package
 
         names = name.split('.')
+
         if not names[-1]:
             raise ValueError(
                 "Trailing dots are no longer supported in dotted names")
@@ -203,37 +175,16 @@ class ConfigurationContext(object):
                     "ImportError: Module %s has no global %s" % (mname, oname))
 
     def path(self, filename):
+        """ Compute package-relative paths.
         """
-        Examples:
-
-        >>> c = ConfigurationContext()
-        >>> c.path("/x/y/z") == os.path.normpath("/x/y/z")
-        1
-        >>> c.path("y/z")
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'ConfigurationContext' object has no attribute """ \
-                                                                 """'package'
-        >>> import zope.configuration
-        >>> c.package = zope.configuration
-        >>> import os
-        >>> d = os.path.dirname(zope.configuration.__file__)
-        >>> c.path("y/z") == d + os.path.normpath("/y/z")
-        1
-        >>> c.path("y/./z") == d + os.path.normpath("/y/z")
-        1
-        >>> c.path("y/../z") == d + os.path.normpath("/z")
-        1
-        """
-
         filename = os.path.normpath(filename)
+
         if os.path.isabs(filename):
             return filename
 
         # Got a relative path, combine with base path.
         # If we have no basepath, compute the base path from the package
         # path.
-
         basepath = getattr(self, 'basepath', '')
 
         if not basepath:
@@ -254,61 +205,19 @@ class ConfigurationContext(object):
 
         Raises an exception if this file had been processed before.  This
         is better than an unlimited number of conflict errors.
-
-        >>> c = ConfigurationContext()
-        >>> c.checkDuplicate('/foo.zcml')
-        >>> try:
-        ...     c.checkDuplicate('/foo.zcml')
-        ... except ConfigurationError, e:
-        ...     # On Linux the exact msg has /foo, on Windows \foo.
-        ...     str(e).endswith("foo.zcml' included more than once")
-        True
-
-        You may use different ways to refer to the same file:
-
-        >>> import zope.configuration
-        >>> c.package = zope.configuration
-        >>> import os
-        >>> d = os.path.dirname(zope.configuration.__file__)
-        >>> c.checkDuplicate('bar.zcml')
-        >>> try:
-        ...   c.checkDuplicate(d + os.path.normpath('/bar.zcml'))
-        ... except ConfigurationError, e:
-        ...   str(e).endswith("bar.zcml' included more than once")
-        ...
-        True
-
-        """ #' <-- bow to font-lock
+        """
         path = self.path(filename)
         if path in self._seen_files:
             raise ConfigurationError('%r included more than once' % path)
         self._seen_files.add(path)
 
     def processFile(self, filename):
-        """Check whether a file needs to be processed
+        """Check whether a file needs to be processed.
 
         Return True if processing is needed and False otherwise. If
         the file needs to be processed, it will be marked as
         processed, assuming that the caller will procces the file if
         it needs to be procssed.
-
-        >>> c = ConfigurationContext()
-        >>> c.processFile('/foo.zcml')
-        True
-        >>> c.processFile('/foo.zcml')
-        False
-
-        You may use different ways to refer to the same file:
-
-        >>> import zope.configuration
-        >>> c.package = zope.configuration
-        >>> import os
-        >>> d = os.path.dirname(zope.configuration.__file__)
-        >>> c.processFile('bar.zcml')
-        True
-        >>> c.processFile('bar.zcml')
-        False
-
         """ #' <-- bow to font-lock
         path = self.path(filename)
         if path in self._seen_files:
@@ -318,111 +227,13 @@ class ConfigurationContext(object):
 
     def action(self, discriminator, callable=None, args=(), kw=None, order=0,
                includepath=None, info=None, **extra):
-        """Add an action with the given discriminator, callable and arguments
+        """Add an action with the given discriminator, callable and arguments.
 
         For testing purposes, the callable and arguments may be omitted.
         In that case, a default noop callable is used.
 
         The discriminator must be given, but it can be None, to indicate that
         the action never conflicts.
-
-        Let's look at some examples:
-
-        >>> c = ConfigurationContext()
-
-        Normally, the context gets actions from subclasses. We'll provide
-        an actions attribute ourselves:
-
-        >>> c.actions = []
-
-        We'll use a test callable that has a convenient string representation
-
-        >>> from zope.configuration.tests.directives import f
-
-        >>> c.action(1, f, (1, ), {'x': 1})
-        >>> from pprint import PrettyPrinter
-        >>> pprint=PrettyPrinter(width=60).pprint
-        >>> pprint(c.actions)
-        [{'args': (1,),
-          'callable': f,
-          'discriminator': 1,
-          'includepath': (),
-          'info': '',
-          'kw': {'x': 1},
-          'order': 0}]
-
-        >>> c.action(None)
-        >>> pprint(c.actions)
-        [{'args': (1,),
-          'callable': f,
-          'discriminator': 1,
-          'includepath': (),
-          'info': '',
-          'kw': {'x': 1},
-          'order': 0},
-         {'args': (),
-          'callable': None,
-          'discriminator': None,
-          'includepath': (),
-          'info': '',
-          'kw': {},
-          'order': 0}]
-
-        Now set the include path and info:
-
-        >>> c.includepath = ('foo.zcml',)
-        >>> c.info = "?"
-        >>> c.action(None)
-        >>> pprint(c.actions[-1])
-        {'args': (),
-         'callable': None,
-         'discriminator': None,
-         'includepath': ('foo.zcml',),
-         'info': '?',
-         'kw': {},
-         'order': 0}
-
-        We can add an order argument to crudely control the order
-        of execution:
-
-        >>> c.action(None, order=99999)
-        >>> pprint(c.actions[-1])
-        {'args': (),
-         'callable': None,
-         'discriminator': None,
-         'includepath': ('foo.zcml',),
-         'info': '?',
-         'kw': {},
-         'order': 99999}
-
-        We can also pass an includepath argument, which will be used as the the
-        includepath for the action.  (if includepath is None, self.includepath
-        will be used):
-
-        >>> c.action(None, includepath=('abc',))
-        >>> pprint(c.actions[-1])
-        {'args': (),
-         'callable': None,
-         'discriminator': None,
-         'includepath': ('abc',),
-         'info': '?',
-         'kw': {},
-         'order': 0}
-
-        We can also pass an info argument, which will be used as the the
-        source line info for the action.  (if info is None, self.info will be
-        used):
-
-        >>> c.action(None, info='abc')
-        >>> pprint(c.actions[-1])
-        {'args': (),
-         'callable': None,
-         'discriminator': None,
-         'includepath': ('foo.zcml',),
-         'info': 'abc',
-         'kw': {},
-         'order': 0}
-        
         """
         if kw is None:
             kw = {}
@@ -453,76 +264,19 @@ class ConfigurationContext(object):
         """Check whether a named feature has been provided.
 
         Initially no features are provided
-
-        >>> c = ConfigurationContext()
-        >>> c.hasFeature('onlinehelp')
-        False
-
-        You can declare that a feature is provided
-
-        >>> c.provideFeature('onlinehelp')
-
-        and it becomes available
-
-        >>> c.hasFeature('onlinehelp')
-        True
-
         """
         return feature in self._features
 
     def provideFeature(self, feature):
         """Declare thata named feature has been provided.
 
-        See `hasFeature` for examples.
+        See :meth:`hasFeature` for examples.
         """
         self._features.add(feature)
 
 
 class ConfigurationAdapterRegistry(object):
     """Simple adapter registry that manages directives as adapters
-
-    >>> r = ConfigurationAdapterRegistry()
-    >>> c = ConfigurationMachine()
-    >>> r.factory(c, ('http://www.zope.com','xxx'))
-    Traceback (most recent call last):
-    ...
-    ConfigurationError: ('Unknown directive', 'http://www.zope.com', 'xxx')
-    >>> from zope.configuration.interfaces import IConfigurationContext
-    >>> def f():
-    ...     pass
-
-    >>> r.register(IConfigurationContext, ('http://www.zope.com', 'xxx'), f)
-    >>> r.factory(c, ('http://www.zope.com','xxx')) is f
-    1
-    >>> r.factory(c, ('http://www.zope.com','yyy')) is f
-    Traceback (most recent call last):
-    ...
-    ConfigurationError: ('Unknown directive', 'http://www.zope.com', 'yyy')
-    >>> r.register(IConfigurationContext, 'yyy', f)
-    >>> r.factory(c, ('http://www.zope.com','yyy')) is f
-    1
-
-    Test the documentation feature:
-
-    >>> r._docRegistry
-    []
-    >>> r.document(('ns', 'dir'), IFullInfo, IConfigurationContext, None,
-    ...            'inf', None)
-    >>> r._docRegistry[0][0] == ('ns', 'dir')
-    1
-    >>> r._docRegistry[0][1] is IFullInfo
-    1
-    >>> r._docRegistry[0][2] is IConfigurationContext
-    1
-    >>> r._docRegistry[0][3] is None
-    1
-    >>> r._docRegistry[0][4] == 'inf'
-    1
-    >>> r._docRegistry[0][5] is None
-    1
-    >>> r.document('all-dir', None, None, None, None)
-    >>> r._docRegistry[1][0]
-    ('', 'all-dir')
     """
 
 
@@ -563,36 +317,7 @@ class ConfigurationAdapterRegistry(object):
 
 class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
     """Configuration machine
-
-    Example:
-
-    >>> machine = ConfigurationMachine()
-    >>> ns = "http://www.zope.org/testing"
-
-    Register a directive:
-
-    >>> machine((metans, "directive"),
-    ...         namespace=ns, name="simple",
-    ...         schema="zope.configuration.tests.directives.ISimple",
-    ...         handler="zope.configuration.tests.directives.simple")
-
-    and try it out:
-
-    >>> machine((ns, "simple"), a=u"aa", c=u"cc")
-    >>> from pprint import PrettyPrinter
-    >>> pprint=PrettyPrinter(width=60).pprint
-    >>> pprint(machine.actions)
-    [{'args': (u'aa', u'xxx', 'cc'),
-      'callable': f,
-      'discriminator': ('simple', u'aa', u'xxx', 'cc'),
-      'includepath': (),
-      'info': None,
-      'kw': {},
-      'order': 0}]
-
-    A more extensive example can be found in the unit tests.
     """
-
     implements(IConfigurationContext)
 
     package = None
@@ -630,55 +355,10 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
         self.stack[-1].context.info = info
 
     def execute_actions(self, clear=True, testing=False):
-        """Execute the configuration actions
+        """Execute the configuration actions.
 
-        This calls the action callables after resolving conflicts
-
-        For example:
-
-        >>> output = []
-        >>> def f(*a, **k):
-        ...    output.append(('f', a, k))
-        >>> context = ConfigurationMachine()
-        >>> context.actions = [
-        ...   (1, f, (1,)),
-        ...   (1, f, (11,), {}, ('x', )),
-        ...   (2, f, (2,)),
-        ...   ]
-        >>> context.execute_actions()
-        >>> output
-        [('f', (1,), {}), ('f', (2,), {})]
-
-        If the action raises an error, we convert it to a
-        ConfigurationExecutionError.
-
-        >>> output = []
-        >>> def bad():
-        ...    bad.xxx
-        >>> context.actions = [
-        ...   (1, f, (1,)),
-        ...   (1, f, (11,), {}, ('x', )),
-        ...   (2, f, (2,)),
-        ...   (3, bad, (), {}, (), 'oops')
-        ...   ]
-        >>> try:
-        ...    v = context.execute_actions()
-        ... except ConfigurationExecutionError, v:
-        ...    pass
-        >>> print v
-        exceptions.AttributeError: 'function' object has no attribute 'xxx'
-          in:
-          oops
-
-
-        Note that actions executed before the error still have an effect:
-
-        >>> output
-        [('f', (1,), {}), ('f', (2,), {})]
-
-
+        This calls the action callables after resolving conflicts.
         """
-
         try:
             for action in resolveConflicts(self.actions):
                 callable = action['callable']
@@ -707,7 +387,6 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
 class ConfigurationExecutionError(ConfigurationError):
     """An error occurred during execution of a configuration action
     """
-
     def __init__(self, etype, evalue, info):
         self.etype, self.evalue, self.info = etype, evalue, info
 
@@ -751,7 +430,6 @@ class SimpleStackItem(object):
     It also defers any computation until the end of the directive
     has been reached.
     """
-
     implements(IStackItem)
 
     def __init__(self, context, handler, info, *argdata):
@@ -780,6 +458,7 @@ class SimpleStackItem(object):
                 context.action(**action)
 
 class RootStackItem(object):
+    implements(IStackItem)
 
     def __init__(self, context):
         self.context = context
@@ -789,7 +468,6 @@ class RootStackItem(object):
 
         We have to compute a new stack item by getting a named adapter
         for the current context object.
-
         """
         factory = self.context.factory(self.context, name)
         if factory is None:
@@ -810,146 +488,7 @@ class GroupingStackItem(RootStackItem):
 
     A grouping stack item is created with a grouping directive
     definition, a configuration context, and directive data.
-
-    To see how this works, let's look at an example:
-
-    We need a context. We'll just use a configuration machine
-
-    >>> context = ConfigurationMachine()
-
-    We need a callable to use in configuration actions.  We'll use a
-    convenient one from the tests:
-
-    >>> from zope.configuration.tests.directives import f
-
-    We need a handler for the grouping directive. This is a class
-    that implements a context decorator.  The decorator must also
-    provide ``before`` and ``after`` methods that are called before
-    and after any contained directives are processed.  We'll typically
-    subclass ``GroupingContextDecorator``, which provides context
-    decoration, and default ``before`` and ``after`` methods.
-
-
-    >>> class SampleGrouping(GroupingContextDecorator):
-    ...    def before(self):
-    ...       self.action(('before', self.x, self.y), f)
-    ...    def after(self):
-    ...       self.action(('after'), f)
-
-    We'll use our decorator to decorate our initial context, providing
-    keyword arguments x and y:
-
-    >>> dec = SampleGrouping(context, x=1, y=2)
-
-    Note that the keyword arguments are made attributes of the
-    decorator.
-
-    Now we'll create the stack item.
-
-    >>> item = GroupingStackItem(dec)
-
-    We still haven't called the before action yet, which we can verify
-    by looking at the context actions:
-
-    >>> context.actions
-    []
-
-    Subdirectives will get looked up as adapters of the context.
-
-    We'll create a simple handler:
-
-    >>> def simple(context, data, info):
-    ...     context.action(("simple", context.x, context.y, data), f)
-    ...     return info
-
-    and register it with the context:
-
-    >>> context.register(IConfigurationContext, (testns, 'simple'), simple)
-
-    This handler isn't really a propert handler, because it doesn't
-    return a new context.  It will do for this example.
-
-    Now we'll call the contained method on the stack item:
-
-    >>> item.contained((testns, 'simple'), {'z': 'zope'}, "someinfo")
-    'someinfo'
-
-    We can verify thet the simple method was called by looking at the
-    context actions. Note that the before method was called before
-    handling the contained directive.
-
-    >>> from pprint import PrettyPrinter
-    >>> pprint=PrettyPrinter(width=60).pprint
-
-    >>> pprint(context.actions)
-    [{'args': (),
-      'callable': f,
-      'discriminator': ('before', 1, 2),
-      'includepath': (),
-      'info': '',
-      'kw': {},
-      'order': 0},
-     {'args': (),
-      'callable': f,
-      'discriminator': ('simple', 1, 2, {'z': 'zope'}),
-      'includepath': (),
-      'info': '',
-      'kw': {},
-      'order': 0}]
-
-    Finally, we call finish, which calls the decorator after method:
-
-    >>> item.finish()
-
-    >>> pprint(context.actions)
-    [{'args': (),
-      'callable': f,
-      'discriminator': ('before', 1, 2),
-      'includepath': (),
-      'info': '',
-      'kw': {},
-      'order': 0},
-     {'args': (),
-      'callable': f,
-      'discriminator': ('simple', 1, 2, {'z': 'zope'}),
-      'includepath': (),
-      'info': '',
-      'kw': {},
-      'order': 0},
-     {'args': (),
-      'callable': f,
-      'discriminator': 'after',
-      'includepath': (),
-      'info': '',
-      'kw': {},
-      'order': 0}]
-
-    If there were no nested directives:
-
-    >>> context = ConfigurationMachine()
-    >>> dec = SampleGrouping(context, x=1, y=2)
-    >>> item = GroupingStackItem(dec)
-    >>> item.finish()
-
-    Then before will be when we call finish:
-
-    >>> pprint(context.actions)
-    [{'args': (),
-      'callable': f,
-      'discriminator': ('before', 1, 2),
-      'includepath': (),
-      'info': '',
-      'kw': {},
-      'order': 0},
-     {'args': (),
-      'callable': f,
-      'discriminator': 'after',
-      'includepath': (),
-      'info': '',
-      'kw': {},
-      'order': 0}]
     """
-
     implements(IStackItem)
 
     def __init__(self, context):
@@ -989,126 +528,7 @@ class ComplexStackItem(object):
     A complex stack item is created with a complex directive
     definition (IComplexDirectiveContext), a configuration context,
     and directive data.
-
-    To see how this works, let's look at an example:
-
-    We need a context. We'll just use a configuration machine
-
-    >>> context = ConfigurationMachine()
-
-    We need a callable to use in configuration actions.  We'll use a
-    convenient one from the tests:
-
-    >>> from zope.configuration.tests.directives import f
-
-    We need a handler for the complex directive. This is a class
-    with a method for each subdirective:
-
-    >>> class Handler(object):
-    ...   def __init__(self, context, x, y):
-    ...      self.context, self.x, self.y = context, x, y
-    ...      context.action('init', f)
-    ...   def sub(self, context, a, b):
-    ...      context.action(('sub', a, b), f)
-    ...   def __call__(self):
-    ...      self.context.action(('call', self.x, self.y), f)
-
-    We need a complex directive definition:
-
-    >>> class Ixy(Interface):
-    ...    x = zope.schema.TextLine()
-    ...    y = zope.schema.TextLine()
-    >>> definition = ComplexDirectiveDefinition(
-    ...        context, name="test", schema=Ixy,
-    ...        handler=Handler)
-    >>> class Iab(Interface):
-    ...    a = zope.schema.TextLine()
-    ...    b = zope.schema.TextLine()
-    >>> definition['sub'] = Iab, ''
-
-    OK, now that we have the context, handler and definition, we're
-    ready to use a stack item.
-
-    >>> item = ComplexStackItem(definition, context, {'x': u'xv', 'y': u'yv'},
-    ...                         'foo')
-
-    When we created the definition, the handler (factory) was called.
-
-    >>> from pprint import PrettyPrinter
-    >>> pprint=PrettyPrinter(width=60).pprint
-    >>> pprint(context.actions)
-    [{'args': (),
-      'callable': f,
-      'discriminator': 'init',
-      'includepath': (),
-      'info': 'foo',
-      'kw': {},
-      'order': 0}]
-
-    If a subdirective is provided, the ``contained`` method of the stack item
-    is called. It will lookup the subdirective schema and call the
-    corresponding method on the handler instance:
-
-    >>> simple = item.contained(('somenamespace', 'sub'),
-    ...                         {'a': u'av', 'b': u'bv'}, 'baz')
-    >>> simple.finish()
-
-    Note that the name passed to ``contained`` is a 2-part name, consisting of
-    a namespace and a name within the namespace.
-
-    >>> from pprint import PrettyPrinter
-    >>> pprint=PrettyPrinter(width=60).pprint
-
-    >>> pprint(context.actions)
-    [{'args': (),
-      'callable': f,
-      'discriminator': 'init',
-      'includepath': (),
-      'info': 'foo',
-      'kw': {},
-      'order': 0},
-     {'args': (),
-      'callable': f,
-      'discriminator': ('sub', u'av', u'bv'),
-      'includepath': (),
-      'info': 'baz',
-      'kw': {},
-      'order': 0}]
-
-    The new stack item returned by contained is one that doesn't allow
-    any more subdirectives,
-
-    When all of the subdirectives have been provided, the ``finish``
-    method is called:
-
-    >>> item.finish()
-
-    The stack item will call the handler if it is callable.
-
-    >>> pprint(context.actions)
-    [{'args': (),
-      'callable': f,
-      'discriminator': 'init',
-      'includepath': (),
-      'info': 'foo',
-      'kw': {},
-      'order': 0},
-     {'args': (),
-      'callable': f,
-      'discriminator': ('sub', u'av', u'bv'),
-      'includepath': (),
-      'info': 'baz',
-      'kw': {},
-      'order': 0},
-     {'args': (),
-      'callable': f,
-      'discriminator': ('call', u'xv', u'yv'),
-      'includepath': (),
-      'info': 'foo',
-      'kw': {},
-      'order': 0}]
     """
-
     implements(IStackItem)
 
     def __init__(self, meta, context, data, info):
@@ -1135,11 +555,8 @@ class ComplexStackItem(object):
         return SimpleStackItem(self.context, handler, info, schema, data)
 
     def finish(self):
-
         # when we're done, we call the handler, which might return more actions
-
         # Need to save and restore old info
-
         try:
             actions = self.handler()
         except AttributeError, v:
@@ -1164,7 +581,6 @@ class GroupingContextDecorator(ConfigurationContext):
 
     See the discussion (and test) in GroupingStackItem.
     """
-
     implements(IConfigurationContext, IGroupingContext)
 
     def __init__(self, context, **kw):
@@ -1188,7 +604,7 @@ class GroupingContextDecorator(ConfigurationContext):
 ##############################################################################
 # Directive-definition
 
-class DirectiveSchema(fields.GlobalInterface):
+class DirectiveSchema(GlobalInterface):
     """A field that contains a global variable value that must be a schema
     """
 
@@ -1196,7 +612,7 @@ class IDirectivesInfo(Interface):
     """Schema for the ``directives`` directive
     """
 
-    namespace = zope.schema.URI(
+    namespace = URI(
         title=u"Namespace",
         description=u"The namespace in which directives' names will be defined",
         )
@@ -1218,7 +634,7 @@ class IDirectiveInfo(Interface):
     """Information common to all directive definitions have
     """
 
-    name = zope.schema.TextLine(
+    name = TextLine(
         title = u"Directive name",
         description = u"The name of the directive being defined",
         )
@@ -1232,12 +648,12 @@ class IFullInfo(IDirectiveInfo):
     """Information that all top-level directives (not subdirectives) have
     """
 
-    handler = fields.GlobalObject(
+    handler = GlobalObject(
         title = u"Directive handler",
         description = u"The dotted name of the directive handler",
         )
 
-    usedIn = fields.GlobalInterface(
+    usedIn = GlobalInterface(
         title = u"The directive types the directive can be used in",
         description = (u"The interface of the directives that can contain "
                        u"the directive"
@@ -1257,51 +673,7 @@ def defineSimpleDirective(context, name, schema, handler,
     and returns a new stack item, which is always the same simple stack item.
 
     If the namespace is '*', the directive is registered for all namespaces.
-
-    for example:
-
-    >>> context = ConfigurationMachine()
-    >>> from zope.configuration.tests.directives import f
-    >>> class Ixy(Interface):
-    ...    x = zope.schema.TextLine()
-    ...    y = zope.schema.TextLine()
-    >>> def s(context, x, y):
-    ...    context.action(('s', x, y), f)
-
-    >>> defineSimpleDirective(context, 's', Ixy, s, testns)
-
-    >>> context((testns, "s"), x=u"vx", y=u"vy")
-    >>> from pprint import PrettyPrinter
-    >>> pprint=PrettyPrinter(width=60).pprint
-    >>> pprint(context.actions)
-    [{'args': (),
-      'callable': f,
-      'discriminator': ('s', u'vx', u'vy'),
-      'includepath': (),
-      'info': None,
-      'kw': {},
-      'order': 0}]
-
-    >>> context(('http://www.zope.com/t1', "s"), x=u"vx", y=u"vy")
-    Traceback (most recent call last):
-    ...
-    ConfigurationError: ('Unknown directive', 'http://www.zope.com/t1', 's')
-
-    >>> context = ConfigurationMachine()
-    >>> defineSimpleDirective(context, 's', Ixy, s, "*")
-
-    >>> context(('http://www.zope.com/t1', "s"), x=u"vx", y=u"vy")
-    >>> pprint(context.actions)
-    [{'args': (),
-      'callable': f,
-      'discriminator': ('s', u'vx', u'vy'),
-      'includepath': (),
-      'info': None,
-      'kw': {},
-      'order': 0}]
-
     """
-
     namespace = namespace or context.namespace
     if namespace != '*':
         name = namespace, name
@@ -1320,45 +692,7 @@ def defineGroupingDirective(context, name, schema, handler,
     Define and register a factory that sets up a grouping directive.
 
     If the namespace is '*', the directive is registered for all namespaces.
-
-    for example:
-
-    >>> context = ConfigurationMachine()
-    >>> from zope.configuration.tests.directives import f
-    >>> class Ixy(Interface):
-    ...    x = zope.schema.TextLine()
-    ...    y = zope.schema.TextLine()
-
-    We won't bother creating a special grouping directive class. We'll
-    just use GroupingContextDecorator, which simply sets up a grouping
-    context that has extra attributes defined by a schema:
-
-    >>> defineGroupingDirective(context, 'g', Ixy,
-    ...                         GroupingContextDecorator, testns)
-
-    >>> context.begin((testns, "g"), x=u"vx", y=u"vy")
-    >>> context.stack[-1].context.x
-    u'vx'
-    >>> context.stack[-1].context.y
-    u'vy'
-
-    >>> context(('http://www.zope.com/t1', "g"), x=u"vx", y=u"vy")
-    Traceback (most recent call last):
-    ...
-    ConfigurationError: ('Unknown directive', 'http://www.zope.com/t1', 'g')
-
-    >>> context = ConfigurationMachine()
-    >>> defineGroupingDirective(context, 'g', Ixy,
-    ...                         GroupingContextDecorator, "*")
-
-    >>> context.begin(('http://www.zope.com/t1', "g"), x=u"vx", y=u"vy")
-    >>> context.stack[-1].context.x
-    u'vx'
-    >>> context.stack[-1].context.y
-    u'vy'
-
     """
-
     namespace = namespace or context.namespace
     if namespace != '*':
         name = namespace, name
@@ -1382,7 +716,6 @@ class ComplexDirectiveDefinition(GroupingContextDecorator, dict):
 
     See the description and tests for ComplexStackItem.
     """
-
     implements(IComplexDirectiveContext)
 
     def before(self):
@@ -1407,7 +740,7 @@ def subdirective(context, name, schema):
 class IProvidesDirectiveInfo(Interface):
     """Information for a <meta:provides> directive"""
 
-    feature = zope.schema.TextLine(
+    feature = TextLine(
         title = u"Feature name",
         description = u"""The name of the feature being provided
 
@@ -1417,23 +750,6 @@ class IProvidesDirectiveInfo(Interface):
 
 def provides(context, feature):
     """Declare that a feature is provided in context.
-
-    >>> c = ConfigurationContext()
-    >>> provides(c, 'apidoc')
-    >>> c.hasFeature('apidoc')
-    True
-
-    Spaces are not allowed in feature names (this is reserved for providing
-    many features with a single directive in the futute).
-
-    >>> provides(c, 'apidoc onlinehelp')
-    Traceback (most recent call last):
-      ...
-    ValueError: Only one feature name allowed
-
-    >>> c.hasFeature('apidoc onlinehelp')
-    False
-
     """
     if len(feature.split()) > 1:
         raise ValueError("Only one feature name allowed")
@@ -1455,98 +771,7 @@ def toargs(context, schema, data):
     All of the items in the data must have corresponding fields in the
     schema unless the schema has a true tagged value named
     'keyword_arguments'.
-
-    Here's an example:
-
-    >>> from zope import schema
-
-    >>> class schema(Interface):
-    ...     in_ = zope.schema.Int(constraint=lambda v: v > 0)
-    ...     f = zope.schema.Float()
-    ...     n = zope.schema.TextLine(min_length=1, default=u"rob")
-    ...     x = zope.schema.BytesLine(required=False)
-    ...     u = zope.schema.URI()
-
-    >>> context = ConfigurationMachine()
-    >>> from pprint import PrettyPrinter
-    >>> pprint=PrettyPrinter(width=50).pprint
-
-    >>> pprint(toargs(context, schema,
-    ...        {'in': u'1', 'f': u'1.2', 'n': u'bob', 'x': u'x.y.z',
-    ...          'u': u'http://www.zope.org' }))
-    {'f': 1.2,
-     'in_': 1,
-     'n': u'bob',
-     'u': 'http://www.zope.org',
-     'x': 'x.y.z'}
-
-    If we have extra data, we'll get an error:
-
-    >>> toargs(context, schema,
-    ...        {'in': u'1', 'f': u'1.2', 'n': u'bob', 'x': u'x.y.z',
-    ...          'u': u'http://www.zope.org', 'a': u'1'})
-    Traceback (most recent call last):
-    ...
-    ConfigurationError: ('Unrecognized parameters:', 'a')
-
-    Unless we set a tagged value to say that extra arguments are ok:
-
-    >>> schema.setTaggedValue('keyword_arguments', True)
-
-    >>> pprint(toargs(context, schema,
-    ...        {'in': u'1', 'f': u'1.2', 'n': u'bob', 'x': u'x.y.z',
-    ...          'u': u'http://www.zope.org', 'a': u'1'}))
-    {'a': u'1',
-     'f': 1.2,
-     'in_': 1,
-     'n': u'bob',
-     'u': 'http://www.zope.org',
-     'x': 'x.y.z'}
-
-
-    If we ommit required data we get an error telling us what was omitted:
-
-    >>> pprint(toargs(context, schema,
-    ...        {'in': u'1', 'f': u'1.2', 'n': u'bob', 'x': u'x.y.z'}))
-    Traceback (most recent call last):
-    ...
-    ConfigurationError: ('Missing parameter:', 'u')
-
-    Although we can omit not-required data:
-
-    >>> pprint(toargs(context, schema,
-    ...        {'in': u'1', 'f': u'1.2', 'n': u'bob',
-    ...          'u': u'http://www.zope.org', 'a': u'1'}))
-    {'a': u'1',
-     'f': 1.2,
-     'in_': 1,
-     'n': u'bob',
-     'u': 'http://www.zope.org'}
-
-    And we can ommit required fields if they have valid defaults
-    (defaults that are valid values):
-
-
-    >>> pprint(toargs(context, schema,
-    ...        {'in': u'1', 'f': u'1.2',
-    ...          'u': u'http://www.zope.org', 'a': u'1'}))
-    {'a': u'1',
-     'f': 1.2,
-     'in_': 1,
-     'n': u'rob',
-     'u': 'http://www.zope.org'}
-
-    We also get an error if any data was invalid:
-
-    >>> pprint(toargs(context, schema,
-    ...        {'in': u'0', 'f': u'1.2', 'n': u'bob', 'x': u'x.y.z',
-    ...          'u': u'http://www.zope.org', 'a': u'1'}))
-    Traceback (most recent call last):
-    ...
-    ConfigurationError: ('Invalid value for', 'in', '0')
-
     """
-
     data = dict(data)
     args = {}
     for name, field in schema.namesAndDescriptions(True):
@@ -1562,7 +787,7 @@ def toargs(context, schema, data):
 
             try:
                 args[str(name)] = field.fromUnicode(s)
-            except zope.schema.ValidationError, v:
+            except ValidationError, v:
                 raise ConfigurationError(
                     "Invalid value for", n, str(v)), None, sys.exc_info()[2]
         elif field.required:
@@ -1570,7 +795,7 @@ def toargs(context, schema, data):
             default = field.default
             try:
                 field.validate(default)
-            except zope.schema.ValidationError:
+            except ValidationError:
                 raise ConfigurationError("Missing parameter:", n)
             args[str(name)] = default
 
@@ -1685,10 +910,9 @@ def resolveConflicts(actions):
     if conflicts:
         raise ConfigurationConflictError(conflicts)
 
-    # Sort conflict-resolved actions by (order, i) and return them.  Wanted
-    # to use operator.itemgetter(0, 1) instead of the lambda below but that
-    # doesn't work on Py24.
-    return [ x[2] for x in sorted( output, key=lambda ai: (ai[0], ai[1]) ) ]
+    # Sort conflict-resolved actions by (order, i) and return them.
+    return [x[2] for x in sorted(output, key=operator.itemgetter(0, 1))]
+
 
 class ConfigurationConflictError(ConfigurationError):
 
