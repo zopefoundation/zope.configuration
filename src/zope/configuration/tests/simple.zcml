@@ -6,8 +6,8 @@
   <meta:directive
       name="register"
       namespace="http://sample.namespaces.zope.org/files"
-      schema=".test_simple.IRegisterFile"
-      handler=".test_simple.registerFile"
+      schema=".simple.IRegisterFile"
+      handler=".simple.registerFile"
       >
 
       Register a file with the file registry
@@ -17,7 +17,7 @@
   </meta:directive>
 
   <files:register 
-      path="test_simple.py"
+      path="simple.py"
       title="How to create a simple directive"
       >
     Describes how to implement a simple directive

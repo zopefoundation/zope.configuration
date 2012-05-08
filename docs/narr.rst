@@ -41,7 +41,7 @@ the directive.  There are four kinds of directives:
   are typically functions that take a context and zero or more
   keyword arguments and return a sequence of configuration actions.
 
-  To learn how to create simple directives, see `tests/test_simple.py`.
+  To learn how to create simple directives, see `tests/simple.py`.
 
 
 - Grouping directives collect information to be used by nested
@@ -55,7 +55,7 @@ the directive.  There are four kinds of directives:
   Other directives can be nested in grouping directives.
 
   To learn how to implement nested directives, look at the
-  documentation in `tests/test_nested.py`.
+  documentation in the "Creating Nested Directives" section below.
 
 - Complex directives are directives that have subdirectives.  
   Subdirectives have handlers that are simply methods of complex
@@ -77,7 +77,7 @@ the directive.  There are four kinds of directives:
 .. todo::
    Flesh out narrative docs.
     
-Using the configuration machinery programattically
+Using the configuration machinery programatically
 ==================================================
 
 An extended example:
@@ -749,3 +749,376 @@ by the configuration file in zope.configuration.tests.excludedemo:
 
    logger.setLevel(oldlevel)
    logger.removeHandler(handler)
+
+
+Creating simple directives
+==========================
+
+A simple directive is a directive that doesn't contain other
+directives. It can be implemented via a fairly simple function.
+To implement a simple directive, you need to do 3 things:
+
+- You need to create a schema to describe the directive parameters,
+
+- You need to write a directive handler, and
+
+- You need to register the directive.
+
+In this example, we'll implement a contrived example that records
+information about files in a file registry. The file registry is just
+the list, ``file_registry``.
+
+.. doctest::
+
+   >>> from zope.configuration.tests.simple import file_registry
+
+Our registry will contain tuples with:
+
+  - file path
+
+  - file title
+
+  - description
+
+  - Information about where the file was defined
+
+Our schema is defined in ``zope.configuration.tests.simple.IRegisterFile``
+(q.v).
+
+.. doctest::
+
+   >>> from zope.configuration.tests.simple import IRegisterFile
+
+Our schema lists the ``path`` and ``title`` attributes.  We'll get the
+description and other information for free, as we'll see later.  The
+title is not required, and may be omitted.
+
+The job of a configuration handler is to compute one or more
+configuration actions.  Configuration actions are defered function
+calls. The handler doesn't perform the actions. It just computes
+actions, which may be performed later if they are not overridden by
+other directives.
+
+Our handler is given in the function,
+``zope.configuration.tests.simple.registerFile``.
+
+.. doctest::
+
+   >>> from zope.configuration.tests.simple import registerFile
+
+
+It takes a context, a path and a title. All directive handlers take the
+directive context as the first argument.  A directive context, at a minimim,
+implements, ``zope.configuration.IConfigurationContext``. 
+(Specialized contexts can implement more specific interfaces. We'll say more
+about that when we talk about grouping directives.)  The title argument
+must have a default value, because we indicated that the title was not
+required in the schema. (Alternatively, we could have made the title
+required, but provided a default value in the schema.
+
+In the first line of function ``registerFile``, we get the context information
+object. This object contains information about the configuration
+directive, such as the file and location within the file of the
+directive.
+
+The context information object also has a text attribute that contains
+the textual data contained by the configuration directive. (This is
+the concatenation of all of the xml text nodes directly contained by
+the directive.)  We use this for our description in the second line
+of the handler.
+
+The last thing the handler does is to compute an action by calling the
+action method of the context.  It passes the action method 3 keyword
+arguments:
+
+- discriminator
+
+  The discriminator is used to identify the action to be performed so
+  that duplicate actions can be detected.  Two actions are duplicated,
+  and this conflict, if they have the same discriminator values and
+  the values are not ``None``.  Conflicting actions can be resolved if
+  one of the conflicting actions is from a configuration file that
+  directly or indirectly includes the files containing the other
+  conflicting actions.
+
+  In function ``registerFile``, we a tuple with the string
+  ``'RegisterFile'`` and the path to be registered.
+
+- callable
+
+  The callable is the object to be called to perform the action.
+
+- args
+
+  The args argument contains positinal arguments to be passed to the
+  callable. In function ``registerFile``, we pass a tuple containing a
+  ``FileInfo`` object.
+
+  (Note that there's nothing special about the FileInfo class. It has
+   nothing to do with creating simple directives. It's just used in
+   this example to organize the application data.)
+
+
+The final step in implementing the simple directive is to register
+it. We do that with the zcml ``meta:directive`` directive.  This is
+given in the file simple.zcml.  Here we specify the name, namespace,
+schema, and handler for the directive.  We also provide a
+documentation for the directive as text between the start and end
+tags.
+
+The file simple.zcml also includes some directives that use the new
+directive to register some files.
+
+Now let's try it all out:
+
+.. doctest::
+
+   >>> from zope.configuration import tests
+   >>> from zope.configuration.xmlconfig import file
+   >>> context = file("simple.zcml", tests)
+
+Now we should see some file information in the registry:
+
+.. doctest::
+
+   >>> from zope.configuration.tests.test_xmlconfig import clean_text_w_paths
+   >>> from zope.configuration.tests.test_xmlconfig import clean_path
+   >>> print clean_path(file_registry[0].path)
+   tests/simple.py
+   >>> print file_registry[0].title
+   How to create a simple directive
+   >>> print file_registry[0].description
+   Describes how to implement a simple directive
+   >>> print clean_text_w_paths(file_registry[0].info)
+   File "tests/simple.zcml", line 19.2-24.2
+       <files:register
+           path="simple.py"
+           title="How to create a simple directive"
+           >
+         Describes how to implement a simple directive
+       </files:register>
+   >>> print clean_path(file_registry[1].path)
+   tests/simple.zcml
+   >>> print file_registry[1].title
+   <BLANKLINE>
+   >>> desc = file_registry[1].description
+   >>> print '\n'.join([l.rstrip()
+   ...                  for l in desc.strip().splitlines()
+   ...                    if l.rstrip()])
+   Shows the ZCML directives needed to register a simple directive.
+       Also show some usage examples,
+   >>> print clean_text_w_paths(file_registry[1].info)
+   File "tests/simple.zcml", line 26.2-30.2
+       <files:register path="simple.zcml">
+         Shows the ZCML directives needed to register a simple directive.
+         Also show some usage examples,
+       </files:register>
+   >>> print clean_path(file_registry[2].path)
+   tests/__init__.py
+   >>> print file_registry[2].title
+   Make this a package
+   >>> print file_registry[2].description
+   <BLANKLINE>
+   >>> print clean_text_w_paths(file_registry[2].info)
+   File "tests/simple.zcml", line 32.2-32.67
+       <files:register path="__init__.py" title="Make this a package" />
+
+Clean up after ourselves:
+
+.. doctest::
+
+   >>> del file_registry[:]
+
+
+
+Creating nested directives
+==========================
+
+When using ZCML, you sometimes nest ZCML directives. This is typically
+done either to:
+
+- Avoid repetative input.  Information shared among multiple
+  directives is provided in a surrounding directive.
+
+- Put together information that is too complex or structured to express
+  with a single set of directive parameters.
+
+Grouping directives are used to handle both of these cases.  See the
+documentation in :mod:`zope.configure.zopeconfigure`. This file describes the
+implementation of the zope ``configure`` directive, which groups
+directives that use a common package or internationalization domain.
+You should also have read the section on "Creating simple directives."
+
+This file shows you how to handle the second case above. In this case,
+we have grouping directives that are meant to collaborate with
+specific contained directives.  To do this, you have the grouping
+directives declare a more specific (or alternate) interface to
+``IConfigurationContext``. Directives designed to work with those
+grouping directives are registered for the new interface.
+
+Let's look at example. Suppose we wanted to be able to define schema
+using ZCML.  We'd use a grouping directive to specify schemas and
+contained directives to specify fields within the schema.  We'll use a
+schema registry to hold the defined schemas::
+
+.. doctest::
+
+   >>> from zope.configuration.tests.nested import schema_registry
+
+A schema has a name, an id, some documentation, and some fields.
+We'll provide the name and the id as parameters. We'll define fields
+as subdirectives and documentation as text contained in the schema
+directive.  The schema directive uses the schema, ``ISchemaInfo`` for
+it's parameters.
+
+.. doctest::
+
+   >>> from zope.configuration.tests.nested import ISchemaInfo
+
+We also define the schema, ISchema, that specifies an attribute that
+nested field directives will use to store the fields they define.
+
+.. doctest::
+
+   >>> from zope.configuration.tests.nested import ISchema
+
+The class, ``Schema``, provides the handler for the schema directive. (If
+you haven't read the documentation in ``zopeconfigure.py``, you need
+to do so now.)  The constructor saves its arguments as attributes
+and initializes its ``fields`` attribute:
+
+.. doctest::
+
+   >>> from zope.configuration.tests.nested import Schema
+
+The ``after`` method of the ``Schema`` class creates a schema and
+computes an action to register the schema in the schema registry.  The
+discriminator prevents two schema directives from registering the same
+schema.
+
+It's important to note that when we call the ``action`` method on
+``self``, rather than on ``self.context``.  This is because, in a
+grouping directive handler, the handler instance is itself a context.
+When we call the ``action`` method, the method stores additional meta
+data associated with the context it was called on. This meta data
+includes an include path, used when resolving conflicting actions,
+and an object that contains information about the XML source used
+to invole the directive. If we called the action method on
+``self.context``, the wrong meta data would be associated with the
+configuration action.
+
+The file ``schema.zcml`` contains the meta-configuration directive
+that defines the schema directive.
+
+To define fields, we'll create directives to define the fields.
+Let's start with a ``text`` field.  ``ITextField`` defines the schema for
+text field parameters. It extends ``IFieldInfo``, which defines data
+common to all fields.  We also define a simple handler method,
+textField, that takes a context and keyword arguments. (For
+information on writing simple directives, see ``test_simple.py``.)
+We've abstracted most of the logic into the function ``field``.
+
+The ``field`` function computes a field instance using the
+constructor, and the keyword arguments passed to it.  It also uses the
+context information object to get the text content of the directive,
+which it uses for the field description.
+
+After computing the field instance, it gets the ``Schema`` instance,
+which is the context of the context passed to the function. The
+function checks to see if there is already a field with that name. If
+there is, it raises an error. Otherwise, it saves the field. 
+
+We also define an ``IIntInfo`` schema and ``intField`` handler
+function to support defining integer fields. 
+
+We register the ``text`` and ``int`` directives in ``schema.zcml``.
+These are like the simple directive definition we saw in
+``test_simple.py`` with an important exception.  We provide a
+``usedIn`` parameter to say that these directives can *only* ne used
+in a ``ISchema`` context. In other words, these can only be used
+inside of ``schema`` directives.
+
+The ``schema.zcml`` file also contains some sample ``schema``
+directives.  We can execute the file:
+
+.. doctest::
+
+   >>> from zope.configuration import tests
+   >>> from zope.configuration.xmlconfig import file
+   >>> context = file("schema.zcml", tests)
+
+And verify that the schema registery has the schemas we expect:
+
+.. doctest::
+
+   >>> pprint(sorted(schema_registry))
+   ['zope.configuration.tests.nested.I1',
+    'zope.configuration.tests.nested.I2']
+
+   >>> def sorted(x):
+   ...     r = list(x)
+   ...     r.sort()
+   ...     return r
+
+   >>> i1 = schema_registry['zope.configuration.tests.nested.I1']
+   >>> sorted(i1)
+   ['a', 'b']
+   >>> i1['a'].__class__.__name__
+   'Text'
+   >>> i1['a'].description.strip()
+   u'A\n\n          Blah blah'
+   >>> i1['a'].min_length
+   1
+   >>> i1['b'].__class__.__name__
+   'Int'
+   >>> i1['b'].description.strip()
+   u'B\n\n          Not feeling very creative'
+   >>> i1['b'].min
+   1
+   >>> i1['b'].max
+   10
+
+   >>> i2 = schema_registry['zope.configuration.tests.nested.I2']
+   >>> sorted(i2)
+   ['x', 'y']
+
+
+Now let's look at some error situations. For example, let's see what
+happens if we use a field directive outside of a schema dorective.
+(Note that we used the context we created above, so we don't have to
+redefine our directives:
+
+.. doctest::
+
+   >>> from zope.configuration.xmlconfig import string
+   >>> from zope.configuration.xmlconfig import ZopeXMLConfigurationError
+   >>> try:
+   ...    v = string(
+   ...      '<text xmlns="http://sample.namespaces.zope.org/schema" name="x" />',
+   ...      context)
+   ... except ZopeXMLConfigurationError, v:
+   ...   pass
+   >>> print v
+   File "<string>", line 1.0
+       ConfigurationError: The directive (u'http://sample.namespaces.zope.org/schema', u'text') cannot be used in this context
+
+Let's see what happens if we declare duplicate fields:
+
+.. doctest::
+
+   >>> try:
+   ...    v = string(
+   ...      '''
+   ...      <schema name="I3" id="zope.configuration.tests.nested.I3"
+   ...              xmlns="http://sample.namespaces.zope.org/schema">
+   ...        <text name="x" />
+   ...        <text name="x" />
+   ...      </schema>
+   ...      ''',
+   ...      context)
+   ... except ZopeXMLConfigurationError, v:
+   ...   pass
+   >>> print v
+   File "<string>", line 5.7-5.24
+       ValueError: ('Duplicate field', 'x')
+
