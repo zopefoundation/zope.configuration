@@ -20,6 +20,7 @@ Contents:
    api/fields
    api/interfaces
    api/name
+   api/stxdocs
 
 
 Indices and tables
