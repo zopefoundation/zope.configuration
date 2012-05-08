@@ -22,6 +22,7 @@ Contents:
    api/name
    api/stxdocs
    api/xmlconfig
+   api/zopeconfigure
 
 
 Indices and tables
