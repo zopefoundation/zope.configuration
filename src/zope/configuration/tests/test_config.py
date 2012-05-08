@@ -107,6 +107,21 @@ class ConfigurationContextTests(unittest.TestCase):
         c.package = stub()
         os.path.isabs(c.path('y/z'))
 
+    #TODO: coverage
+
+
+class ConfigurationAdapterRegistryTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from zope.configuration.config import ConfigurationAdapterRegistry
+        return ConfigurationAdapterRegistry
+    
+    def _makeOne(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
+
+    #TODO: coverage
+
+
 class ConfigurationMachineTests(unittest.TestCase):
 
     def _getTargetClass(self):
@@ -155,8 +170,12 @@ class ConfigurationMachineTests(unittest.TestCase):
                           'order': 0,
                          })
 
+    #TODO: coverage
+
+
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(ConfigurationContextTests),
+        unittest.makeSuite(ConfigurationAdapterRegistryTests),
         unittest.makeSuite(ConfigurationMachineTests),
         ))
