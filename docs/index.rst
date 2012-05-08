@@ -19,6 +19,7 @@ Contents:
    api/exceptions
    api/fields
    api/interfaces
+   api/name
 
 
 Indices and tables
