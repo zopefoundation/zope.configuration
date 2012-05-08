@@ -73,3 +73,105 @@ the directive.  There are four kinds of directives:
 
   Subdirectives, like complex directives only exist to support old
   directive handlers. They will probably be deprecated in the future.
+
+.. todo::
+   Flesh out narrative docs.
+
+Filtering and Inhibiting Configuration
+======================================
+
+The ``exclude`` standard directive is provided for inhibiting unwanted
+configuration. It is used to exclude processing of configuration files.
+It is useful when including a configuration that includes some other
+configuration that you don't want.
+
+It must be used BEFORE including the files to be excluded.
+
+First, let's look at an example.  The zope.configuration.tests.excludedemo
+package has a ZCML configuration that includes some other configuration files.
+
+We'll set a log handler so we can see what's going on:
+
+.. doctest::
+
+   >>> import logging
+   >>> import logging.handlers
+   >>> import sys
+   >>> logger = logging.getLogger('config')
+   >>> oldlevel = logger.level
+   >>> logger.setLevel(logging.DEBUG)
+   >>> handler = logging.handlers.MemoryHandler(10)
+   >>> logger.addHandler(handler)
+ 
+Now, we'll include the zope.configuration.tests.excludedemo config:
+
+.. doctest::
+
+   >>> from zope.configuration import xmlconfig
+   >>> _ = xmlconfig.string('<include package="zope.configuration.tests.excludedemo" />')
+   >>> len(handler.buffer)
+   3
+   >>> logged = [x.msg for x in handler.buffer]
+   >>> logged[0].startswith('include ')
+   True
+   >>> logged[0].endswith('src/zope/configuration/tests/excludedemo/configure.zcml')
+   True
+   >>> logged[1].startswith('include ')
+   True
+   >>> logged[1].endswith('src/zope/configuration/tests/excludedemo/sub/configure.zcml')
+   True
+   >>> logged[2].startswith('include ')
+   True
+   >>> logged[2].endswith('src/zope/configuration/tests/excludedemo/spam.zcml')
+   True
+   >>> del handler.buffer[:]
+
+Each run of the configuration machinery runs with fresh state, so
+rerunning gives the same thing:
+
+.. doctest::
+
+   >>> _ = xmlconfig.string('<include package="zope.configuration.tests.excludedemo" />')
+   >>> len(handler.buffer)
+   3
+   >>> logged = [x.msg for x in handler.buffer]
+   >>> logged[0].startswith('include ')
+   True
+   >>> logged[0].endswith('src/zope/configuration/tests/excludedemo/configure.zcml')
+   True
+   >>> logged[1].startswith('include ')
+   True
+   >>> logged[1].endswith('src/zope/configuration/tests/excludedemo/sub/configure.zcml')
+   True
+   >>> logged[2].startswith('include ')
+   True
+   >>> logged[2].endswith('src/zope/configuration/tests/excludedemo/spam.zcml')
+   True
+   >>> del handler.buffer[:]
+
+Now, we'll use the exclude directive to exclude the two files included
+by the configuration file in zope.configuration.tests.excludedemo:
+
+.. doctest::
+
+   >>> _ = xmlconfig.string(
+   ... '''
+   ... <configure  xmlns="http://namespaces.zope.org/zope">
+   ...   <exclude package="zope.configuration.tests.excludedemo.sub" />
+   ...   <exclude package="zope.configuration.tests.excludedemo" file="spam.zcml" />
+   ...   <include package="zope.configuration.tests.excludedemo" />
+   ... </configure>
+   ... ''')
+   >>> len(handler.buffer)
+   1
+   >>> logged = [x.msg for x in handler.buffer]
+   >>> logged[0].startswith('include ')
+   True
+   >>> logged[0].endswith('src/zope/configuration/tests/excludedemo/configure.zcml')
+   True
+
+
+.. testcleanup::
+
+   logger.setLevel(oldlevel)
+   logger.removeHandler(handler)

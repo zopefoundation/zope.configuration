@@ -624,12 +624,6 @@ def test_suite():
     return unittest.TestSuite((
         DocTestSuite('zope.configuration.xmlconfig'),
         DocTestSuite(),
-        DocFileSuite('../exclude.txt',
-            checker=renormalizing.RENormalizing([
-                (re.compile('include [^\n]+zope.configuration[\S+]'),
-                 'include /zope.configuration\2'),
-                (re.compile(r'\\'), '/'),
-                ]))
         ))
 
 if __name__ == '__main__':
