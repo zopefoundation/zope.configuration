@@ -1,5 +1,5 @@
 :mod:`zope.configuration.docutils`
-================================
+==================================
 
 .. module:: zope.configuration.docutils
 
