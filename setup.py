@@ -88,7 +88,7 @@ setup(name='zope.configuration',
       package_dir={'': 'src'},
       namespace_packages=['zope'],
       extras_require={
-        'docs': ['Sphinx'],
+        'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
         'test': TESTS_REQUIRE,
         'testing': TESTS_REQUIRE + ['nose', 'coverage'],
       },
