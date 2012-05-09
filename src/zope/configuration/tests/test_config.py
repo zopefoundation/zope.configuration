@@ -296,6 +296,164 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def test_ctor(self):
+        reg = self._makeOne()
+        self.assertEqual(len(reg._registry), 0)
+        self.assertEqual(len(reg._docRegistry), 0)
+
+    def test_register(self):
+        from zope.interface import Interface
+        class IFoo(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        def _factory():
+            pass
+        reg = self._makeOne()
+        reg.register(IFoo, (NS, NAME), _factory)
+        self.assertEqual(len(reg._registry), 1)
+        areg = reg._registry[(NS, NAME)]
+        self.assertTrue(areg.lookup1(IFoo, Interface) is _factory)
+        self.assertEqual(len(reg._docRegistry), 0)
+
+    def test_register_replacement(self):
+        from zope.interface import Interface
+        class IFoo(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        def _factory():
+            pass
+        def _rival():
+            pass
+        reg = self._makeOne()
+        reg.register(IFoo, (NS, NAME), _factory)
+        reg.register(IFoo, (NS, NAME), _rival)
+        self.assertEqual(len(reg._registry), 1)
+        areg = reg._registry[(NS, NAME)]
+        self.assertTrue(areg.lookup1(IFoo, Interface) is _rival)
+        self.assertEqual(len(reg._docRegistry), 0)
+
+    def test_register_new_name(self):
+        from zope.interface import Interface
+        class IFoo(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        NAME2 = 'other'
+        def _factory():
+            pass
+        def _rival():
+            pass
+        reg = self._makeOne()
+        reg.register(IFoo, (NS, NAME), _factory)
+        reg.register(IFoo, (NS, NAME2), _rival)
+        self.assertEqual(len(reg._registry), 2)
+        areg = reg._registry[(NS, NAME)]
+        self.assertTrue(areg.lookup1(IFoo, Interface) is _factory)
+        areg = reg._registry[(NS, NAME2)]
+        self.assertTrue(areg.lookup1(IFoo, Interface) is _rival)
+        self.assertEqual(len(reg._docRegistry), 0)
+
+    def test_document_non_string_name(self):
+        from zope.interface import Interface
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        HANDLER = object()
+        INFO = 'INFO'
+        PARENT = object()
+        reg = self._makeOne()
+        reg.document((NS, NAME), ISchema, IUsedIn, HANDLER, INFO, PARENT)
+        self.assertEqual(len(reg._registry), 0)
+        self.assertEqual(len(reg._docRegistry), 1)
+        name, schema, used_in, handler, info, parent = reg._docRegistry[0]
+        self.assertEqual(name, (NS, NAME))
+        self.assertEqual(schema, ISchema)
+        self.assertEqual(used_in, IUsedIn)
+        self.assertEqual(info, INFO)
+        self.assertEqual(parent, PARENT)
+
+    def test_document_w_string_name(self):
+        from zope.interface import Interface
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        NAME = 'testing'
+        HANDLER = object()
+        INFO = 'INFO'
+        PARENT = object()
+        reg = self._makeOne()
+        reg.document(NAME, ISchema, IUsedIn, HANDLER, INFO, PARENT)
+        self.assertEqual(len(reg._registry), 0)
+        self.assertEqual(len(reg._docRegistry), 1)
+        name, schema, used_in, handler, info, parent = reg._docRegistry[0]
+        self.assertEqual(name, ('', NAME))
+        self.assertEqual(schema, ISchema)
+        self.assertEqual(used_in, IUsedIn)
+        self.assertEqual(info, INFO)
+        self.assertEqual(parent, PARENT)
+
+    def test_factory_miss(self):
+        from zope.configuration.exceptions import ConfigurationError
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        context = object()
+        reg = self._makeOne()
+        self.assertRaises(ConfigurationError, reg.factory, context, (NS, NAME))
+
+    def test_factory_hit_on_fqn(self):
+        from zope.interface import Interface
+        from zope.interface import implementer
+        class IFoo(Interface):
+            pass
+        @implementer(IFoo)
+        class Context(object):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        context = Context()
+        def _factory():
+            pass
+        reg = self._makeOne()
+        reg.register(IFoo, (NS, NAME), _factory)
+        self.assertEqual(reg.factory(context, (NS, NAME)), _factory)
+
+    def test_factory_miss_on_fqn_hit_on_bare_name(self):
+        from zope.interface import Interface
+        from zope.interface import implementer
+        class IFoo(Interface):
+            pass
+        @implementer(IFoo)
+        class Context(object):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        context = Context()
+        def _factory():
+            pass
+        reg = self._makeOne()
+        reg.register(IFoo, NAME, _factory)
+        self.assertEqual(reg.factory(context, (NS, NAME)), _factory)
+
+    def test_factory_hit_on_fqn_lookup_fails(self):
+        from zope.interface import Interface
+        from zope.configuration.exceptions import ConfigurationError
+        class IFoo(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        context = object() # doesn't provide IFoo
+        def _factory():
+            pass
+        reg = self._makeOne()
+        reg.register(IFoo, (NS, NAME), _factory)
+        self.assertRaises(ConfigurationError, reg.factory, context, (NS, NAME))
+
     #TODO: coverage
 
 
