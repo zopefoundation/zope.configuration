@@ -786,15 +786,103 @@ class SimpleStackItemTests(_ConformsToIStackItem,
         from zope.configuration.config import SimpleStackItem
         return SimpleStackItem
     
-    def _makeOne(self, context=None, handler=None, info=None, *args):
+    def _makeOne(self,
+                 context=None, handler=None, info=None,
+                 schema=None, data=None):
+        from zope.interface import Interface
         if context is None:
-            context = object()
+            context = FauxContext()
         if handler is None:
             def handler():
                 pass
         if info is None:
             info = 'INFO'
-        return self._getTargetClass()(context, handler, info, *args)
+        if schema is None:
+            schema = Interface
+        if data is None:
+            data = {}
+        return self._getTargetClass()(context, handler, info, schema, data)
+
+    def test_ctor(self):
+        from zope.interface import Interface
+        from zope.configuration.config import GroupingContextDecorator
+        class ISchema(Interface):
+            pass
+        context = FauxContext()
+        def _handler():
+            pass
+        _data = {}
+        ssi = self._makeOne(context, _handler, 'INFO', ISchema, _data)
+        self.assertTrue(isinstance(ssi.context, GroupingContextDecorator))
+        self.assertTrue(ssi.context.context is context)
+        self.assertEqual(ssi.context.info, 'INFO')
+        self.assertEqual(ssi.handler, _handler)
+        self.assertEqual(ssi.argdata, (ISchema, _data))
+
+    def test_contained_raises(self):
+        from zope.configuration.exceptions import ConfigurationError
+        ssi = self._makeOne()
+        self.assertRaises(ConfigurationError,
+                          ssi.contained, ('ns', 'name'), {}, '')
+
+    def test_finish_handler_returns_no_actions(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        class ISchema(Interface):
+            name = Text(required=True)
+        context = FauxContext()
+        def _handler(context, **kw):
+            return ()
+        _data = {'name': 'NAME'}
+        ssi = self._makeOne(context, _handler, 'INFO', ISchema, _data)
+        ssi.finish() # noraise
+        self.assertEqual(context.actions, [])
+
+    def test_finish_handler_returns_oldstyle_actions(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        class ISchema(Interface):
+            name = Text(required=True)
+        context = FauxContext()
+        def _action(context, **kw):
+            pass
+        def _handler(context, **kw):
+            return [(None, _action)]
+        _data = {'name': 'NAME'}
+        ssi = self._makeOne(context, _handler, 'INFO', ISchema, _data)
+        ssi.finish()
+        self.assertEqual(context.actions,
+                         [{'discriminator': None,
+                           'callable': _action,
+                           'args': (),
+                           'kw': {},
+                           'includepath': (),
+                           'info': 'INFO',
+                           'order': 0,
+                          }])
+
+    def test_finish_handler_returns_newstyle_actions(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        class ISchema(Interface):
+            name = Text(required=True)
+        context = FauxContext()
+        def _action(context, **kw):
+            pass
+        def _handler(context, **kw):
+            return [{'discriminator': None, 'callable': _action}]
+        _data = {'name': 'NAME'}
+        ssi = self._makeOne(context, _handler, 'INFO', ISchema, _data)
+        ssi.finish()
+        self.assertEqual(context.actions,
+                         [{'discriminator': None,
+                           'callable': _action,
+                           'args': (),
+                           'kw': {},
+                           'includepath': (),
+                           'info': 'INFO',
+                           'order': 0,
+                          }])
 
     #TODO coverage
 
@@ -1025,6 +1113,12 @@ class Test_resolveConflicts(unittest.TestCase):
 
     #TODO coverage
 
+
+class FauxContext(object):
+    def __init__(self):
+        self.actions = []
+    def action(self, **kw):
+        self.actions.append(kw)
 
 def test_suite():
     return unittest.TestSuite((
