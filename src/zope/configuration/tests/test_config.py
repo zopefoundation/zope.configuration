@@ -15,8 +15,25 @@
 """
 import unittest
 
+class _Catchable(object):
+    # Mixin for classes which need to make assertions about the exception
+    # instance.
+    def assertRaises(self, excClass, callableObj, *args, **kwargs):
+        # Morph stdlib version to return the raised exception
+        try:
+            callableObj(*args, **kwargs)
+        except excClass as exc:
+            return exc
+        if hasattr(excClass,'__name__'):
+            excName = excClass.__name__
+        else:
+            excName = str(excClass)
+        raise self.failureException("%s not raised" % excName)
 
-class ConfigurationContextTests(unittest.TestCase):
+
+class ConfigurationContextTests(_Catchable,
+                                unittest.TestCase,
+                               ):
 
     def _getTargetClass(self):
         from zope.configuration.config import ConfigurationContext
@@ -24,17 +41,6 @@ class ConfigurationContextTests(unittest.TestCase):
     
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
-
-    def assertRaises(self, excClass, callableObj, *args, **kwargs):
-        # Morph stdlib version to return the raised exception
-        try:
-            callableObj(*args, **kwargs)
-        except excClass as exc:
-            return exc
-        else:
-            if hasattr(excClass,'__name__'): excName = excClass.__name__
-            else: excName = str(excClass)
-            raise self.failureException("%s not raised" % excName)
 
     def test_resolve_blank(self):
         c = self._makeOne()
