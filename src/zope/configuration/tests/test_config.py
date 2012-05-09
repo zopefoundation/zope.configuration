@@ -455,7 +455,9 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         self.assertRaises(ConfigurationError, reg.factory, context, (NS, NAME))
 
 
-class ConfigurationMachineTests(unittest.TestCase):
+class ConfigurationMachineTests(_Catchable,
+                                unittest.TestCase,
+                               ):
 
     def _getTargetClass(self):
         from zope.configuration.config import ConfigurationMachine
@@ -473,6 +475,245 @@ class ConfigurationMachineTests(unittest.TestCase):
         from zope.interface.verify import verifyObject
         from zope.configuration.interfaces import IConfigurationContext
         verifyObject(IConfigurationContext, self._makeOne())
+
+    def test_ctor(self):
+        from zope.configuration.config import RootStackItem
+        from zope.configuration.config import metans
+        cm = self._makeOne()
+        self.assertEqual(cm.package, None)
+        self.assertEqual(cm.basepath, None)
+        self.assertEqual(cm.includepath, ())
+        self.assertEqual(cm.info, '')
+        self.assertEqual(len(cm.actions), 0)
+        self.assertEqual(len(cm.stack), 1)
+        root = cm.stack[0]
+        self.assertTrue(isinstance(root, RootStackItem))
+        self.assertTrue(root.context is cm)
+        self.assertEqual(len(cm.i18n_strings), 0)
+        # Check bootstrapped meta:*.
+        self.assertTrue((metans, 'directive') in cm._registry)
+        self.assertTrue((metans, 'directives') in cm._registry)
+        self.assertTrue((metans, 'complexDirective') in cm._registry)
+        self.assertTrue((metans, 'groupingDirective') in cm._registry)
+        self.assertTrue((metans, 'provides') in cm._registry)
+        self.assertTrue((metans, 'subdirective') in cm._registry)
+
+    def test_begin_w___data_and_kw(self):
+        from zope.configuration.config import IConfigurationContext
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        def _factory(context, data, info):
+            pass
+        cm = self._makeOne()
+        cm.register(IConfigurationContext, (NS, NAME), _factory)
+        self.assertRaises(TypeError,
+                          cm.begin, (NS, NAME), {'foo': 'bar'}, baz='bam')
+
+    def test_begin_w___data_no_kw(self):
+        from zope.interface import Interface
+        from zope.configuration.config import IConfigurationContext
+        from zope.configuration.config import RootStackItem
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        def _handler(*args, **kw):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        _called_with = []
+        item = object()
+        def _factory(context, data, info):
+            _called_with.append((context, data, info))
+            return item
+        cm = self._makeOne()
+        cm.register(IConfigurationContext, (NS, NAME), _factory)
+        cm.begin((NS, NAME), {'name': 'testing',
+                                  'schema': ISchema,
+                                  'usedIn': IUsedIn,
+                                  'handler': _handler,
+                                 }, 'INFO')
+        self.assertEqual(len(cm.stack), 2)
+        root = cm.stack[0]
+        self.assertTrue(isinstance(root, RootStackItem))
+        nested = cm.stack[1]
+        self.assertTrue(nested is item)
+        self.assertEqual(_called_with,
+                        [(cm, {'name': 'testing',
+                               'schema': ISchema,
+                               'usedIn': IUsedIn,
+                               'handler': _handler,
+                              }, 'INFO')])
+
+    def test_begin_wo___data_w_kw(self):
+        from zope.interface import Interface
+        from zope.configuration.config import IConfigurationContext
+        from zope.configuration.config import RootStackItem
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        def _handler(*args, **kw):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        _called_with = []
+        item = object()
+        def _factory(context, data, info):
+            _called_with.append((context, data, info))
+            return item
+        cm = self._makeOne()
+        cm.register(IConfigurationContext, (NS, NAME), _factory)
+        cm.begin((NS, NAME), None, 'INFO',
+                  name='testing',
+                  schema=ISchema,
+                  usedIn=IUsedIn,
+                  handler=_handler,
+                )
+        self.assertEqual(len(cm.stack), 2)
+        root = cm.stack[0]
+        self.assertTrue(isinstance(root, RootStackItem))
+        nested = cm.stack[1]
+        self.assertTrue(nested is item)
+        self.assertEqual(_called_with,
+                        [(cm, {'name': 'testing',
+                               'schema': ISchema,
+                               'usedIn': IUsedIn,
+                               'handler': _handler,
+                              }, 'INFO')])
+
+    def test_end(self):
+        from zope.configuration.config import RootStackItem
+        class FauxItem(object):
+            _finished = False
+            def finish(self):
+                self._finished = True
+        cm = self._makeOne()
+        item = FauxItem()
+        cm.stack.append(item)
+        cm.end()
+        self.assertEqual(len(cm.stack), 1)
+        root = cm.stack[0]
+        self.assertTrue(isinstance(root, RootStackItem))
+        self.assertTrue(item._finished)
+
+    def test___call__(self):
+        from zope.interface import Interface
+        from zope.configuration.config import IConfigurationContext
+        from zope.configuration.config import RootStackItem
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        class FauxItem(object):
+            _finished = False
+            def finish(self):
+                self._finished = True
+        def _handler(*args, **kw):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        _called_with = []
+        item = FauxItem()
+        def _factory(context, data, info):
+            _called_with.append((context, data, info))
+            return item
+        cm = self._makeOne()
+        cm.register(IConfigurationContext, (NS, NAME), _factory)
+        cm((NS, NAME), 'INFO',
+            name='testing',
+            schema=ISchema,
+            usedIn=IUsedIn,
+            handler=_handler,
+           )
+        self.assertEqual(len(cm.stack), 1)
+        root = cm.stack[0]
+        self.assertTrue(isinstance(root, RootStackItem))
+        self.assertEqual(_called_with,
+                        [(cm, {'name': 'testing',
+                               'schema': ISchema,
+                               'usedIn': IUsedIn,
+                               'handler': _handler,
+                              }, 'INFO')])
+        self.assertTrue(item._finished)
+
+    def test_getInfo_only_root_default(self):
+        cm = self._makeOne()
+        self.assertEqual(cm.getInfo(), '')
+
+    def test_getInfo_only_root(self):
+        cm = self._makeOne()
+        cm.info = 'INFO'
+        self.assertEqual(cm.getInfo(), 'INFO')
+
+    def test_getInfo_w_item(self):
+        class FauxItem(object):
+            info = 'FAUX'
+            def __init__(self):
+                self.context = self
+        cm = self._makeOne()
+        cm.stack.append(FauxItem())
+        self.assertEqual(cm.getInfo(), 'FAUX')
+
+    def test_setInfo_only_root(self):
+        cm = self._makeOne()
+        cm.setInfo('INFO')
+        self.assertEqual(cm.info, 'INFO')
+
+    def test_setInfo_w_item(self):
+        class FauxItem(object):
+            info = 'FAUX'
+            def __init__(self):
+                self.context = self
+        cm = self._makeOne()
+        item = FauxItem()
+        cm.stack.append(item)
+        cm.setInfo('UPDATED')
+        self.assertEqual(item.info, 'UPDATED')
+
+    def test_execute_actions_empty(self):
+        cm = self._makeOne()
+        cm.execute_actions() # noop
+
+    def test_execute_actions_wo_errors(self):
+        _called_with = {}
+        def _a1(*args, **kw):
+            _called_with.setdefault('_a1', []).append((args, kw))
+        def _a2(*args, **kw):
+            _called_with.setdefault('_a2', []).append((args, kw))
+        cm = self._makeOne()
+        cm.action(None, None) # will be skipped
+        cm.action(None, _a1, ('a', 0), {'foo': 'bar'}, 4)
+        cm.action(None, _a2, ('a', 1), {'foo': 'baz'}, 3)
+        cm.action(None, _a1, ('b', 2), {'foo': 'qux'}, 2)
+        cm.execute_actions()
+        self.assertEqual(_called_with['_a1'],
+                        [(('b', 2), {'foo': 'qux'}),
+                         (('a', 0), {'foo': 'bar'}),
+                        ])
+        self.assertEqual(_called_with['_a2'],
+                        [(('a', 1), {'foo': 'baz'}),
+                        ])
+
+    def test_execute_actions_w_errors_w_testing(self):
+        def _err(*args, **kw):
+            raise ValueError('XXX')
+        cm = self._makeOne()
+        cm.action(None, _err)
+        exc = self.assertRaises(ValueError, cm.execute_actions, testing=True)
+        self.assertEqual(str(exc), 'XXX')
+
+    def test_execute_actions_w_errors_wo_testing(self):
+        from zope.configuration.config import ConfigurationExecutionError
+        def _err(*args, **kw):
+            raise ValueError('XXX')
+        cm = self._makeOne()
+        cm.info = 'INFO'
+        cm.action(None, _err)
+        exc = self.assertRaises(ConfigurationExecutionError,
+                                cm.execute_actions)
+        self.assertEqual(str(exc),
+                         "<type 'exceptions.ValueError'>: XXX\n  in:\n  INFO")
 
     def test_keyword_handling(self):
         from zope.configuration.config import metans
