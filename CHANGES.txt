@@ -5,6 +5,8 @@ Changes
 4.0.0 (unreleased)
 ------------------
 
+- Automated build of Sphinx HTML docs and running doctest snippets via tox.
+
 - Dropped hard testing dependency on ``zope.testing``.
 
 - Added explicit support for PyPy.
