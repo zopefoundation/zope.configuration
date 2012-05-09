@@ -51,6 +51,14 @@ class ZopeSAXParseExceptionTests(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def test___str___not_a_sax_error(self):
+        zxce = self._makeOne(Exception('Not a SAX error'))
+        self.assertEqual(str(zxce), "Not a SAX error")
+
+    def test___str___w_a_sax_error(self):
+        zxce = self._makeOne(Exception('filename.xml:24:32:WAAA'))
+        self.assertEqual(str(zxce), 'File "filename.xml", line 24.32, WAAA')
+
 
 class ParserInfoTests(unittest.TestCase):
 
