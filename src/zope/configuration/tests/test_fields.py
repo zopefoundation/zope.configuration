@@ -73,6 +73,67 @@ class GlobalObjectTests(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def test__validate_wo_value_type(self):
+        from zope.configuration._compat import u
+        from zope.configuration._compat import b
+        go = self._makeOne(value_type=None)
+        for value in [0, 0.0, (), [], set(), frozenset(), u(''), b('')]:
+            go._validate(value) #noraise
+
+    def test__validate_w_value_type(self):
+        from zope.schema import Text
+        from zope.schema.interfaces import WrongType
+        from zope.configuration._compat import u
+        from zope.configuration._compat import b
+        go = self._makeOne(value_type=Text())
+        go.validate(u(''))
+        for value in [0, 0.0, (), [], set(), frozenset(), b('')]:
+            self.assertRaises(WrongType, go._validate, value)
+
+    def test_fromUnicode_w_star_and_extra_ws(self):
+        go = self._makeOne()
+        self.assertEqual(go.fromUnicode(' * '), None)
+
+    def test_fromUnicode_w_resolve_fails(self):
+        from zope.schema import ValidationError
+        from zope.configuration.config import ConfigurationError
+        class Context(object):
+            def resolve(self, name):
+                self._resolved = name
+                raise ConfigurationError()
+        go = self._makeOne()
+        context = Context()
+        bound = go.bind(context)
+        self.assertRaises(ValidationError, bound.fromUnicode, 'tried')
+        self.assertEqual(context._resolved, 'tried')
+
+    def test_fromUnicode_w_resolve_success(self):
+        _target = object()
+        class Context(object):
+            def resolve(self, name):
+                self._resolved = name
+                return _target
+        go = self._makeOne()
+        context = Context()
+        bound = go.bind(context)
+        found = bound.fromUnicode('tried')
+        self.assertTrue(found is _target)
+        self.assertEqual(context._resolved, 'tried')
+
+    def test_fromUnicode_w_resolve_but_validation_fails(self):
+        from zope.schema import Text
+        from zope.schema import ValidationError
+        _target = object()
+        class Context(object):
+            def resolve(self, name):
+                self._resolved = name
+                return _target
+        go = self._makeOne(value_type=Text())
+        context = Context()
+        bound = go.bind(context)
+        self.assertRaises(ValidationError, bound.fromUnicode, 'tried')
+        self.assertEqual(context._resolved, 'tried')
+
 
 class GlobalIdentifierTests(unittest.TestCase):
 
