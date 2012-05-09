@@ -31,13 +31,13 @@ def resolve(name, package='zopeproducts', _silly=('__doc__',), _globals={}):
 
     names = name.split('.')
     last = names[-1]
-    mod='.'.join(names[:-1])
+    mod = '.'.join(names[:-1])
 
     if not mod:
         return __import__(name, _globals, _globals, _silly)
 
     while 1:
-        m=__import__(mod, _globals, _globals, _silly)
+        m = __import__(mod, _globals, _globals, _silly)
         try:
             a = getattr(m, last)
         except AttributeError:
