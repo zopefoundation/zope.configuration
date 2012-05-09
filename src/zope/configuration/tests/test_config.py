@@ -884,7 +884,6 @@ class SimpleStackItemTests(_ConformsToIStackItem,
                            'order': 0,
                           }])
 
-    #TODO coverage
 
 
 class RootStackItemTests(_ConformsToIStackItem,
@@ -900,7 +899,33 @@ class RootStackItemTests(_ConformsToIStackItem,
             context = object()
         return self._getTargetClass()(context)
 
-    #TODO coverage
+    def test_contained_context_factory_fails(self):
+        from zope.configuration.exceptions import ConfigurationError
+        class _Context(object):
+            def factory(self, context, name):
+                pass
+        rsi = self._makeOne(_Context())
+        self.assertRaises(ConfigurationError,
+                          rsi.contained, ('ns', 'name'), {}, '')
+
+    def test_contained_context_factory_normal(self):
+        _called_with = []
+        _adapter = object()
+        def _factory(context, data, info):
+            _called_with.append((context, data, info))
+            return _adapter
+        class _Context(object):
+            def factory(self, context, name):
+                return _factory
+        context = _Context()
+        rsi = self._makeOne(context)
+        adapter = rsi.contained(('ns', 'name'), {'a': 'b'}, 'INFO')
+        self.assertTrue(adapter is _adapter)
+        self.assertEqual(_called_with, [(context, {'a': 'b'}, 'INFO')])
+
+    def test_finish(self):
+        rsi = self._makeOne()
+        rsi.finish() #noraise
 
 
 class GroupingStackItemTests(_ConformsToIStackItem,
