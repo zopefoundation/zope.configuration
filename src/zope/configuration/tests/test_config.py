@@ -1041,8 +1041,6 @@ class GroupingStackItemTests(_ConformsToIStackItem,
                           'order': 0,
                          })
 
-    #TODO coverage
-
 
 class ComplexStackItemTests(_ConformsToIStackItem,
                             unittest.TestCase,
@@ -1058,23 +1056,142 @@ class ComplexStackItemTests(_ConformsToIStackItem,
         if context is None:
             context = object()
         if data is None:
-            data = {}
+            data = {'name': 'NAME'}
         if info is None:
             info = 'INFO'
         return self._getTargetClass()(meta, context, data, info)
 
     def _makeMeta(self):
         from zope.interface import Interface
+        from zope.schema import Text
         class ISchema(Interface):
-            pass
-        class FauxMeta(object):
+            name = Text()
+        class FauxMeta(dict):
             schema = ISchema
+            _handler_args = None
             _handler = object()
-            def handler(self, newcontext, *args):
+            def handler(self, newcontext, **kw):
+                self._handler_kwargs = kw
                 return self._handler
         return FauxMeta()
 
-    #TODO coverage
+    def test_ctor(self):
+        from zope.configuration.config import GroupingContextDecorator
+        meta = self._makeMeta()
+        context = FauxContext()
+        _data = {'name': 'NAME'}
+        csi = self._makeOne(meta, context, _data, 'INFO')
+        self.assertTrue(isinstance(csi.context, GroupingContextDecorator))
+        self.assertTrue(csi.context.context is context)
+        self.assertEqual(csi.context.info, 'INFO')
+        self.assertEqual(csi.handler, meta._handler)
+        self.assertEqual(meta._handler_kwargs, _data)
+
+    def test_contained_miss(self):
+        from zope.configuration.exceptions import ConfigurationError
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        csi = self._makeOne()
+        self.assertRaises(ConfigurationError,
+                          csi.contained, (NS, NAME), {}, 'INFO')
+
+    def test_contained_hit(self):
+        from zope.interface import Interface
+        from zope.configuration.config import GroupingContextDecorator
+        from zope.configuration.config import SimpleStackItem
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        class ISubSchema(Interface):
+            pass
+        class WithName(object):
+            def testing(self, *args):
+                pass
+        meta = self._makeMeta()
+        wn = meta._handler = WithName()
+        meta[NAME] = (ISubSchema, 'SUBINFO')
+        context = FauxContext()
+        _data = {'name': 'NAME'}
+        csi = self._makeOne(meta, context, _data, 'INFO')
+        ssi = csi.contained((NS, NAME), {}, 'SUBINFO')
+        self.assertTrue(isinstance(ssi, SimpleStackItem))
+        self.assertTrue(isinstance(ssi.context, GroupingContextDecorator))
+        self.assertTrue(ssi.context.context is csi.context)
+        self.assertEqual(ssi.context.info, 'SUBINFO')
+        self.assertEqual(ssi.handler, wn.testing)
+        self.assertEqual(ssi.argdata, (ISubSchema, {}))
+
+    def test_finish_handler_is_noncallable(self):
+        meta = self._makeMeta()
+        context = FauxContext()
+        _data = {'name': 'NAME'}
+        csi = self._makeOne(meta, context, _data, 'INFO')
+        csi.finish() #noraise
+        self.assertEqual(len(context.actions), 0)
+
+    def test_finish_handler_raises_AE_for___call__(self):
+        def _handler():
+            raise AttributeError('__call__')
+        meta = self._makeMeta()
+        meta._handler = _handler
+        context = FauxContext()
+        _data = {'name': 'NAME'}
+        csi = self._makeOne(meta, context, _data, 'INFO')
+        csi.finish() #noraise
+        self.assertEqual(len(context.actions), 0)
+
+    def test_finish_handler_raises_AE_for_other(self):
+        def _handler():
+            raise AttributeError('other')
+        meta = self._makeMeta()
+        meta._handler = _handler
+        context = FauxContext()
+        _data = {'name': 'NAME'}
+        csi = self._makeOne(meta, context, _data, 'INFO')
+        self.assertRaises(AttributeError, csi.finish)
+
+    def test_finish_handler_returns_oldstyle_actions(self):
+        def _action():
+            pass
+        def _handler():
+            return [(None, _action)]
+        meta = self._makeMeta()
+        meta._handler = _handler
+        context = FauxContext()
+        _data = {'name': 'NAME'}
+        csi = self._makeOne(meta, context, _data, 'INFO')
+        csi.finish()
+        self.assertEqual(len(context.actions), 1)
+        self.assertEqual(context.actions[0],
+                         {'discriminator': None,
+                          'callable': _action,
+                          'args': (),
+                          'kw': {},
+                          'includepath': (),
+                          'info': 'INFO',
+                          'order': 0,
+                         })
+
+    def test_finish_handler_returns_newstyle_actions(self):
+        def _action():
+            pass
+        def _handler():
+            return [{'discriminator': None, 'callable': _action}]
+        meta = self._makeMeta()
+        meta._handler = _handler
+        context = FauxContext()
+        _data = {'name': 'NAME'}
+        csi = self._makeOne(meta, context, _data, 'INFO')
+        csi.finish()
+        self.assertEqual(len(context.actions), 1)
+        self.assertEqual(context.actions[0],
+                         {'discriminator': None,
+                          'callable': _action,
+                          'args': (),
+                          'kw': {},
+                          'includepath': (),
+                          'info': 'INFO',
+                          'order': 0,
+                         })
 
 
 class _ConformsToIGroupingContext(object):
