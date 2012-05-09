@@ -36,16 +36,44 @@ class ConfigurationContextTests(unittest.TestCase):
             else: excName = str(excClass)
             raise self.failureException("%s not raised" % excName)
 
+    def test_resolve_blank(self):
+        c = self._makeOne()
+        self.assertRaises(ValueError, c.resolve, '')
+        self.assertRaises(ValueError, c.resolve, '   ')
+
+    def test_resolve_dot(self):
+        c = self._makeOne()
+        package = c.package = object()
+        self.assertTrue(c.resolve('.') is package)
+
     def test_resolve_trailing_dot_in_resolve(self):
         #Dotted names are no longer allowed to end in dots
         c = self._makeOne()
         self.assertRaises(ValueError, c.resolve, 'zope.')
 
-    def test_resolve_blank(self):
+    def test_resolve_builtin(self):
         c = self._makeOne()
-        self.assertRaises(ValueError, c.resolve, '   ')
+        self.assertTrue(c.resolve('str') is str)
 
-    def test_bad_dotted_last_import(self):
+    def test_resolve_single_non_builtin(self):
+        import os
+        c = self._makeOne()
+        self.assertTrue(c.resolve('os') is os)
+
+    def test_resolve_relative_miss_no_package(self):
+        from zope.configuration.exceptions import ConfigurationError
+        c = self._makeOne()
+        c.package = None
+        self.assertRaises(ConfigurationError, c.resolve, '.nonesuch')
+
+    def test_resolve_relative_miss_w_package_too_many_dots(self):
+        from zope.configuration.exceptions import ConfigurationError
+        c = self._makeOne()
+        package = c.package = FauxPackage()
+        package.__name__ = 'one.dot'
+        self.assertRaises(ConfigurationError, c.resolve, '....nonesuch')
+
+    def test_resolve_bad_dotted_last_import(self):
         # Import error caused by a bad last component in the dotted name.
         from zope.configuration.exceptions import ConfigurationError
         c = self._makeOne()
@@ -53,7 +81,7 @@ class ConfigurationContextTests(unittest.TestCase):
                           c.resolve, 'zope.configuration.tests.nosuch')
         self.assertTrue('ImportError' in str(exc))
 
-    def test_bad_dotted_import(self):
+    def test_resolve_bad_dotted_import(self):
         # Import error caused by a totally wrong dotted name.
         from zope.configuration.exceptions import ConfigurationError
         c = self._makeOne()
@@ -61,7 +89,7 @@ class ConfigurationContextTests(unittest.TestCase):
                           c.resolve, 'zope.configuration.nosuch.noreally')
         self.assertTrue('ImportError' in str(exc))
 
-    def test_bad_sub_last_import(self):
+    def test_resolve_bad_sub_last_import(self):
         #Import error caused by a bad sub import inside the referenced
         #dotted name. Here we keep the standard traceback.
         import sys
@@ -74,7 +102,7 @@ class ConfigurationContextTests(unittest.TestCase):
            if name in sys.modules:
                del sys.modules[name]
 
-    def test_bad_sub_import(self):
+    def test_resolve_bad_sub_import(self):
         #Import error caused by a bad sub import inside part of the referenced
         #dotted name. Here we keep the standard traceback.
         import sys
@@ -87,7 +115,23 @@ class ConfigurationContextTests(unittest.TestCase):
            if name in sys.modules:
                del sys.modules[name]
 
-    def test_path_basepath_absolute(self):
+    def test_path_w_absolute_filename(self):
+        c = self._makeOne()
+        self.assertEqual(c.path('/path/to/somewhere'), '/path/to/somewhere')
+
+    def test_path_w_relative_filename_w_basepath(self):
+        c = self._makeOne()
+        c.basepath = '/path/to'
+        self.assertEqual(c.path('somewhere'), '/path/to/somewhere')
+
+    def test_path_w_relative_filename_wo_basepath_wo_package(self):
+        import os
+        c = self._makeOne()
+        c.package = None
+        self.assertEqual(c.path('somewhere'),
+                         os.path.join(os.getcwd(), 'somewhere'))
+
+    def test_path_wo_basepath_w_package_having_file(self):
         #Path must always return an absolute path.
         import os
         class stub:
@@ -96,7 +140,7 @@ class ConfigurationContextTests(unittest.TestCase):
         c.package = stub()
         self.assertTrue(os.path.isabs(c.path('y/z')))
 
-    def test_path_basepath_uses_dunder_path(self):
+    def test_path_wo_basepath_w_package_having_no_file_but_path(self):
         #Determine package path using __path__ if __file__ isn't available.
         # (i.e. namespace package installed with
         #--single-version-externally-managed)
@@ -107,7 +151,134 @@ class ConfigurationContextTests(unittest.TestCase):
         c.package = stub()
         os.path.isabs(c.path('y/z'))
 
-    #TODO: coverage
+    def test_checkDuplicate_miss(self):
+        c = self._makeOne()
+        c.checkDuplicate('/path') # doesn't raise
+        self.assertEqual(list(c._seen_files), ['/path'])
+
+    def test_checkDuplicate_hit(self):
+        from zope.configuration.exceptions import ConfigurationError
+        c = self._makeOne()
+        c.checkDuplicate('/path')
+        self.assertRaises(ConfigurationError, c.checkDuplicate, '/path')
+        self.assertEqual(list(c._seen_files), ['/path'])
+
+    def test_processFile_miss(self):
+        c = self._makeOne()
+        self.assertEqual(c.processFile('/path'), True)
+        self.assertEqual(list(c._seen_files), ['/path'])
+
+    def test_processFile_hit(self):
+        c = self._makeOne()
+        c.processFile('/path')
+        self.assertEqual(c.processFile('/path'), False)
+        self.assertEqual(list(c._seen_files), ['/path'])
+
+    def test_action_defaults_no_info_no_includepath(self):
+        DISCRIMINATOR = ('a', ('b',), 0)
+        c = self._makeOne()
+        c.actions = [] # normally provided by subclass
+        c.action(DISCRIMINATOR)
+        self.assertEqual(len(c.actions), 1)
+        info = c.actions[0]
+        self.assertEqual(info['discriminator'], DISCRIMINATOR)
+        self.assertEqual(info['callable'], None)
+        self.assertEqual(info['args'], ())
+        self.assertEqual(info['kw'], {})
+        self.assertEqual(info['includepath'], ())
+        self.assertEqual(info['info'], '')
+        self.assertEqual(info['order'], 0)
+
+    def test_action_defaults_w_info_w_includepath(self):
+        DISCRIMINATOR = ('a', ('b',), 0)
+        c = self._makeOne()
+        c.actions = [] # normally provided by subclass
+        c.info = 'INFO' # normally provided by subclass
+        c.includepath = ('a', 'b') # normally provided by subclass
+        c.action(DISCRIMINATOR)
+        self.assertEqual(len(c.actions), 1)
+        info = c.actions[0]
+        self.assertEqual(info['discriminator'], DISCRIMINATOR)
+        self.assertEqual(info['callable'], None)
+        self.assertEqual(info['args'], ())
+        self.assertEqual(info['kw'], {})
+        self.assertEqual(info['order'], 0)
+        self.assertEqual(info['includepath'], ('a', 'b'))
+        self.assertEqual(info['info'], 'INFO')
+
+    def test_action_explicit_no_extra(self):
+        DISCRIMINATOR = ('a', ('b',), 0)
+        ARGS = (12, 'z')
+        KW = {'one': 1}
+        INCLUDE_PATH = ('p', 'q/r')
+        INFO = 'INFO'
+        def _callable():
+            pass
+        c = self._makeOne()
+        c.actions = [] # normally provided by subclass
+        c.action(DISCRIMINATOR,
+                 _callable,
+                 ARGS,
+                 KW,
+                 42,
+                 INCLUDE_PATH,
+                 INFO,
+                )
+        self.assertEqual(len(c.actions), 1)
+        info = c.actions[0]
+        self.assertEqual(info['discriminator'], DISCRIMINATOR)
+        self.assertEqual(info['callable'], _callable)
+        self.assertEqual(info['args'], ARGS)
+        self.assertEqual(info['kw'], KW)
+        self.assertEqual(info['order'], 42)
+        self.assertEqual(info['includepath'], INCLUDE_PATH)
+        self.assertEqual(info['info'], INFO)
+
+    def test_action_explicit_w_extra(self):
+        DISCRIMINATOR = ('a', ('b',), 0)
+        ARGS = (12, 'z')
+        KW = {'one': 1}
+        INCLUDE_PATH = ('p', 'q/r')
+        INFO = 'INFO'
+        def _callable():
+            pass
+        c = self._makeOne()
+        c.actions = [] # normally provided by subclass
+        c.action(DISCRIMINATOR,
+                 _callable,
+                 ARGS,
+                 KW,
+                 42,
+                 INCLUDE_PATH,
+                 INFO,
+                 foo='bar',
+                 baz=17,
+                )
+        self.assertEqual(len(c.actions), 1)
+        info = c.actions[0]
+        self.assertEqual(info['discriminator'], DISCRIMINATOR)
+        self.assertEqual(info['callable'], _callable)
+        self.assertEqual(info['args'], ARGS)
+        self.assertEqual(info['kw'], KW)
+        self.assertEqual(info['order'], 42)
+        self.assertEqual(info['includepath'], INCLUDE_PATH)
+        self.assertEqual(info['info'], INFO)
+        self.assertEqual(info['foo'], 'bar')
+        self.assertEqual(info['baz'], 17)
+
+    def test_hasFeature_miss(self):
+        c = self._makeOne()
+        self.assertFalse(c.hasFeature('nonesuch'))
+
+    def test_hasFeature_hit(self):
+        c = self._makeOne()
+        c._features.add('a.feature')
+        self.assertTrue(c.hasFeature('a.feature'))
+
+    def test_provideFeature(self):
+        c = self._makeOne()
+        c.provideFeature('a.feature')
+        self.assertTrue(c.hasFeature('a.feature'))
 
 
 class ConfigurationAdapterRegistryTests(unittest.TestCase):
@@ -173,6 +344,10 @@ class ConfigurationMachineTests(unittest.TestCase):
                          })
 
     #TODO: coverage
+
+
+class FauxPackage(object):
+    pass
 
 
 def test_suite():
