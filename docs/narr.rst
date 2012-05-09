@@ -688,15 +688,15 @@ Now, we'll include the zope.configuration.tests.excludedemo config:
    >>> logged = [x.msg for x in handler.buffer]
    >>> logged[0].startswith('include ')
    True
-   >>> logged[0].endswith('src/zope/configuration/tests/excludedemo/configure.zcml')
+   >>> logged[0].endswith('zope/configuration/tests/excludedemo/configure.zcml')
    True
    >>> logged[1].startswith('include ')
    True
-   >>> logged[1].endswith('src/zope/configuration/tests/excludedemo/sub/configure.zcml')
+   >>> logged[1].endswith('zope/configuration/tests/excludedemo/sub/configure.zcml')
    True
    >>> logged[2].startswith('include ')
    True
-   >>> logged[2].endswith('src/zope/configuration/tests/excludedemo/spam.zcml')
+   >>> logged[2].endswith('zope/configuration/tests/excludedemo/spam.zcml')
    True
    >>> del handler.buffer[:]
 
@@ -711,15 +711,15 @@ rerunning gives the same thing:
    >>> logged = [x.msg for x in handler.buffer]
    >>> logged[0].startswith('include ')
    True
-   >>> logged[0].endswith('src/zope/configuration/tests/excludedemo/configure.zcml')
+   >>> logged[0].endswith('zope/configuration/tests/excludedemo/configure.zcml')
    True
    >>> logged[1].startswith('include ')
    True
-   >>> logged[1].endswith('src/zope/configuration/tests/excludedemo/sub/configure.zcml')
+   >>> logged[1].endswith('zope/configuration/tests/excludedemo/sub/configure.zcml')
    True
    >>> logged[2].startswith('include ')
    True
-   >>> logged[2].endswith('src/zope/configuration/tests/excludedemo/spam.zcml')
+   >>> logged[2].endswith('zope/configuration/tests/excludedemo/spam.zcml')
    True
    >>> del handler.buffer[:]
 
@@ -741,7 +741,7 @@ by the configuration file in zope.configuration.tests.excludedemo:
    >>> logged = [x.msg for x in handler.buffer]
    >>> logged[0].startswith('include ')
    True
-   >>> logged[0].endswith('src/zope/configuration/tests/excludedemo/configure.zcml')
+   >>> logged[0].endswith('zope/configuration/tests/excludedemo/configure.zcml')
    True
 
 
