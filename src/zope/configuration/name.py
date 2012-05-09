@@ -70,6 +70,7 @@ def getNormalizedName(name, package):
     return name
 
 def path(file='', package='zopeproducts', _silly=('__doc__',), _globals={}):
+    # XXX WTF? why not look for abspath before importing?
     try:
         package = __import__(package, _globals, _globals, _silly)
     except ImportError:

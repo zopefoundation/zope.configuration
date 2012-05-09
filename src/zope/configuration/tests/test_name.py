@@ -106,6 +106,25 @@ class Test_path(unittest.TestCase):
         from zope.configuration.name import path
         return path(*args, **kw)
 
+    def test_absolute(self):
+        self.assertEqual(self._callFUT('/absolute'), '/absolute')
+
+    def test_relative_bogus_package(self):
+        self.assertRaises(ImportError,
+                          self._callFUT, '', 'no.such.package.exists')
+
+    def test_relative_empty(self):
+        import os
+        self.assertEqual(self._callFUT('', 'zope.configuration.tests'),
+                         os.path.dirname(__file__))
+
+    def test_relative_w_file(self):
+        import os
+        self.assertEqual(
+            self._callFUT('configure.zcml', 'zope.configuration.tests'),
+            os.path.join(os.path.dirname(__file__), 'configure.zcml'))
+
+
 
 def test_suite():
     return unittest.TestSuite((
