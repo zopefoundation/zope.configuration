@@ -62,12 +62,49 @@ class ZopeSAXParseExceptionTests(unittest.TestCase):
 
 class ParserInfoTests(unittest.TestCase):
 
+    _tempdir = None
+
+    def tearDown(self):
+        if self._tempdir is not None:
+            import shutil
+            shutil.rmtree(self._tempdir)
+
     def _getTargetClass(self):
         from zope.configuration.xmlconfig import ParserInfo
         return ParserInfo
 
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
+
+    def test___repr___w_eline_ecolumn_match_line_column(self):
+        pi = self._makeOne('filename.xml', 24, 32)
+        pi.end(24, 32)
+        self.assertEqual(repr(pi), 'File "filename.xml", line 24.32')
+
+    def test___repr___w_eline_ecolumn_dont_match_line_column(self):
+        pi = self._makeOne('filename.xml', 24, 32)
+        pi.end(33, 21)
+        self.assertEqual(repr(pi), 'File "filename.xml", line 24.32-33.21')
+
+    def test___str___w_eline_ecolumn_match_line_column(self):
+        pi = self._makeOne('filename.xml', 24, 32)
+        pi.end(24, 32)
+        self.assertEqual(str(pi), 'File "filename.xml", line 24.32')
+
+    def test___str___w_eline_ecolumn_dont_match_line_column_bad_file(self):
+        pi = self._makeOne('/path/to/nonesuch.xml', 24, 32)
+        pi.end(33, 21)
+        self.assertEqual(str(pi),
+                        'File "/path/to/nonesuch.xml", line 24.32-33.21\n'
+                        '  Could not read source.')
+
+    def test___str___w_good_file(self):
+        pi = self._makeOne('tests//sample.zcml', 3, 2)
+        pi.end(3, 57)
+        self.assertEqual(
+            str(pi),
+            'File "tests//sample.zcml", line 3.2-3.57\n'
+            '    <directives namespace="http://namespaces.zope.org/zope">')
 
 
 class ConfigurationHandlerTests(unittest.TestCase):

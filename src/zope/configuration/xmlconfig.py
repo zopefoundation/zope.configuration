@@ -121,17 +121,17 @@ class ParserInfo(object):
         else:
             lines = f.readlines()[self.line-1:self.eline]
             ecolumn = self.ecolumn
-            if lines[-1][ecolumn:ecolumn+2] == '</':
+            if lines[-1][ecolumn:ecolumn+2] == '</': #pragma NO COVER
                 # We're pointing to the start of an end tag. Try to find
                 # the end
                 l = lines[-1].find('>', ecolumn)
                 if l >= 0:
                     lines[-1] = lines[-1][:l+1]
-            else:
+            else: #pragma NO COVER
                 lines[-1] = lines[-1][:ecolumn+1]
 
             column = self.column
-            if lines[0][:column].strip():
+            if lines[0][:column].strip(): #pragma NO COVER
                 # Remove text before start if it's noy whitespace
                 lines[0] = lines[0][self.column:]
 
@@ -139,7 +139,7 @@ class ParserInfo(object):
             blank = u('')
             try:
                 src = blank.join([pad + l for l in lines])
-            except UnicodeDecodeError:
+            except UnicodeDecodeError: #pragma NO COVER
                 # XXX:
                 # I hope so most internation zcml will use UTF-8 as encoding
                 # otherwise this code must be made more clever
