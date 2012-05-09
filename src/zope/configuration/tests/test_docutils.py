@@ -45,7 +45,82 @@ class Test_makeDocStructures(unittest.TestCase):
         from zope.configuration.docutils import makeDocStructures
         return makeDocStructures(*args, **kw)
 
-    # TODO:  coverage
+    def _makeContext(self):
+        class _Context(object):
+            def __init__(self):
+                self._docRegistry = []
+        return _Context()
+
+    def test_empty(self):
+        context = self._makeContext()
+        namespaces, subdirs = self._callFUT(context)
+        self.assertEqual(len(namespaces), 0)
+        self.assertEqual(len(subdirs), 0)
+
+    def test_wo_parents(self):
+        from zope.interface import Interface
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        NS = 'http://namespace.example.com/main'
+        NS2 = 'http://namespace.example.com/other'
+        def _one():
+            pass
+        def _two():
+            pass
+        def _three():
+            pass
+        context = self._makeContext()
+        context._docRegistry.append(
+                    ((NS, 'one'), ISchema, IUsedIn, _one, 'ONE', None))
+        context._docRegistry.append(
+                    ((NS2, 'two'), ISchema, IUsedIn, _two, 'TWO', None))
+        context._docRegistry.append(
+                    ((NS, 'three'), ISchema, IUsedIn, _three, 'THREE', None))
+        namespaces, subdirs = self._callFUT(context)
+        self.assertEqual(len(namespaces), 2)
+        self.assertEqual(namespaces[NS], {'one': (ISchema, _one, 'ONE'),
+                                          'three': (ISchema, _three, 'THREE')})
+        self.assertEqual(namespaces[NS2], {'two': (ISchema, _two, 'TWO')})
+        self.assertEqual(len(subdirs), 0)
+
+    def test_w_parents(self):
+        from zope.interface import Interface
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        PNS = 'http://namespace.example.com/parent'
+        NS = 'http://namespace.example.com/main'
+        NS2 = 'http://namespace.example.com/other'
+        def _one():
+            pass
+        def _two():
+            pass
+        def _three():
+            pass
+        class Parent(object):
+            namespace = PNS
+            name = 'parent'
+        parent1 = Parent()
+        parent2 = Parent()
+        parent2.name = 'parent2'
+        context = self._makeContext()
+        context._docRegistry.append(
+                    ((NS, 'one'), ISchema, IUsedIn, _one, 'ONE', parent1))
+        context._docRegistry.append(
+                    ((NS2, 'two'), ISchema, IUsedIn, _two, 'TWO', parent2))
+        context._docRegistry.append(
+                    ((NS, 'three'), ISchema, IUsedIn, _three, 'THREE', parent1))
+        namespaces, subdirs = self._callFUT(context)
+        self.assertEqual(len(namespaces), 0)
+        self.assertEqual(len(subdirs), 2)
+        self.assertEqual(subdirs[(PNS, 'parent')],
+                         [(NS, 'one', ISchema, _one, 'ONE'),
+                          (NS, 'three', ISchema, _three, 'THREE')])
+        self.assertEqual(subdirs[(PNS, 'parent2')],
+                         [(NS2, 'two', ISchema, _two, 'TWO')])
 
 
 def test_suite():
