@@ -73,6 +73,8 @@ class ConfigurationContextTests(_Catchable,
         self.assertRaises(ConfigurationError, c.resolve, '.nonesuch')
 
     def test_resolve_relative_miss_w_package_too_many_dots(self):
+        class FauxPackage(object):
+            pass
         from zope.configuration.exceptions import ConfigurationError
         c = self._makeOne()
         package = c.package = FauxPackage()
@@ -455,16 +457,7 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         self.assertRaises(ConfigurationError, reg.factory, context, (NS, NAME))
 
 
-class ConfigurationMachineTests(_Catchable,
-                                unittest.TestCase,
-                               ):
-
-    def _getTargetClass(self):
-        from zope.configuration.config import ConfigurationMachine
-        return ConfigurationMachine
-    
-    def _makeOne(self, *args, **kw):
-        return self._getTargetClass()(*args, **kw)
+class _ConformsToIConfigurationContext(object):
 
     def test_class_conforms_to_IConfigurationContext(self):
         from zope.interface.verify import verifyClass
@@ -475,6 +468,19 @@ class ConfigurationMachineTests(_Catchable,
         from zope.interface.verify import verifyObject
         from zope.configuration.interfaces import IConfigurationContext
         verifyObject(IConfigurationContext, self._makeOne())
+
+
+class ConfigurationMachineTests(_Catchable,
+                                _ConformsToIConfigurationContext,
+                                unittest.TestCase,
+                               ):
+
+    def _getTargetClass(self):
+        from zope.configuration.config import ConfigurationMachine
+        return ConfigurationMachine
+    
+    def _makeOne(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
 
     def test_ctor(self):
         from zope.configuration.config import RootStackItem
@@ -716,6 +722,7 @@ class ConfigurationMachineTests(_Catchable,
                          "<type 'exceptions.ValueError'>: XXX\n  in:\n  INFO")
 
     def test_keyword_handling(self):
+        # This is really an integraiton test.
         from zope.configuration.config import metans
         from zope.configuration.tests.directives import f
         from zope.configuration._compat import b
@@ -756,11 +763,266 @@ class ConfigurationMachineTests(_Catchable,
                           'order': 0,
                          })
 
-    #TODO: coverage
+
+class _ConformsToIStackItem(object):
+
+    def test_class_conforms_to_IStackItem(self):
+        from zope.interface.verify import verifyClass
+        from zope.configuration.config import IStackItem
+        verifyClass(IStackItem, self._getTargetClass())
+
+    def test_instance_conforms_to_IStackItem(self):
+        from zope.interface.verify import verifyObject
+        from zope.configuration.config import IStackItem
+        verifyObject(IStackItem, self._makeOne())
 
 
-class FauxPackage(object):
-    pass
+class SimpleStackItemTests(_ConformsToIStackItem,
+                           unittest.TestCase,
+                          ):
+
+    def _getTargetClass(self):
+        from zope.configuration.config import SimpleStackItem
+        return SimpleStackItem
+    
+    def _makeOne(self, context=None, handler=None, info=None, *args):
+        if context is None:
+            context = object()
+        if handler is None:
+            def handler():
+                pass
+        if info is None:
+            info = 'INFO'
+        return self._getTargetClass()(context, handler, info, *args)
+
+    #TODO coverage
+
+
+class RootStackItemTests(_ConformsToIStackItem,
+                         unittest.TestCase,
+                        ):
+
+    def _getTargetClass(self):
+        from zope.configuration.config import RootStackItem
+        return RootStackItem
+    
+    def _makeOne(self, context=None):
+        if context is None:
+            context = object()
+        return self._getTargetClass()(context)
+
+    #TODO coverage
+
+
+class GroupingStackItemTests(_ConformsToIStackItem,
+                             unittest.TestCase,
+                            ):
+
+    def _getTargetClass(self):
+        from zope.configuration.config import GroupingStackItem
+        return GroupingStackItem
+    
+    def _makeOne(self, context=None):
+        if context is None:
+            context = object()
+        return self._getTargetClass()(context)
+
+    #TODO coverage
+
+
+class ComplexStackItemTests(_ConformsToIStackItem,
+                            unittest.TestCase,
+                           ):
+
+    def _getTargetClass(self):
+        from zope.configuration.config import ComplexStackItem
+        return ComplexStackItem
+    
+    def _makeOne(self, meta=None, context=None, data=None, info=None):
+        if meta is None:
+            meta = self._makeMeta()
+        if context is None:
+            context = object()
+        if data is None:
+            data = {}
+        if info is None:
+            info = 'INFO'
+        return self._getTargetClass()(meta, context, data, info)
+
+    def _makeMeta(self):
+        from zope.interface import Interface
+        class ISchema(Interface):
+            pass
+        class FauxMeta(object):
+            schema = ISchema
+            _handler = object()
+            def handler(self, newcontext, *args):
+                return self._handler
+        return FauxMeta()
+
+    #TODO coverage
+
+
+class _ConformsToIGroupingContext(object):
+
+    def test_class_conforms_to_IGroupingContext(self):
+        from zope.interface.verify import verifyClass
+        from zope.configuration.interfaces import IGroupingContext
+        verifyClass(IGroupingContext, self._getTargetClass())
+
+    def test_instance_conforms_to_IGroupingContext(self):
+        from zope.interface.verify import verifyObject
+        from zope.configuration.interfaces import IGroupingContext
+        verifyObject(IGroupingContext, self._makeOne())
+
+
+class GroupingContextDecoratorTests(_ConformsToIConfigurationContext,
+                                    _ConformsToIGroupingContext,
+                                    unittest.TestCase,
+                                   ):
+
+    def _getTargetClass(self):
+        from zope.configuration.config import GroupingContextDecorator
+        return GroupingContextDecorator
+    
+    def _makeOne(self, context=None):
+        if context is None:
+            context = object()
+        instance = self._getTargetClass()(context)
+        instance.package = None # XXX to appease IConfigurationContext
+        return instance
+
+    #TODO coverage
+
+
+class _ConformsToIDirectivesContext(object):
+
+    def test_class_conforms_to_IDirectivesContext(self):
+        from zope.interface.verify import verifyClass
+        from zope.configuration.config import IDirectivesContext
+        verifyClass(IDirectivesContext, self._getTargetClass())
+
+    def test_instance_conforms_to_IDirectivesContext(self):
+        from zope.interface.verify import verifyObject
+        from zope.configuration.config import IDirectivesContext
+        verifyObject(IDirectivesContext, self._makeOne())
+
+
+class DirectivesHandlerTests(_ConformsToIDirectivesContext,
+                             unittest.TestCase,
+                            ):
+
+    def _getTargetClass(self):
+        from zope.configuration.config import DirectivesHandler
+        return DirectivesHandler
+    
+    def _makeOne(self, context=None):
+        if context is None:
+            context = object()
+        instance = self._getTargetClass()(context)
+        instance.package = None # XXX to appease IConfigurationContext
+        instance.namespace = None # XXX to appease IDirectivesContext
+        return instance
+
+    #TODO coverage
+
+
+class Test_defineSimpleDirective(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.config import defineSimpleDirective
+        return defineSimpleDirective(*args, **kw)
+
+    #TODO coverage
+
+
+class Test_defineGroupingDirective(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.config import defineGroupingDirective
+        return defineGroupingDirective(*args, **kw)
+
+    #TODO coverage
+
+
+class _ConformsToIComplexDirectiveContext(object):
+
+    def test_class_conforms_to_IComplexDirectiveContext(self):
+        from zope.interface.verify import verifyClass
+        from zope.configuration.config import IComplexDirectiveContext
+        verifyClass(IComplexDirectiveContext, self._getTargetClass())
+
+    def test_instance_conforms_to_IComplexDirectiveContext(self):
+        from zope.interface.verify import verifyObject
+        from zope.configuration.config import IComplexDirectiveContext
+        verifyObject(IComplexDirectiveContext, self._makeOne())
+
+
+class ComplexDirectiveDefinitionTests(_ConformsToIComplexDirectiveContext,
+                                      unittest.TestCase,
+                                     ):
+
+    def _getTargetClass(self):
+        from zope.configuration.config import ComplexDirectiveDefinition
+        return ComplexDirectiveDefinition
+    
+    def _makeOne(self, context=None):
+        if context is None:
+            context = object()
+        instance = self._getTargetClass()(context)
+        instance.package = None # XXX to appease IConfigurationContext
+        instance.name = None # XXX to appease IComplexDirectiveContext
+        instance.schema = None # XXX to appease IComplexDirectiveContext
+        instance.handler = None # XXX to appease IComplexDirectiveContext
+        instance.usedIn = None # XXX to appease IComplexDirectiveContext
+        return instance
+
+    #TODO coverage
+
+
+class Test_subdirective(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.config import subdirective
+        return subdirective(*args, **kw)
+
+    #TODO coverage
+
+
+class Test_provides(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.config import provides
+        return provides(*args, **kw)
+
+    #TODO coverage
+
+
+class Test_toargs(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.config import toargs
+        return toargs(*args, **kw)
+
+    #TODO coverage
+
+
+class Test_expand_action(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.config import expand_action
+        return expand_action(*args, **kw)
+
+    #TODO coverage
+
+
+class Test_resolveConflicts(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.configuration.config import resolveConflicts
+        return resolveConflicts(*args, **kw)
+
+    #TODO coverage
 
 
 def test_suite():
@@ -768,4 +1030,18 @@ def test_suite():
         unittest.makeSuite(ConfigurationContextTests),
         unittest.makeSuite(ConfigurationAdapterRegistryTests),
         unittest.makeSuite(ConfigurationMachineTests),
-        ))
+        unittest.makeSuite(SimpleStackItemTests),
+        unittest.makeSuite(RootStackItemTests),
+        unittest.makeSuite(GroupingStackItemTests),
+        unittest.makeSuite(ComplexStackItemTests),
+        unittest.makeSuite(GroupingContextDecoratorTests),
+        unittest.makeSuite(DirectivesHandlerTests),
+        unittest.makeSuite(Test_defineSimpleDirective),
+        unittest.makeSuite(Test_defineGroupingDirective),
+        unittest.makeSuite(ComplexDirectiveDefinitionTests),
+        unittest.makeSuite(Test_subdirective),
+        unittest.makeSuite(Test_provides),
+        unittest.makeSuite(Test_toargs),
+        unittest.makeSuite(Test_expand_action),
+        unittest.makeSuite(Test_resolveConflicts),
+    ))
