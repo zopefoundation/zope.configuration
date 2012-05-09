@@ -1468,17 +1468,64 @@ class ComplexDirectiveDefinitionTests(_ConformsToIComplexDirectiveContext,
     
     def _makeOne(self, context=None):
         if context is None:
-            context = FauxContext()
-            context.package = None #appease IConfigurationContext
-            context.namespace = None #appease IDirectivesInfo
-            context.name = None #appease IDirectiveInfo
-            context.schema = None #appease IDirectiveInfo
-            context.handler = None #appease IFullInfo
-            context.usedIn = None #appease IFullInfo
+            context = self._makeContext()
         instance = self._getTargetClass()(context)
         return instance
 
-    #TODO coverage
+    def _makeContext(self, package=None, namespace=None, name=None,
+                     schema=None, handler=None, usedIn=None):
+        context = FauxContext()
+        context.package = package
+        context.namespace = namespace
+        context.name = name
+        context.schema = schema
+        context.handler = handler
+        context.usedIn = usedIn
+        return context
+
+    def test_before(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        class ISchema(Interface):
+            arg = Text()
+        class IUsedIn(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        _handled = []
+        _csi_handler = object()
+        def _handler(context, **kw):
+            _handled.append((context, kw))
+            return _csi_handler
+        context = self._makeContext(namespace=NS, name=NAME, schema=ISchema,
+                                    handler=_handler, usedIn=IUsedIn)
+        context.info = 'INFO'
+        _registered = []
+        def _register(*args):
+            _registered.append(args)
+        context.register = _register
+        _documented = []
+        def _document(*args):
+            _documented.append(args)
+        context.document = _document
+        cdd = self._makeOne(context)
+
+        cdd.before()
+
+        self.assertEqual(len(_registered), 1)
+        usedIn, fqn, factory = _registered[0]
+        self.assertEqual(usedIn, IUsedIn)
+        self.assertEqual(fqn, (NS, NAME))
+        sub = FauxContext()
+        csi = factory(sub, {'arg': 'val'}, 'SUBINFO')
+        self.assertEqual(csi.meta, cdd)
+        self.assertEqual(csi.context.context, sub)
+        self.assertEqual(csi.context.info, 'SUBINFO')
+        self.assertEqual(csi.handler, _csi_handler)
+        self.assertEqual(_handled, [(csi.context, {'arg': 'val'})])
+
+        self.assertEqual(_documented,
+                        [((NS, NAME), ISchema, IUsedIn, _handler, 'INFO')])
 
 
 class Test_subdirective(unittest.TestCase):
