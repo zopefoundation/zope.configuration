@@ -1706,6 +1706,51 @@ class Test_expand_action(unittest.TestCase):
         from zope.configuration.config import expand_action
         return expand_action(*args, **kw)
 
+    def test_defaults(self):
+        self.assertEqual(self._callFUT(('a', 1, None)),
+                         {'discriminator': ('a', 1, None),
+                          'callable': None,
+                          'args': (),
+                          'kw': {},
+                          'includepath': (),
+                          'info': None,
+                          'order': 0,
+                         })
+
+    def test_explicit_no_extra(self):
+        def _callable():
+            pass
+        self.assertEqual(self._callFUT(('a', 1, None),
+                                       _callable, ('b', 2), {'c': None},
+                                       ('p', 'q/r'), 'INFO', 42,
+                                      ),
+                         {'discriminator': ('a', 1, None),
+                          'callable': _callable,
+                          'args': ('b', 2),
+                          'kw': {'c': None},
+                          'includepath': ('p', 'q/r'),
+                          'info': 'INFO',
+                          'order': 42,
+                         })
+
+    def test_explicit_w_extra(self):
+        def _callable():
+            pass
+        self.assertEqual(self._callFUT(('a', 1, None),
+                                       _callable, ('b', 2), {'c': None},
+                                       ('p', 'q/r'), 'INFO', 42,
+                                       foo='bar', baz=None,
+                                      ),
+                         {'discriminator': ('a', 1, None),
+                          'callable': _callable,
+                          'args': ('b', 2),
+                          'kw': {'c': None},
+                          'includepath': ('p', 'q/r'),
+                          'info': 'INFO',
+                          'order': 42,
+                          'foo': 'bar',
+                          'baz': None,
+                         })
     #TODO coverage
 
 
