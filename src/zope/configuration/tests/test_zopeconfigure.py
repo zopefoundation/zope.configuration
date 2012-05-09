@@ -25,6 +25,19 @@ class ZopeConfigureTests(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def test_ctor_wo_package(self):
+        zc = self._makeOne(Context())
+        self.assertEqual(zc.basepath, None)
+
+    def test_ctor_w_package(self):
+        import os
+        import zope.configuration.tests as zct
+        zc = self._makeOne(Context(), package=zct)
+        self.assertEqual(zc.basepath, os.path.dirname(zct.__file__))
+
+
+class Context(object):
+    basepath = None
 
 def test_suite():
     return unittest.TestSuite((
