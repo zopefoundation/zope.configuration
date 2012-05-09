@@ -71,6 +71,34 @@ class Test_getNormalizedName(unittest.TestCase):
         from zope.configuration.name import getNormalizedName
         return getNormalizedName(*args, **kw)
 
+    def test_no_dots(self):
+        self.assertEqual(self._callFUT('os', None), 'os')
+
+    def test_one_dot(self):
+        self.assertEqual(self._callFUT('os.path', None), 'os.path')
+
+    def test_two_dots(self):
+        self.assertEqual(self._callFUT('os.path.join', None), 'os.path.join')
+
+    def test_relative(self):
+        self.assertEqual(self._callFUT('.join', 'os.path'), 'os.path.join')
+
+    def test_repeat_plus(self):
+        self.assertEqual(
+            self._callFUT('zope.configuration.tests.NamedForClass+', None),
+            'zope.configuration.tests.NamedForClass+')
+
+    def test_repeat_dot(self):
+        self.assertEqual(
+            self._callFUT('zope.configuration.tests.NamedForClass.', None),
+            'zope.configuration.tests.NamedForClass+')
+
+    def test_repeat_inferred(self):
+        self.assertEqual(
+            self._callFUT(
+                'zope.configuration.tests.NamedForClass.NamedForClass', None),
+            'zope.configuration.tests.NamedForClass+')
+
 
 class Test_path(unittest.TestCase):
 
