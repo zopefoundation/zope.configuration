@@ -432,6 +432,7 @@ class SimpleStackItem(object):
     It also defers any computation until the end of the directive
     has been reached.
     """
+    #XXX why this *argdata hack instead of schema, data?
     def __init__(self, context, handler, info, *argdata):
         newcontext = GroupingContextDecorator(context)
         newcontext.info = info
