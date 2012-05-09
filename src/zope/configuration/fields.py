@@ -18,7 +18,7 @@ import re
 import warnings
 
 from zope.interface import implementer
-from zope.schema import Bool
+from zope.schema import Bool as schema_Bool
 from zope.schema import Field
 from zope.schema import InterfaceField
 from zope.schema import List
@@ -34,6 +34,7 @@ from zope.configuration._compat import u
 PYIDENTIFIER_REGEX = u('\\A[a-zA-Z_]+[a-zA-Z0-9_]*\\Z')
 pyidentifierPattern = re.compile(PYIDENTIFIER_REGEX)
 
+
 @implementer(IFromUnicode)
 class PythonIdentifier(TextLine):
     """This field describes a python identifier, i.e. a variable name.
@@ -45,6 +46,7 @@ class PythonIdentifier(TextLine):
         super(PythonIdentifier, self)._validate(value)
         if pyidentifierPattern.match(value) is None:
             raise ValidationError(value)
+
 
 @implementer(IFromUnicode)
 class GlobalObject(Field):
@@ -74,11 +76,14 @@ class GlobalObject(Field):
         self.validate(value)
         return value
 
+
+@implementer(IFromUnicode)
 class GlobalInterface(GlobalObject):
     """An interface that can be accessed from a module.
     """
     def __init__(self, **kw):
         super(GlobalInterface, self).__init__(InterfaceField(), **kw)
+
 
 @implementer(IFromUnicode)
 class Tokens(List):
@@ -103,6 +108,7 @@ class Tokens(List):
 
         return values
 
+
 @implementer(IFromUnicode)
 class Path(Text):
     """A file path name, which may be input as a relative path
@@ -118,7 +124,7 @@ class Path(Text):
 
 
 @implementer(IFromUnicode)
-class Bool(Bool):
+class Bool(schema_Bool):
     """A boolean value
 
     Values may be input (in upper or lower case) as any of:
@@ -131,6 +137,7 @@ class Bool(Bool):
         if u in ('0', 'false', 'no', 'f', 'n'):
             return False
         raise ValidationError
+
 
 @implementer(IFromUnicode)
 class MessageID(Text):
@@ -145,7 +152,7 @@ class MessageID(Text):
     def fromUnicode(self, u):
         context = self.context
         domain = getattr(context, 'i18n_domain', '')
-        if not domain:
+        if not doain:
             domain = 'untranslated'
             warnings.warn(
                 "You did not specify an i18n translation domain for the "\
