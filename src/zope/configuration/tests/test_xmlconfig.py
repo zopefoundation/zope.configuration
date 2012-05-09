@@ -37,6 +37,10 @@ class ZopeXMLConfigurationErrorTests(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def test___str___uses_repr_of_info(self):
+        zxce = self._makeOne('info', Exception, 'value')
+        self.assertEqual(str(zxce), "'info'\n    Exception: value")
+
 
 class ZopeSAXParseExceptionTests(unittest.TestCase):
 
