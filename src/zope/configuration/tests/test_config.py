@@ -1753,13 +1753,103 @@ class Test_expand_action(unittest.TestCase):
                          })
 
 
-class Test_resolveConflicts(unittest.TestCase):
+class Test_resolveConflicts(_Catchable, unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.config import resolveConflicts
         return resolveConflicts(*args, **kw)
 
-    #TODO coverage
+    def test_empty(self):
+        self.assertEqual(self._callFUT(()), [])
+
+    def test_expands_oldstyle_actions(self):
+        def _callable():
+            pass
+        self.assertEqual(self._callFUT([(None, _callable)]),
+                                       [{'discriminator': None,
+                                         'callable': _callable,
+                                         'args': (),
+                                         'kw': {},
+                                         'includepath': (),
+                                         'info': None,
+                                         'order': 0,
+                                        }])
+
+    def test_wo_discriminator_clash(self):
+        from zope.configuration.config import expand_action
+        def _a():
+            pass
+        def _b():
+            pass
+        def _c():
+            pass
+        def _d():
+            pass
+        actions = [expand_action(('a', 1), _a, order=3),
+                   expand_action(('b', 2), _b, order=1),
+                   expand_action(('c', 3), _c, order=2),
+                   expand_action(('d', 4), _d, order=1),
+                  ]
+        self.assertEqual([x['callable'] for x in self._callFUT(actions)],
+                         [_b, _d, _c, _a])
+
+    def test_w_resolvable_discriminator_clash(self):
+        from zope.configuration.config import expand_action
+        def _a():
+            pass
+        def _b():
+            pass
+        actions = [expand_action(('a', 1), _a, includepath=('a',)),
+                   expand_action(('a', 1), _b, includepath=('a', 'b')),
+                  ]
+        self.assertEqual([x['callable'] for x in self._callFUT(actions)],
+                         [_a])
+
+    def test_w_non_resolvable_discriminator_clash_different_paths(self):
+        from zope.configuration.config import ConfigurationConflictError
+        from zope.configuration.config import expand_action
+        def _a():
+            pass
+        def _b():
+            pass
+        actions = [expand_action(('a', 1), _a, includepath=('b','c'), info='X'),
+                   expand_action(('a', 1), _b, includepath=('a',), info='Y'),
+                  ]
+        exc = self.assertRaises(ConfigurationConflictError,
+                                self._callFUT, actions)
+        self.assertEqual(exc._conflicts, {('a', 1): ['Y', 'X']})
+
+    def test_w_non_resolvable_discriminator_clash_same_path(self):
+        from zope.configuration.config import ConfigurationConflictError
+        from zope.configuration.config import expand_action
+        def _a():
+            pass
+        def _b():
+            pass
+        actions = [expand_action(('a', 1), _a, includepath=('a',), info='X'),
+                   expand_action(('a', 1), _b, includepath=('a',), info='Y'),
+                  ]
+        exc = self.assertRaises(ConfigurationConflictError,
+                                self._callFUT, actions)
+        self.assertEqual(exc._conflicts, {('a', 1): ['X', 'Y']})
+
+    def test_wo_discriminators_final_sorting_order(self):
+        from zope.configuration.config import expand_action
+        def _a():
+            pass
+        def _b():
+            pass
+        def _c():
+            pass
+        def _d():
+            pass
+        actions = [expand_action(None, _a, order=3),
+                   expand_action(None, _b, order=1),
+                   expand_action(None, _c, order=2),
+                   expand_action(None, _d, order=1),
+                  ]
+        self.assertEqual([x['callable'] for x in self._callFUT(actions)],
+                         [_b, _d, _c, _a])
 
 
 class FauxContext(object):
