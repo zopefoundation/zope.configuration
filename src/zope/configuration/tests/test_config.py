@@ -1534,7 +1534,76 @@ class Test_subdirective(unittest.TestCase):
         from zope.configuration.config import subdirective
         return subdirective(*args, **kw)
 
-    #TODO coverage
+    def _makeContext(self, package=None, namespace=None, name=None,
+                     schema=None, handler=None, usedIn=None):
+        class _Context(object):
+            def __init__(self):
+                self.context = {}
+                self._documented = []
+            def document(self, *args):
+                self._documented.append(args)
+        context = _Context()
+        context.package = package
+        context.namespace = namespace
+        context.name = name
+        context.schema = schema
+        context.handler = handler
+        context.usedIn = usedIn
+        return context
+
+    def test_wo_handler_attribute(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        class ISubSchema(Interface):
+            arg = Text()
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        SUBNAME = 'sub'
+        _handler = object()
+        context = self._makeContext(None, NS, NAME, ISchema, _handler, IUsedIn)
+        context.info = 'INFO'
+        self._callFUT(context, SUBNAME, ISubSchema)
+        self.assertEqual(len(context._documented), 1)
+        fqn, schema, usedIn, handler, info, ctx = context._documented[0]
+        self.assertEqual(fqn, (NS, SUBNAME))
+        self.assertEqual(schema, ISubSchema)
+        self.assertEqual(usedIn, IUsedIn)
+        self.assertEqual(handler, _handler)
+        self.assertEqual(info, 'INFO')
+        self.assertEqual(ctx, context.context)
+        self.assertEqual(context.context[SUBNAME], (ISubSchema, 'INFO'))
+
+    def test_w_handler_attribute(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        class ISubSchema(Interface):
+            arg = Text()
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        class Handler(object):
+            sub = object()
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        SUBNAME = 'sub'
+        handler = Handler()
+        context = self._makeContext(None, NS, NAME, ISchema, handler, IUsedIn)
+        context.info = 'INFO'
+        self._callFUT(context, SUBNAME, ISubSchema)
+        self.assertEqual(len(context._documented), 1)
+        fqn, schema, usedIn, handler, info, ctx = context._documented[0]
+        self.assertEqual(fqn, (NS, SUBNAME))
+        self.assertEqual(schema, ISubSchema)
+        self.assertEqual(usedIn, IUsedIn)
+        self.assertEqual(handler, Handler.sub)
+        self.assertEqual(info, 'INFO')
+        self.assertEqual(ctx, context.context)
+        self.assertEqual(context.context[SUBNAME], (ISubSchema, 'INFO'))
 
 
 class Test_provides(unittest.TestCase):
