@@ -16,20 +16,58 @@
 import unittest
 
 
-class PythonIdentifierTests(unittest.TestCase):
+class _ConformsToIFromUnicode(object):
+
+    def test_class_conforms_to_IFromUnicode(self):
+        from zope.interface.verify import verifyClass
+        from zope.schema.interfaces import IFromUnicode
+        verifyClass(IFromUnicode, self._getTargetClass())
+
+    def test_instance_conforms_to_IFromUnicode(self):
+        from zope.interface.verify import verifyObject
+        from zope.schema.interfaces import IFromUnicode
+        verifyObject(IFromUnicode, self._makeOne())
+
+
+class PythonIdentifierTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def _getTargetClass(self):
-        from zope.configuration.config import PythonIdentifier
+        from zope.configuration.fields import PythonIdentifier
         return PythonIdentifier
     
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def test_fromUnicode_empty(self):
+        pi = self._makeOne()
+        self.assertEqual(pi.fromUnicode(''), '')
+
+    def test_fromUnicode_normal(self):
+        pi = self._makeOne()
+        self.assertEqual(pi.fromUnicode('normal'), 'normal')
+
+    def test_fromUnicode_strips_ws(self):
+        pi = self._makeOne()
+        self.assertEqual(pi.fromUnicode('   '), '')
+        self.assertEqual(pi.fromUnicode(' normal  '), 'normal')
+
+    def test__validate_miss(self):
+        from zope.schema import ValidationError
+        from zope.configuration._compat import u
+        pi = self._makeOne()
+        self.assertRaises(ValidationError,
+                          pi._validate, u('not-an-identifier'))
+
+    def test__validate_hit(self):
+        from zope.configuration._compat import u
+        pi = self._makeOne()
+        pi._validate(u('is_an_identifier'))
+
 
 class GlobalObjectTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from zope.configuration.config import GlobalObject
+        from zope.configuration.fields import GlobalObject
         return GlobalObject
     
     def _makeOne(self, *args, **kw):
@@ -39,7 +77,7 @@ class GlobalObjectTests(unittest.TestCase):
 class GlobalIdentifierTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from zope.configuration.config import GlobalIdentifier
+        from zope.configuration.fields import GlobalIdentifier
         return GlobalIdentifier
     
     def _makeOne(self, *args, **kw):
@@ -49,7 +87,7 @@ class GlobalIdentifierTests(unittest.TestCase):
 class TokensTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from zope.configuration.config import Tokens
+        from zope.configuration.fields import Tokens
         return Tokens
     
     def _makeOne(self, *args, **kw):
@@ -59,7 +97,7 @@ class TokensTests(unittest.TestCase):
 class PathTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from zope.configuration.config import Path
+        from zope.configuration.fields import Path
         return Path
     
     def _makeOne(self, *args, **kw):
@@ -69,7 +107,7 @@ class PathTests(unittest.TestCase):
 class BoolTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from zope.configuration.config import Bool
+        from zope.configuration.fields import Bool
         return Bool
     
     def _makeOne(self, *args, **kw):
@@ -79,7 +117,7 @@ class BoolTests(unittest.TestCase):
 class MessageIDTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from zope.configuration.config import MessageID
+        from zope.configuration.fields import MessageID
         return MessageID
     
     def _makeOne(self, *args, **kw):
