@@ -1280,8 +1280,6 @@ class DirectivesHandlerTests(_ConformsToIDirectivesContext,
         instance = self._getTargetClass()(context)
         return instance
 
-    #TODO coverage
-
 
 class Test_defineSimpleDirective(unittest.TestCase):
 
@@ -1289,7 +1287,76 @@ class Test_defineSimpleDirective(unittest.TestCase):
         from zope.configuration.config import defineSimpleDirective
         return defineSimpleDirective(*args, **kw)
 
-    #TODO coverage
+    def _makeContext(self):
+        class _Context(FauxContext):
+            def __init__(self):
+                self._registered = []
+                self._documented = []
+            def register(self, usedIn, name, factory):
+                self._registered.append((usedIn, name, factory))
+            def document(self, name, schema, usedIn, handler, info):
+                self._documented.append((name, schema, usedIn, handler, info))
+        return _Context()
+
+    def test_defaults(self):
+        from zope.interface import Interface
+        from zope.configuration.interfaces import IConfigurationContext as ICC
+        class ISchema(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        context = self._makeContext()
+        context.namespace = NS
+        context.info = 'INFO'
+        def _handler():
+            pass
+
+        self._callFUT(context, NAME, ISchema, _handler)
+
+        self.assertEqual(len(context._registered), 1)
+        usedIn, name, factory = context._registered[0]
+        self.assertEqual(usedIn, ICC)
+        self.assertEqual(name, (NS, NAME))
+        sub = object()
+        ssi = factory(sub, {'a': 1}, 'SUBINFO')
+        self.assertTrue(ssi.context.context is sub)
+        self.assertEqual(ssi.context.info, 'SUBINFO')
+        self.assertEqual(ssi.handler, _handler)
+
+        self.assertEqual(len(context._documented), 1)
+        self.assertEqual(context._documented[0],
+                         ((NS, NAME), ISchema, ICC, _handler, 'INFO'))
+
+    def test_explicit_w_star_namespace(self):
+        from zope.interface import Interface
+        class ISchema(Interface):
+            pass
+        class IUsedIn(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        context = self._makeContext()
+        context.namespace = NS
+        context.info = 'INFO'
+        def _handler():
+            pass
+
+        self._callFUT(context, NAME, ISchema, _handler,
+                      namespace='*', usedIn=IUsedIn)
+
+        self.assertEqual(len(context._registered), 1)
+        usedIn, name, factory = context._registered[0]
+        self.assertEqual(usedIn, IUsedIn)
+        self.assertEqual(name, NAME)
+        sub = object()
+        ssi = factory(sub, {'a': 1}, 'SUBINFO')
+        self.assertTrue(ssi.context.context is sub)
+        self.assertEqual(ssi.context.info, 'SUBINFO')
+        self.assertEqual(ssi.handler, _handler)
+
+        self.assertEqual(len(context._documented), 1)
+        self.assertEqual(context._documented[0],
+                         (NAME, ISchema, IUsedIn, _handler, 'INFO'))
 
 
 class Test_defineGroupingDirective(unittest.TestCase):
@@ -1298,7 +1365,84 @@ class Test_defineGroupingDirective(unittest.TestCase):
         from zope.configuration.config import defineGroupingDirective
         return defineGroupingDirective(*args, **kw)
 
-    #TODO coverage
+    def _makeContext(self):
+        class _Context(FauxContext):
+            def __init__(self):
+                self._registered = []
+                self._documented = []
+            def register(self, usedIn, name, factory):
+                self._registered.append((usedIn, name, factory))
+            def document(self, name, schema, usedIn, handler, info):
+                self._documented.append((name, schema, usedIn, handler, info))
+        return _Context()
+
+    def test_defaults(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        from zope.configuration.interfaces import IConfigurationContext as ICC
+        class ISchema(Interface):
+            arg = Text()
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        context = self._makeContext()
+        context.namespace = NS
+        context.info = 'INFO'
+        newcontext = FauxContext()
+        _called_with = []
+        def _handler(context, **kw):
+            _called_with.append((context, kw))
+            return newcontext
+
+        self._callFUT(context, NAME, ISchema, _handler)
+
+        self.assertEqual(len(context._registered), 1)
+        usedIn, name, factory = context._registered[0]
+        self.assertEqual(usedIn, ICC)
+        self.assertEqual(name, (NS, NAME))
+        sub = object()
+        gsi = factory(sub, {'arg': 'val'}, 'SUBINFO')
+        self.assertTrue(gsi.context is newcontext)
+        self.assertEqual(newcontext.info, 'SUBINFO')
+        self.assertEqual(_called_with, [(sub, {'arg': 'val'})])
+
+        self.assertEqual(len(context._documented), 1)
+        self.assertEqual(context._documented[0],
+                         ((NS, NAME), ISchema, ICC, _handler, 'INFO'))
+
+    def test_explicit_w_star_namespace(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        class ISchema(Interface):
+            arg = Text()
+        class IUsedIn(Interface):
+            pass
+        NS = 'http://namespace.example.com/'
+        NAME = 'testing'
+        context = self._makeContext()
+        context.namespace = NS
+        context.info = 'INFO'
+        newcontext = FauxContext()
+        _called_with = []
+        def _handler(context, **kw):
+            _called_with.append((context, kw))
+            return newcontext
+
+        self._callFUT(context, NAME, ISchema, _handler,
+                      namespace='*', usedIn=IUsedIn)
+
+        self.assertEqual(len(context._registered), 1)
+        usedIn, name, factory = context._registered[0]
+        self.assertEqual(usedIn, IUsedIn)
+        self.assertEqual(name, NAME)
+        sub = object()
+        gsi = factory(sub, {'arg': 'val'}, 'SUBINFO')
+        self.assertTrue(gsi.context is newcontext)
+        self.assertEqual(newcontext.info, 'SUBINFO')
+        self.assertEqual(_called_with, [(sub, {'arg': 'val'})])
+
+        self.assertEqual(len(context._documented), 1)
+        self.assertEqual(context._documented[0],
+                         (NAME, ISchema, IUsedIn, _handler, 'INFO'))
 
 
 class _ConformsToIComplexDirectiveContext(object):
