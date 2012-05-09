@@ -25,9 +25,9 @@ def resolve(name, package='zopeproducts', _silly=('__doc__',), _globals={}):
 
     if name.endswith('.') or name.endswith('+'):
         name = name[:-1]
-        repeat = 1
+        repeat = True
     else:
-        repeat = 0
+        repeat = False
 
     names = name.split('.')
     last = names[-1]
@@ -57,11 +57,11 @@ def getNormalizedName(name, package):
 
     if name.endswith('.') or name.endswith('+'):
         name = name[:-1]
-        repeat = 1
+        repeat = True
     else:
-        repeat = 0
+        repeat = False
     name = name.split(".")
-    while len(name)>1 and name[-1] == name[-2]:
+    while len(name) > 1 and name[-1] == name[-2]:
         name.pop()
         repeat = 1
     name = ".".join(name)
@@ -79,6 +79,8 @@ def path(file='', package='zopeproducts', _silly=('__doc__',), _globals={}):
         raise
 
     path = os.path.dirname(package.__file__)
+
     if file:
         path = os.path.join(path, file)
+
     return path
