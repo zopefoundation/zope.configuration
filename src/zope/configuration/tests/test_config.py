@@ -1219,8 +1219,8 @@ class GroupingContextDecoratorTests(_ConformsToIConfigurationContext,
     def _makeOne(self, context=None, **kw):
         if context is None:
             context = FauxContext()
+            context.package = None #appease IConfigurationContext
         instance = self._getTargetClass()(context, **kw)
-        instance.package = None # XXX to appease IConfigurationContext
         return instance
 
     def test_ctor_no_kwargs(self):
@@ -1274,10 +1274,10 @@ class DirectivesHandlerTests(_ConformsToIDirectivesContext,
     
     def _makeOne(self, context=None):
         if context is None:
-            context = object()
+            context = FauxContext()
+            context.package = None #appease IConfigurationContext
+            context.namespace = None #appease IDirectivesInfo
         instance = self._getTargetClass()(context)
-        instance.package = None # XXX to appease IConfigurationContext
-        instance.namespace = None # XXX to appease IDirectivesContext
         return instance
 
     #TODO coverage
@@ -1324,13 +1324,14 @@ class ComplexDirectiveDefinitionTests(_ConformsToIComplexDirectiveContext,
     
     def _makeOne(self, context=None):
         if context is None:
-            context = object()
+            context = FauxContext()
+            context.package = None #appease IConfigurationContext
+            context.namespace = None #appease IDirectivesInfo
+            context.name = None #appease IDirectiveInfo
+            context.schema = None #appease IDirectiveInfo
+            context.handler = None #appease IFullInfo
+            context.usedIn = None #appease IFullInfo
         instance = self._getTargetClass()(context)
-        instance.package = None # XXX to appease IConfigurationContext
-        instance.name = None # XXX to appease IComplexDirectiveContext
-        instance.schema = None # XXX to appease IComplexDirectiveContext
-        instance.handler = None # XXX to appease IComplexDirectiveContext
-        instance.usedIn = None # XXX to appease IComplexDirectiveContext
         return instance
 
     #TODO coverage
