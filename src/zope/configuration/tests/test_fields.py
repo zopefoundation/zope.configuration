@@ -64,7 +64,7 @@ class PythonIdentifierTests(unittest.TestCase, _ConformsToIFromUnicode):
         pi._validate(u('is_an_identifier'))
 
 
-class GlobalObjectTests(unittest.TestCase):
+class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def _getTargetClass(self):
         from zope.configuration.fields import GlobalObject
@@ -135,15 +135,19 @@ class GlobalObjectTests(unittest.TestCase):
         self.assertEqual(context._resolved, 'tried')
 
 
-class GlobalIdentifierTests(unittest.TestCase):
+class GlobalInterfaceTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def _getTargetClass(self):
-        from zope.configuration.fields import GlobalIdentifier
-        return GlobalIdentifier
+        from zope.configuration.fields import GlobalInterface
+        return GlobalInterface
     
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def test_ctor(self):
+        from zope.schema import InterfaceField
+        gi = self._makeOne()
+        self.assertTrue(isinstance(gi.value_type, InterfaceField))
 
 class TokensTests(unittest.TestCase):
 
@@ -190,7 +194,7 @@ def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(PythonIdentifierTests),
         unittest.makeSuite(GlobalObjectTests),
-        unittest.makeSuite(GlobalIdentifierTests),
+        unittest.makeSuite(GlobalInterfaceTests),
         unittest.makeSuite(TokensTests),
         unittest.makeSuite(PathTests),
         unittest.makeSuite(BoolTests),
