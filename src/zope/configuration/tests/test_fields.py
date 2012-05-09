@@ -205,7 +205,7 @@ class PathTests(unittest.TestCase, _ConformsToIFromUnicode):
         self.assertEqual(context._pathed, 'relative/path')
 
 
-class BoolTests(unittest.TestCase):
+class BoolTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def _getTargetClass(self):
         from zope.configuration.fields import Bool
@@ -213,6 +213,25 @@ class BoolTests(unittest.TestCase):
     
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
+
+    def test_fromUnicode_w_true_values(self):
+        values = ['1', 'true', 'yes', 't', 'y']
+        values += [x.upper() for x in values]
+        bo = self._makeOne()
+        for value in values:
+            self.assertEqual(bo.fromUnicode(value), True)
+
+    def test_fromUnicode_w_false_values(self):
+        values = ['0', 'false', 'no', 'f', 'n']
+        values += [x.upper() for x in values]
+        bo = self._makeOne()
+        for value in values:
+            self.assertEqual(bo.fromUnicode(value), False)
+
+    def test_fromUnicode_w_invalid(self):
+        from zope.schema import ValidationError
+        bo = self._makeOne()
+        self.assertRaises(ValidationError, bo.fromUnicode, 'notvalid')
 
 
 class MessageIDTests(unittest.TestCase):
