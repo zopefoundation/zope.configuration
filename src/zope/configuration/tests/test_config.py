@@ -1751,7 +1751,6 @@ class Test_expand_action(unittest.TestCase):
                           'foo': 'bar',
                           'baz': None,
                          })
-    #TODO coverage
 
 
 class Test_resolveConflicts(unittest.TestCase):

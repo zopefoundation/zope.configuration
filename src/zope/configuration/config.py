@@ -557,10 +557,11 @@ class ComplexStackItem(object):
     def finish(self):
         # when we're done, we call the handler, which might return more actions
         # Need to save and restore old info
+        # XXX why not just use callable()?
         try:
             actions = self.handler()
         except AttributeError as v:
-            if v[0] == '__call__':
+            if v.args[0] == '__call__':
                 return # noncallable
             raise
         except TypeError:
