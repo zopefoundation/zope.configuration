@@ -56,7 +56,7 @@ def alltests():
                     suite.addTest(mod.test_suite())
     return suite
 
-TESTS_REQUIRE = ['zope.testing']
+TESTS_REQUIRE = []
 
 setup(name='zope.configuration',
       version = '4.0.0dev',
@@ -92,7 +92,7 @@ setup(name='zope.configuration',
       namespace_packages=['zope'],
       extras_require={
         'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
-        'test': TESTS_REQUIRE,
+        'test': ['zope.testing'],
         'testing': TESTS_REQUIRE + ['nose', 'coverage'],
       },
       install_requires=['zope.i18nmessageid',
@@ -102,6 +102,6 @@ setup(name='zope.configuration',
                        ],
       include_package_data=True,
       zip_safe=False,
-      tests_require = 'zope.testing',
+      tests_require = TESTS_REQUIRE,
       test_suite='__main__.alltests',
       )

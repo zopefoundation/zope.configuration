@@ -310,12 +310,12 @@ class Test_string(unittest.TestCase):
 class XMLConfigTests(unittest.TestCase):
 
     def setUp(self):
-        from zope.testing.cleanup import CleanUp
-        CleanUp().cleanUp()
+        from zope.configuration.xmlconfig import _clearContext
+        _clearContext()
 
     def tearDown(self):
-        from zope.testing.cleanup import CleanUp
-        CleanUp().cleanUp()
+        from zope.configuration.xmlconfig import _clearContext
+        _clearContext()
 
     def _getTargetClass(self):
         from zope.configuration.xmlconfig import XMLConfig
