@@ -158,6 +158,27 @@ class TokensTests(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def test_fromUnicode_empty(self):
+        tok = self._makeOne()
+        self.assertEqual(tok.fromUnicode(''), [])
+
+    def test_fromUnicode_strips_ws(self):
+        from zope.schema import Text
+        from zope.configuration._compat import u
+        tok = self._makeOne(value_type=Text())
+        context = object()
+        self.assertEqual(tok.fromUnicode(u(' one two three ')),
+                         [u('one'), u('two'), u('three')])
+
+    def test_fromUnicode_invalid(self):
+        from zope.schema import Int
+        from zope.configuration.interfaces import InvalidToken
+        from zope.configuration._compat import u
+        tok = self._makeOne(value_type=Int(min=0))
+        context = object()
+        self.assertRaises(InvalidToken,
+                          tok.fromUnicode, u(' 1 -1 3 '))
+
 
 class PathTests(unittest.TestCase):
 
