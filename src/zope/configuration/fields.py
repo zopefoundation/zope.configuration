@@ -152,7 +152,7 @@ class MessageID(Text):
     def fromUnicode(self, u):
         context = self.context
         domain = getattr(context, 'i18n_domain', '')
-        if not doain:
+        if not domain:
             domain = 'untranslated'
             warnings.warn(
                 "You did not specify an i18n translation domain for the "\

@@ -234,7 +234,7 @@ class BoolTests(unittest.TestCase, _ConformsToIFromUnicode):
         self.assertRaises(ValidationError, bo.fromUnicode, 'notvalid')
 
 
-class MessageIDTests(unittest.TestCase):
+class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def _getTargetClass(self):
         from zope.configuration.fields import MessageID
@@ -243,6 +243,63 @@ class MessageIDTests(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def _makeContext(self, domain='testing_domain'):
+        class Info(object):
+            file = 'test_file'
+            line = 42
+        class Context(object):
+            i18n_domain = domain
+            def __init__(self):
+                self.i18n_strings = {}
+                self.info = Info()
+        return Context()
+
+    def test_wo_domain(self):
+        import warnings
+        from zope.configuration._compat import u
+        mid = self._makeOne()
+        context = self._makeContext(None)
+        bound = mid.bind(context)
+        with warnings.catch_warnings(record=True) as log:
+            msgid = bound.fromUnicode(u('testing'))
+        self.assertEqual(len(log), 1)
+        self.assertTrue(str(log[0].message).startswith(
+                            'You did not specify an i18n translation domain'))
+        self.assertEqual(msgid, 'testing')
+        self.assertEqual(msgid.default, None)
+        self.assertEqual(msgid.domain, 'untranslated')
+        self.assertEqual(context.i18n_strings,
+                         {'untranslated': {'testing': [('test_file', 42)]}})
+
+    def test_w_empty_id(self):
+        import warnings
+        from zope.configuration._compat import u
+        mid = self._makeOne()
+        context = self._makeContext()
+        bound = mid.bind(context)
+        with warnings.catch_warnings(record=True) as log:
+            msgid = bound.fromUnicode(u('[] testing'))
+        self.assertEqual(len(log), 0)
+        self.assertEqual(msgid, 'testing')
+        self.assertEqual(msgid.default, None)
+        self.assertEqual(msgid.domain, 'testing_domain')
+        self.assertEqual(context.i18n_strings,
+                         {'testing_domain': {'testing': [('test_file', 42)]}})
+
+    def test_w_id_and_default(self):
+        import warnings
+        from zope.configuration._compat import u
+        mid = self._makeOne()
+        context = self._makeContext()
+        bound = mid.bind(context)
+        with warnings.catch_warnings(record=True) as log:
+            msgid = bound.fromUnicode(u('[testing] default'))
+        self.assertEqual(len(log), 0)
+        self.assertEqual(msgid, 'testing')
+        self.assertEqual(msgid.default, 'default')
+        self.assertEqual(msgid.domain, 'testing_domain')
+        self.assertEqual(context.i18n_strings,
+                         {'testing_domain': {'testing': [('test_file', 42)]}})
 
 
 def test_suite():
