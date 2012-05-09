@@ -1216,14 +1216,39 @@ class GroupingContextDecoratorTests(_ConformsToIConfigurationContext,
         from zope.configuration.config import GroupingContextDecorator
         return GroupingContextDecorator
     
-    def _makeOne(self, context=None):
+    def _makeOne(self, context=None, **kw):
         if context is None:
-            context = object()
-        instance = self._getTargetClass()(context)
+            context = FauxContext()
+        instance = self._getTargetClass()(context, **kw)
         instance.package = None # XXX to appease IConfigurationContext
         return instance
 
-    #TODO coverage
+    def test_ctor_no_kwargs(self):
+        context = FauxContext()
+        gcd = self._makeOne(context)
+        self.assertTrue(gcd.context is context)
+
+    def test_ctor_w_kwargs(self):
+        context = FauxContext()
+        gcd = self._makeOne(context, foo='bar', baz=42)
+        self.assertTrue(gcd.context is context)
+        self.assertEqual(gcd.foo, 'bar')
+        self.assertEqual(gcd.baz, 42)
+
+    def test_getattr_fetches_from_context_and_caches(self):
+        context = FauxContext()
+        gcd = self._makeOne(context)
+        context.foo = 'bar'
+        self.assertEqual(gcd.foo, 'bar')
+        self.assertTrue('foo' in gcd.__dict__)
+
+    def test_before(self):
+        gcd = self._makeOne()
+        gcd.before() #noraise
+
+    def test_after(self):
+        gcd = self._makeOne()
+        gcd.after() #noraise
 
 
 class _ConformsToIDirectivesContext(object):
