@@ -369,7 +369,7 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                 info = action['info']
                 try:
                     callable(*args, **kw)
-                except (KeyboardInterrupt, SystemExit): # pragma: no cover
+                except (KeyboardInterrupt, SystemExit): #pragma NO COVER
                     raise
                 except:
                     if testing:
@@ -516,7 +516,7 @@ class GroupingStackItem(RootStackItem):
                     action = expand_action(*action)
                 self.context.action(**action)
 
-def noop():
+def noop(): #pragma NO COVER
     pass
 
 
