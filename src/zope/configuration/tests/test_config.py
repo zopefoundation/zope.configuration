@@ -1632,7 +1632,69 @@ class Test_toargs(unittest.TestCase):
         from zope.configuration.config import toargs
         return toargs(*args, **kw)
 
-    #TODO coverage
+    def test_w_empty_schema_no_data(self):
+        from zope.interface import Interface
+        class ISchema(Interface):
+            pass
+        context = FauxContext()
+        self.assertEqual(self._callFUT(context, ISchema, {}), {})
+
+    def test_w_empty_schema_w_data_no_kwargs_allowed(self):
+        from zope.configuration.exceptions import ConfigurationError
+        from zope.interface import Interface
+        class ISchema(Interface):
+            pass
+        context = FauxContext()
+        self.assertRaises(ConfigurationError,
+                          self._callFUT, context, ISchema, {'a': 'b'})
+
+    def test_w_empty_schema_w_data_w_kwargs_allowed(self):
+        from zope.interface import Interface
+        class ISchema(Interface):
+            pass
+        ISchema.setTaggedValue('keyword_arguments', True)
+        context = FauxContext()
+        self.assertEqual(self._callFUT(context, ISchema, {'a': 'b'}),
+                         {'a': 'b'})
+
+    def test_w_keyword_sub(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        class ISchema(Interface):
+            for_ = Text()
+        context = FauxContext()
+        self.assertEqual(self._callFUT(context, ISchema, {'for': 'foo'}),
+                         {'for_': 'foo'})
+
+    def test_w_field_missing_no_default(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        from zope.configuration.exceptions import ConfigurationError
+        class ISchema(Interface):
+            w_default = Text()
+        context = FauxContext()
+        self.assertRaises(ConfigurationError,
+                          self._callFUT, context, ISchema, {})
+
+    def test_w_field_missing_but_default(self):
+        from zope.interface import Interface
+        from zope.schema import Text
+        from zope.configuration._compat import u
+        class ISchema(Interface):
+            w_default = Text(default=u('default'))
+        context = FauxContext()
+        self.assertEqual(self._callFUT(context, ISchema, {}),
+                         {'w_default': 'default'})
+
+    def test_w_invalid_value(self):
+        from zope.interface import Interface
+        from zope.schema import Int
+        from zope.configuration.exceptions import ConfigurationError
+        class ISchema(Interface):
+            count = Int(min=0)
+        context = FauxContext()
+        self.assertRaises(ConfigurationError,
+                         self._callFUT, context, ISchema, {'count': '-1'})
 
 
 class Test_expand_action(unittest.TestCase):
