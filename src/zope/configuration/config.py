@@ -129,10 +129,7 @@ class ConfigurationContext(object):
             pnames = self.package.__name__.split(".")
             pnames.append('')
             while names and not names[0]:
-                try:
-                    names.pop(0)
-                except IndexError:
-                    raise ConfigurationError("Invalid global name", name)
+                names.pop(0)
                 try:
                     pnames.pop()
                 except IndexError:
