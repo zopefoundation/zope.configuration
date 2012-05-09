@@ -180,7 +180,7 @@ class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
                           tok.fromUnicode, u(' 1 -1 3 '))
 
 
-class PathTests(unittest.TestCase):
+class PathTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def _getTargetClass(self):
         from zope.configuration.fields import Path
@@ -188,6 +188,21 @@ class PathTests(unittest.TestCase):
     
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
+
+    def test_fromUnicode_absolute(self):
+        path = self._makeOne()
+        self.assertEqual(path.fromUnicode('/'), '/')
+
+    def test_fromUnicode_relative(self):
+        class Context(object):
+            def path(self, value):
+                self._pathed = value
+                return '/hard/coded'
+        context = Context()
+        path = self._makeOne()
+        bound = path.bind(context)
+        self.assertEqual(bound.fromUnicode('relative/path'), '/hard/coded')
+        self.assertEqual(context._pathed, 'relative/path')
 
 
 class BoolTests(unittest.TestCase):
