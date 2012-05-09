@@ -532,7 +532,6 @@ class ComplexStackItem(object):
     definition (IComplexDirectiveContext), a configuration context,
     and directive data.
     """
-
     def __init__(self, meta, context, data, info):
         newcontext = GroupingContextDecorator(context)
         newcontext.info = info
@@ -546,7 +545,6 @@ class ComplexStackItem(object):
     def contained(self, name, data, info):
         """Handle a subdirective
         """
-
         # Look up the subdirective meta data on our meta object
         ns, name = name
         schema = self.meta.get(name)
@@ -574,6 +572,7 @@ class ComplexStackItem(object):
                 if not isinstance(action, dict):
                     action = expand_action(*action)
                 self.context.action(**action)
+
 
 ##############################################################################
 # Helper classes
