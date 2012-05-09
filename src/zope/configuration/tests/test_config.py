@@ -1612,7 +1612,18 @@ class Test_provides(unittest.TestCase):
         from zope.configuration.config import provides
         return provides(*args, **kw)
 
-    #TODO coverage
+    def test_w_multiple(self):
+        context = FauxContext()
+        self.assertRaises(ValueError, self._callFUT, context, 'one two')
+
+    def test_w_single(self):
+        _provided = []
+        def _provideFeature(feature):
+            _provided.append(feature)
+        context = FauxContext()
+        context.provideFeature = _provideFeature
+        self._callFUT(context, 'one')
+        self.assertEqual(_provided, ['one'])
 
 
 class Test_toargs(unittest.TestCase):
