@@ -391,7 +391,7 @@ class ConfigurationExecutionError(ConfigurationError):
     def __init__(self, etype, evalue, info):
         self.etype, self.evalue, self.info = etype, evalue, info
 
-    def __str__(self):
+    def __str__(self): #pragma NO COVER
         return "%s: %s\n  in:\n  %s" % (self.etype, self.evalue, self.info)
 
 ##############################################################################

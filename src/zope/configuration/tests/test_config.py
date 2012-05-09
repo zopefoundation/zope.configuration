@@ -718,8 +718,9 @@ class ConfigurationMachineTests(_Catchable,
         cm.action(None, _err)
         exc = self.assertRaises(ConfigurationExecutionError,
                                 cm.execute_actions)
-        self.assertEqual(str(exc),
-                         "<type 'exceptions.ValueError'>: XXX\n  in:\n  INFO")
+        self.assertTrue(exc.etype is ValueError)
+        self.assertEqual(str(exc.evalue), "XXX")
+        self.assertEqual(exc.info, "INFO")
 
     def test_keyword_handling(self):
         # This is really an integraiton test.
