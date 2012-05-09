@@ -22,7 +22,21 @@ class Test_wrap(unittest.TestCase):
         from zope.configuration.docutils import wrap
         return wrap(*args, **kw)
 
-    # TODO:  coverage
+    def test_empty(self):
+        self.assertEqual(self._callFUT(''), '\n\n')
+
+    def test_only_whitespace(self):
+        self.assertEqual(self._callFUT(' \t\n\r'), '\n\n')
+
+    def test_single_paragraphs(self):
+        self.assertEqual(
+                self._callFUT('abcde fghij klmno pqrst uvwxy', 10, 3),
+                '   abcde\n   fghij\n   klmno\n   pqrst\n   uvwxy\n\n')
+
+    def test_multiple_paragraphs(self):
+        self.assertEqual(
+                self._callFUT('abcde fghij klmno\n\npqrst uvwxy', 10, 3),
+                '   abcde\n   fghij\n   klmno\n\n   pqrst\n   uvwxy\n\n')
 
 
 class Test_makeDocStructures(unittest.TestCase):
