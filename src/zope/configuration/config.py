@@ -924,7 +924,7 @@ class ConfigurationConflictError(ConfigurationError):
     def __init__(self, conflicts):
         self._conflicts = conflicts
 
-    def __str__(self):
+    def __str__(self): #pragma NO COVER
         r = ["Conflicting configuration actions"]
         items = self._conflicts.items()
         items.sort()
