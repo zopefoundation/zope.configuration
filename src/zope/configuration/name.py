@@ -21,7 +21,7 @@ def resolve(name, package='zopeproducts', _silly=('__doc__',), _globals={}):
     name = name.strip()
 
     if name.startswith('.'):
-        name=package+name
+        name = package + name
 
     if name.endswith('.') or name.endswith('+'):
         name = name[:-1]
@@ -29,8 +29,8 @@ def resolve(name, package='zopeproducts', _silly=('__doc__',), _globals={}):
     else:
         repeat = 0
 
-    names=name.split('.')
-    last=names[-1]
+    names = name.split('.')
+    last = names[-1]
     mod='.'.join(names[:-1])
 
     if not mod:
@@ -39,7 +39,7 @@ def resolve(name, package='zopeproducts', _silly=('__doc__',), _globals={}):
     while 1:
         m=__import__(mod, _globals, _globals, _silly)
         try:
-            a=getattr(m, last)
+            a = getattr(m, last)
         except AttributeError:
             if not repeat:
                 return __import__(name, _globals, _globals, _silly)
@@ -51,26 +51,27 @@ def resolve(name, package='zopeproducts', _silly=('__doc__',), _globals={}):
 
 
 def getNormalizedName(name, package):
-    name=name.strip()
+    name = name.strip()
     if name.startswith('.'):
-        name=package+name
+        name = package + name
 
     if name.endswith('.') or name.endswith('+'):
         name = name[:-1]
         repeat = 1
     else:
         repeat = 0
-    name=name.split(".")
-    while len(name)>1 and name[-1]==name[-2]:
+    name = name.split(".")
+    while len(name)>1 and name[-1] == name[-2]:
         name.pop()
-        repeat=1
-    name=".".join(name)
+        repeat = 1
+    name = ".".join(name)
     if repeat:
-        name+="+"
+        name += "+"
     return name
 
-def path(file='', package = 'zopeproducts', _silly=('__doc__',), _globals={}):
-    try: package = __import__(package, _globals, _globals, _silly)
+def path(file='', package='zopeproducts', _silly=('__doc__',), _globals={}):
+    try:
+        package = __import__(package, _globals, _globals, _silly)
     except ImportError:
         if file and os.path.abspath(file) == file:
             # The package didn't matter
