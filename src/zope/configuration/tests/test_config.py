@@ -941,6 +941,106 @@ class GroupingStackItemTests(_ConformsToIStackItem,
             context = object()
         return self._getTargetClass()(context)
 
+    def test_contained_context_before_returns_oldstyle_actions(self):
+        _called_with = []
+        _adapter = object()
+        def _factory(context, data, info):
+            _called_with.append((context, data, info))
+            return _adapter
+        def _action(*args, **kw):
+            pass
+        class _Context(FauxContext):
+            def factory(self, context, name):
+                return _factory
+            def before(self):
+                return [(None, _action)]
+            def after(self):
+                return ()
+        context = _Context()
+        rsi = self._makeOne(context)
+        adapter = rsi.contained(('ns', 'name'), {'a': 'b'}, 'INFO')
+        self.assertTrue(adapter is _adapter)
+        self.assertEqual(_called_with, [(context, {'a': 'b'}, 'INFO')])
+        self.assertEqual(len(context.actions), 1)
+        self.assertEqual(context.actions[0],
+                         {'discriminator': None,
+                          'callable': _action,
+                          'args': (),
+                          'kw': {},
+                          'includepath': (),
+                          'info': None,
+                          'order': 0,
+                         })
+        rsi.finish() # doesn't re-do the 'before' dance
+        self.assertEqual(len(context.actions), 1)
+
+    def test_contained_context_before_returns_newstyle_actions(self):
+        _called_with = []
+        _adapter = object()
+        def _factory(context, data, info):
+            _called_with.append((context, data, info))
+            return _adapter
+        def _before(*args, **kw):
+            pass
+        def _after(*args, **kw):
+            pass
+        class _Context(FauxContext):
+            def factory(self, context, name):
+                return _factory
+            def before(self):
+                return [{'discriminator': None, 'callable': _before}]
+            def after(self):
+                return [{'discriminator': None, 'callable': _after}]
+        context = _Context()
+        rsi = self._makeOne(context)
+        adapter = rsi.contained(('ns', 'name'), {'a': 'b'}, 'INFO')
+        self.assertTrue(adapter is _adapter)
+        self.assertEqual(_called_with, [(context, {'a': 'b'}, 'INFO')])
+        self.assertEqual(len(context.actions), 1)
+        self.assertEqual(context.actions[0], # no GSI to add extras
+                         {'discriminator': None,
+                          'callable': _before,
+                         })
+        rsi.finish() # doesn't re-do the 'before' dance
+        self.assertEqual(len(context.actions), 2)
+        self.assertEqual(context.actions[1],
+                         {'discriminator': None,
+                          'callable': _after,
+                         })
+
+    def test_finish_calls_before_if_not_already_called(self):
+        def _before(*args, **kw):
+            pass
+        def _after(*args, **kw):
+            pass
+        class _Context(FauxContext):
+            def before(self):
+                return [(None, _before)]
+            def after(self):
+                return [(None, _after)]
+        context = _Context()
+        rsi = self._makeOne(context)
+        adapter = rsi.finish()
+        self.assertEqual(len(context.actions), 2)
+        self.assertEqual(context.actions[0], # no GSI to add extras
+                         {'discriminator': None,
+                          'callable': _before,
+                          'args': (),
+                          'kw': {},
+                          'includepath': (),
+                          'info': None,
+                          'order': 0,
+                         })
+        self.assertEqual(context.actions[1],
+                         {'discriminator': None,
+                          'callable': _after,
+                          'args': (),
+                          'kw': {},
+                          'includepath': (),
+                          'info': None,
+                          'order': 0,
+                         })
+
     #TODO coverage
 
 

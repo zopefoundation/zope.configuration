@@ -517,7 +517,7 @@ class GroupingStackItem(RootStackItem):
                     action = expand_action(*action)
                 self.context.action(**action)
 
-def noop(): #pragma NO COVER
+def noop():
     pass
 
 
