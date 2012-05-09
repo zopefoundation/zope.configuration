@@ -82,7 +82,7 @@ class IConfigurationContext(Interface):
         it needs to be procssed.
         """
 
-    def action(self, discriminator, callable, args=(), kw={}, order=0,
+    def action(discriminator, callable, args=(), kw={}, order=0,
                includepath=None, info=None):
         """Record a configuration action
 

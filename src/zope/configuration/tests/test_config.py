@@ -454,8 +454,6 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         reg.register(IFoo, (NS, NAME), _factory)
         self.assertRaises(ConfigurationError, reg.factory, context, (NS, NAME))
 
-    #TODO: coverage
-
 
 class ConfigurationMachineTests(unittest.TestCase):
 
@@ -465,6 +463,16 @@ class ConfigurationMachineTests(unittest.TestCase):
     
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
+
+    def test_class_conforms_to_IConfigurationContext(self):
+        from zope.interface.verify import verifyClass
+        from zope.configuration.interfaces import IConfigurationContext
+        verifyClass(IConfigurationContext, self._getTargetClass())
+
+    def test_instance_conforms_to_IConfigurationContext(self):
+        from zope.interface.verify import verifyObject
+        from zope.configuration.interfaces import IConfigurationContext
+        verifyObject(IConfigurationContext, self._makeOne())
 
     def test_keyword_handling(self):
         from zope.configuration.config import metans
