@@ -1626,7 +1626,7 @@ class Test_provides(unittest.TestCase):
         self.assertEqual(_provided, ['one'])
 
 
-class Test_toargs(unittest.TestCase):
+class Test_toargs(_Catchable, unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.config import toargs
@@ -1645,8 +1645,9 @@ class Test_toargs(unittest.TestCase):
         class ISchema(Interface):
             pass
         context = FauxContext()
-        self.assertRaises(ConfigurationError,
-                          self._callFUT, context, ISchema, {'a': 'b'})
+        exc = self.assertRaises(ConfigurationError,
+                                self._callFUT, context, ISchema, {'a': 'b'})
+        self.assertEqual(exc.args, ('Unrecognized parameters:', 'a'))
 
     def test_w_empty_schema_w_data_w_kwargs_allowed(self):
         from zope.interface import Interface
@@ -1671,10 +1672,11 @@ class Test_toargs(unittest.TestCase):
         from zope.schema import Text
         from zope.configuration.exceptions import ConfigurationError
         class ISchema(Interface):
-            w_default = Text()
+            no_default = Text()
         context = FauxContext()
-        self.assertRaises(ConfigurationError,
-                          self._callFUT, context, ISchema, {})
+        exc = self.assertRaises(ConfigurationError,
+                                self._callFUT, context, ISchema, {})
+        self.assertEqual(exc.args, ('Missing parameter:', 'no_default'))
 
     def test_w_field_missing_but_default(self):
         from zope.interface import Interface
@@ -1693,8 +1695,9 @@ class Test_toargs(unittest.TestCase):
         class ISchema(Interface):
             count = Int(min=0)
         context = FauxContext()
-        self.assertRaises(ConfigurationError,
-                         self._callFUT, context, ISchema, {'count': '-1'})
+        exc = self.assertRaises(ConfigurationError,
+                               self._callFUT, context, ISchema, {'count': '-1'})
+        self.assertEqual(exc.args, ('Invalid value for', 'count', '(-1, 0)'))
 
 
 class Test_expand_action(unittest.TestCase):
