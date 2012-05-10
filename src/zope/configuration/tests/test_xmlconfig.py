@@ -824,11 +824,15 @@ class XMLConfigTests(unittest.TestCase):
 
     def setUp(self):
         from zope.configuration.xmlconfig import _clearContext
+        from zope.configuration.tests.samplepackage.foo import data
         _clearContext()
+        del data[:]
 
     def tearDown(self):
         from zope.configuration.xmlconfig import _clearContext
+        from zope.configuration.tests.samplepackage.foo import data
         _clearContext()
+        del data[:]
 
     def _getTargetClass(self):
         from zope.configuration.xmlconfig import XMLConfig
@@ -837,53 +841,82 @@ class XMLConfigTests(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
-    def test_XMLConfig(self):
+    def test_ctor_w_global_context_missing(self):
         import os
+        from zope.configuration import xmlconfig
         from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         here = os.path.dirname(__file__)
-        path = os.path.join(here, "samplepackage", "baro.zcml")
-        x = self._makeOne(path)
-        x() # call to process the actions
-        self.assertEqual(len(foo.data), 3)
+        path = os.path.join(here, "samplepackage", "configure.zcml")
+        logger = LoggerStub()
+        xmlconfig._context = None
+        with _Monkey(xmlconfig, logger=logger):
+            xc = self._makeOne(path)
+        self.assertEqual(len(logger.debugs), 1)
+        self.assertEqual(logger.debugs[0], ('include %s' % path, (), {}))
+        self.assertEqual(len(foo.data), 0) # no execut_actions
+        self.assertEqual(len(xc.context.actions), 1)
+        action = xc.context.actions[0]
+        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['callable'], foo.data.append)
 
-        data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                        'File "tests/samplepackage/bar21.zcml", line 3.2-3.24')
+    def test_ctor(self):
+        from zope.configuration import xmlconfig
+        from zope.configuration._compat import b
+        from zope.configuration.tests import samplepackage
+        from zope.configuration.tests.samplepackage import foo
+        fqn = _packageFile(samplepackage, 'configure.zcml')
+        logger = LoggerStub()
+        with _Monkey(xmlconfig, logger=logger):
+            xc = self._makeOne(fqn)
+        self.assertEqual(len(logger.debugs), 1)
+        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(len(foo.data), 0) # no execut_actions
+        self.assertEqual(len(xc.context.actions), 1)
+        action = xc.context.actions[0]
+        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['callable'], foo.data.append)
 
-        data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 2)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                        'File "tests/samplepackage/bar2.zcml", line 5.2-5.24')
-
-        data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 1)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                         'File "tests/samplepackage/bar2.zcml", line 6.2-6.24')
-
-    def test_XMLConfig_w_module(self):
+    def test_ctor_w_module(self):
+        from zope.configuration import xmlconfig
         from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
-        from zope.configuration.tests import samplepackage as module
-        x = self._makeOne("baro.zcml", module)
-        x() # call to process the actions
-        self.assertEqual(len(foo.data), 3)
+        from zope.configuration.tests import samplepackage
+        fqn = _packageFile(samplepackage, 'configure.zcml')
+        logger = LoggerStub()
+        with _Monkey(xmlconfig, logger=logger):
+            xc = self._makeOne("configure.zcml", samplepackage)
+        self.assertEqual(len(logger.debugs), 1)
+        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(len(foo.data), 0) # no execut_actions
+        self.assertEqual(len(xc.context.actions), 1)
+        action = xc.context.actions[0]
+        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['callable'], foo.data.append)
 
+    def test___call__(self):
+        from zope.configuration import xmlconfig
+        from zope.configuration._compat import b
+        from zope.configuration.tests import samplepackage
+        from zope.configuration.tests.samplepackage import foo
+        fqn = _packageFile(samplepackage, 'configure.zcml')
+        logger = LoggerStub()
+        with _Monkey(xmlconfig, logger=logger):
+            x = self._makeOne(fqn)
+        self.assertEqual(len(logger.debugs), 1)
+        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(len(foo.data), 0)
+        x() # call to process the actions
+        self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                        'File "tests/samplepackage/bar21.zcml", line 3.2-3.24')
+        self.assertTrue(data.info.file.endswith(
+                'tests/samplepackage/configure.zcml'))
+        self.assertEqual(data.info.line, 12)
+        self.assertEqual(data.info.column, 2)
+        self.assertEqual(data.info.eline, 12)
+        self.assertEqual(data.info.ecolumn, 29)
 
-        data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 2)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                        'File "tests/samplepackage/bar2.zcml", line 5.2-5.24')
-
-        data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 1)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                         'File "tests/samplepackage/bar2.zcml", line 6.2-6.24')
 
 
 class Test_xmlconfig(unittest.TestCase):

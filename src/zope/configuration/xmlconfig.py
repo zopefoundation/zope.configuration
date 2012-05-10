@@ -537,9 +537,9 @@ def _getContext():
         _clearContext()
         try:
             from zope.testing.cleanup import addCleanUp
-        except ImportError:
+        except ImportError: #pragma NO COVER
             pass
-        else:
+        else: #pragma NO COVER
             addCleanUp(_clearContext)
             del addCleanUp
     return _context
