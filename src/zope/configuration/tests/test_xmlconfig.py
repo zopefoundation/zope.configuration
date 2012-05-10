@@ -389,10 +389,10 @@ class Test_processxmlfile(_Catchable, unittest.TestCase):
         return processxmlfile(*args, **kw)
 
     def test_w_empty_xml(self):
-        from StringIO import StringIO
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration.xmlconfig import ZopeSAXParseException
+        from zope.configuration._compat import StringIO
         context = ConfigurationMachine()
         registerCommonDirectives(context)
         exc = self.assertRaises(ZopeSAXParseException,
@@ -544,6 +544,7 @@ class Test_include(_Catchable, unittest.TestCase):
         from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         context = ConfigurationMachine()
@@ -564,12 +565,12 @@ class Test_include(_Catchable, unittest.TestCase):
         self.assertEqual(action['callable'], foo.data.append)
         self.assertEqual(action['includepath'], (fqn2,))
         self.assertTrue(isinstance(action['args'][0], foo.stuff))
-        self.assertEqual(action['args'][0].args, (('x', 'foo'), ('y', 2)))
+        self.assertEqual(action['args'][0].args, (('x', b('foo')), ('y', 2)))
         action = context.actions[1]
         self.assertEqual(action['callable'], foo.data.append)
         self.assertEqual(action['includepath'], (fqn3,))
         self.assertTrue(isinstance(action['args'][0], foo.stuff))
-        self.assertEqual(action['args'][0].args, (('x', 'foo'), ('y', 3)))
+        self.assertEqual(action['args'][0].args, (('x', b('foo')), ('y', 3)))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 3)
         self.assertTrue(fqn1 in context._seen_files)

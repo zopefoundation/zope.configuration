@@ -42,8 +42,9 @@ from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.fields import GlobalObject
 from zope.configuration.zopeconfigure import IZopeConfigure
 from zope.configuration.zopeconfigure import ZopeConfigure
-from zope.configuration._compat import u
+from zope.configuration._compat import StringIO
 from zope.configuration._compat import reraise
+from zope.configuration._compat import u
 
 logger = logging.getLogger("config")
 
@@ -424,8 +425,7 @@ def exclude(_context, file=None, package=None, files=None):
 
     if files:
         paths = glob(context.path(files))
-        paths = zip([path.lower() for path in paths], paths)
-        paths.sort()
+        paths = sorted(zip([path.lower() for path in paths], paths))
         paths = [path for (l, path) in paths]
     else:
         paths = [context.path(file)]
@@ -505,8 +505,6 @@ def file(name, package=None, context=None, execute=True):
 def string(s, context=None, name="<string>", execute=True):
     """Execute a zcml string
     """
-    from StringIO import StringIO
-
     if context is None:
         context = ConfigurationMachine()
         registerCommonDirectives(context)
