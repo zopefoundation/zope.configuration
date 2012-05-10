@@ -382,13 +382,25 @@ class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
         self.assertTrue(context._end_called)
 
 
-class Test_processxmlfile(unittest.TestCase):
+class Test_processxmlfile(_Catchable, unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import processxmlfile
         return processxmlfile(*args, **kw)
 
-    def test_it(self):
+    def test_w_empty_xml(self):
+        from StringIO import StringIO
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration.xmlconfig import ZopeSAXParseException
+        context = ConfigurationMachine()
+        registerCommonDirectives(context)
+        exc = self.assertRaises(ZopeSAXParseException,
+                                self._callFUT, StringIO(), context)
+        self.assertEqual(str(exc._v), '<string>:1:0: no element found')
+
+    def test_w_valid_xml_fp(self):
+        # Integration test, really
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration._compat import b
