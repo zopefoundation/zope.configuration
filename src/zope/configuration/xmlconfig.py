@@ -325,8 +325,8 @@ class IInclude(Interface):
 
     file = NativeStringLine(
         title=u("Configuration file name"),
-        description=u("The name of a configuration file to be included/excluded, "
-                      "relative to the directive containing the "
+        description=u("The name of a configuration file to be included/"
+                      "excluded, relative to the directive containing the "
                       "including configuration file."),
         required=False,
         )
@@ -336,8 +336,8 @@ class IInclude(Interface):
         description=u("""
         The names of multiple configuration files to be included/excluded,
         expressed as a file-name pattern, relative to the directive
-        containing the including or excluding configuration file.  The pattern
-        can include:
+        containing the including or excluding configuration file.
+        The pattern can include:
 
         - ``*`` matches 0 or more characters
 
@@ -356,8 +356,8 @@ class IInclude(Interface):
     package = GlobalObject(
         title=u("Include or exclude package"),
         description=u("""
-        Include or exclude the named file (or configure.zcml) from the directory
-        of this package.
+        Include or exclude the named file (or configure.zcml) from the
+        directory of this package.
         """),
         required=False,
         )
