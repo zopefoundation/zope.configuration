@@ -305,18 +305,15 @@ def openInOrPlain(filename):
     any other reason, allow the failure to propogate.
     """
     try:
-        fp = open(filename)
+        return open(filename)
     except IOError as e:
         code, msg = e.args
         if code == errno.ENOENT:
             fn = filename + ".in"
             if os.path.exists(fn):
-                fp = open(fn)
-            else:
-                raise
-        else:
-            raise
-    return fp
+                return open(fn)
+        raise
+
 
 class IInclude(Interface):
     """The ``include``, ``includeOverrides`` and ``exclude`` directives

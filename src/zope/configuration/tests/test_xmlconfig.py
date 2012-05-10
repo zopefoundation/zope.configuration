@@ -422,11 +422,33 @@ class Test_processxmlfile(_Catchable, unittest.TestCase):
         self.assertEqual(data.basepath, None)
 
 
-class Test_openInOrPlain(unittest.TestCase):
+class Test_openInOrPlain(_Catchable, unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import openInOrPlain
         return openInOrPlain(*args, **kw)
+
+    def _makeFilename(self, fn):
+        import os
+        from zope.configuration.tests.samplepackage import __file__
+        return os.path.join(os.path.dirname(__file__), fn)
+
+    def test_file_present(self):
+        import os
+        fp = self._callFUT(self._makeFilename('configure.zcml'))
+        self.assertEqual(os.path.basename(fp.name), 'configure.zcml')
+
+    def test_file_missing_but_dot_in_present(self):
+        import os
+        fp = self._callFUT(self._makeFilename('foo.zcml'))
+        self.assertEqual(os.path.basename(fp.name), 'foo.zcml.in')
+
+    def test_file_missing_and_dot_in_not_present(self):
+        import errno
+        exc = self.assertRaises(    
+                IOError,
+                self._callFUT, self._makeFilename('nonesuch.zcml'))
+        self.assertEqual(exc.errno, errno.ENOENT)
 
 
 class Test_include(unittest.TestCase):
