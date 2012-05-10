@@ -902,11 +902,11 @@ class XMLConfigTests(unittest.TestCase):
         fqn = _packageFile(samplepackage, 'configure.zcml')
         logger = LoggerStub()
         with _Monkey(xmlconfig, logger=logger):
-            x = self._makeOne(fqn)
+            xc = self._makeOne(fqn)
         self.assertEqual(len(logger.debugs), 1)
         self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
         self.assertEqual(len(foo.data), 0)
-        x() # call to process the actions
+        xc() # call to process the actions
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
@@ -921,16 +921,121 @@ class XMLConfigTests(unittest.TestCase):
 
 class Test_xmlconfig(unittest.TestCase):
 
+    def setUp(self):
+        from zope.configuration.xmlconfig import _clearContext
+        from zope.configuration.tests.samplepackage.foo import data
+        _clearContext()
+        del data[:]
+
+    def tearDown(self):
+        from zope.configuration.xmlconfig import _clearContext
+        from zope.configuration.tests.samplepackage.foo import data
+        _clearContext()
+        del data[:]
+
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import xmlconfig
         return xmlconfig(*args, **kw)
 
+    def test_wo_testing_passed(self):
+        from zope.configuration import xmlconfig
+        from zope.configuration._compat import b
+        from zope.configuration.tests import samplepackage
+        from zope.configuration.tests.samplepackage import foo
+        def _assertTestingFalse(func):
+            def _wrapper(*args, **kw):
+                assert(not kw['testing'])
+                return func(*args, **kw)
+            return _wrapper
+        fqn = _packageFile(samplepackage, 'configure.zcml')
+        context = xmlconfig._getContext()
+        context.execute_actions = _assertTestingFalse(context.execute_actions)
+        with _Monkey(xmlconfig,
+                        processxmlfile=_assertTestingFalse(
+                                                xmlconfig.processxmlfile)):
+            self._callFUT(open(fqn), False)
+        self.assertEqual(len(foo.data), 1)
+        data = foo.data.pop(0)
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertTrue(data.info.file.endswith(
+                'tests/samplepackage/configure.zcml'))
+        self.assertEqual(data.info.line, 12)
+        self.assertEqual(data.info.column, 2)
+        self.assertEqual(data.info.eline, 12)
+        self.assertEqual(data.info.ecolumn, 29)
+
+    def test_w_testing_passed(self):
+        from zope.configuration import xmlconfig
+        from zope.configuration._compat import b
+        from zope.configuration.tests import samplepackage
+        from zope.configuration.tests.samplepackage import foo
+        def _assertTestingTrue(func):
+            def _wrapper(*args, **kw):
+                assert(kw['testing'])
+                return func(*args, **kw)
+            return _wrapper
+        fqn = _packageFile(samplepackage, 'configure.zcml')
+        context = xmlconfig._getContext()
+        context.execute_actions = _assertTestingTrue(context.execute_actions)
+        with _Monkey(xmlconfig,
+                        processxmlfile=_assertTestingTrue(
+                                                xmlconfig.processxmlfile)):
+            self._callFUT(open(fqn), True)
+        self.assertEqual(len(foo.data), 1)
+        data = foo.data.pop(0)
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertTrue(data.info.file.endswith(
+                'tests/samplepackage/configure.zcml'))
+        self.assertEqual(data.info.line, 12)
+        self.assertEqual(data.info.column, 2)
+        self.assertEqual(data.info.eline, 12)
+        self.assertEqual(data.info.ecolumn, 29)
+
 
 class Test_testxmlconfig(unittest.TestCase):
+
+    def setUp(self):
+        from zope.configuration.xmlconfig import _clearContext
+        from zope.configuration.tests.samplepackage.foo import data
+        _clearContext()
+        del data[:]
+
+    def tearDown(self):
+        from zope.configuration.xmlconfig import _clearContext
+        from zope.configuration.tests.samplepackage.foo import data
+        _clearContext()
+        del data[:]
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import testxmlconfig
         return testxmlconfig(*args, **kw)
+
+    def test_w_testing_passed(self):
+        from zope.configuration import xmlconfig
+        from zope.configuration._compat import b
+        from zope.configuration.tests import samplepackage
+        from zope.configuration.tests.samplepackage import foo
+        def _assertTestingTrue(func):
+            def _wrapper(*args, **kw):
+                assert(kw['testing'])
+                return func(*args, **kw)
+            return _wrapper
+        fqn = _packageFile(samplepackage, 'configure.zcml')
+        context = xmlconfig._getContext()
+        context.execute_actions = _assertTestingTrue(context.execute_actions)
+        with _Monkey(xmlconfig,
+                        processxmlfile=_assertTestingTrue(
+                                                xmlconfig.processxmlfile)):
+            self._callFUT(open(fqn))
+        self.assertEqual(len(foo.data), 1)
+        data = foo.data.pop(0)
+        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertTrue(data.info.file.endswith(
+                'tests/samplepackage/configure.zcml'))
+        self.assertEqual(data.info.line, 12)
+        self.assertEqual(data.info.column, 2)
+        self.assertEqual(data.info.eline, 12)
+        self.assertEqual(data.info.ecolumn, 29)
 
 
 

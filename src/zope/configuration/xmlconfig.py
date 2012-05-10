@@ -564,7 +564,7 @@ def xmlconfig(file, testing=False):
     context.execute_actions(testing=testing)
 
 
-def testxmlconfig(file, context=None):
+def testxmlconfig(file):
     """xmlconfig that doesn't raise configuration errors
 
     This is useful for testing, as it doesn't mask exception types.
