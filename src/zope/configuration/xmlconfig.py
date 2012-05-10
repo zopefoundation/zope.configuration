@@ -159,7 +159,7 @@ class ConfigurationHandler(ContentHandler):
     Translate parser events into calls into the configuration system.
     """
 
-    def __init__(self, context, testing=0):
+    def __init__(self, context, testing=False):
         self.context = context
         self.testing = testing
         self.ignore_depth = 0

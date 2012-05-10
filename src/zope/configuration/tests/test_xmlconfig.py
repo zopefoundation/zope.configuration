@@ -116,6 +116,20 @@ class ConfigurationHandlerTests(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
+    def test_ctor_defaults(self):
+        context = object()
+        ch = self._makeOne(context)
+        self.assertTrue(ch.context is context)
+        self.assertFalse(ch.testing)
+        self.assertEqual(ch.ignore_depth, 0)
+
+    def test_ctor_explicit(self):
+        context = object()
+        ch = self._makeOne(context, True)
+        self.assertTrue(ch.context is context)
+        self.assertTrue(ch.testing)
+        self.assertEqual(ch.ignore_depth, 0)
+
     def test_normal(self):
         context = FauxContext()
         locator = FauxLocator('tests//sample.zcml', 1, 1)
