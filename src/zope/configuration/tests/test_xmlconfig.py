@@ -633,6 +633,53 @@ class Test_includeOverrides(unittest.TestCase):
         from zope.configuration.xmlconfig import includeOverrides
         return includeOverrides(*args, **kw)
 
+    def test_actions_have_parents_includepath(self):
+        from zope.configuration import xmlconfig
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration import tests
+        from zope.configuration.tests import simple
+        context = ConfigurationMachine()
+        fqp = _packageFile(tests, 'configure.zcml')
+        registerCommonDirectives(context)
+        before_stack = context.stack[:]
+        context.package = tests
+        # dummy action, path from "previous" include
+        context.includepath = (fqp,)
+        def _callable():
+            pass
+        context.actions.append({'discriminator': None,
+                                'callable': _callable,
+                               })
+        fqn = _packageFile(tests, 'simple.zcml')
+        logger = LoggerStub()
+        with _Monkey(xmlconfig, logger=logger):
+            self._callFUT(context, 'simple.zcml')
+        self.assertEqual(len(logger.debugs), 1)
+        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(len(context.actions), 4)
+        action = context.actions[0]
+        self.assertEqual(action['discriminator'], None)
+        self.assertEqual(action['callable'], _callable)
+        action = context.actions[1]
+        self.assertEqual(action['callable'], simple.file_registry.append)
+        self.assertEqual(action['includepath'], (fqp,))
+        self.assertEqual(action['args'][0].path,
+                         _packageFile(tests, 'simple.py'))
+        action = context.actions[2]
+        self.assertEqual(action['callable'], simple.file_registry.append)
+        self.assertEqual(action['includepath'], (fqp,))
+        self.assertEqual(action['args'][0].path,
+                         _packageFile(tests, 'simple.zcml'))
+        action = context.actions[3]
+        self.assertEqual(action['callable'], simple.file_registry.append)
+        self.assertEqual(action['includepath'], (fqp,))
+        self.assertEqual(action['args'][0].path,
+                         _packageFile(tests, '__init__.py'))
+        self.assertEqual(context.stack, before_stack)
+        self.assertEqual(len(context._seen_files), 1)
+        self.assertTrue(fqn in context._seen_files)
+
 
 class Test_file(unittest.TestCase):
 
