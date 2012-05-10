@@ -158,6 +158,7 @@ class ConfigurationHandler(ContentHandler):
 
     Translate parser events into calls into the configuration system.
     """
+    locator = None
 
     def __init__(self, context, testing=False):
         self.context = context
@@ -200,7 +201,7 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.begin(name, data, info)
-        except (KeyboardInterrupt, SystemExit):
+        except (KeyboardInterrupt, SystemExit): #pragma NO COVER
             raise
         except:
             if self.testing:
@@ -268,7 +269,7 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.end()
-        except (KeyboardInterrupt, SystemExit):
+        except (KeyboardInterrupt, SystemExit): #pragma NO COVER
             raise
         except:
             if self.testing:

@@ -28,6 +28,22 @@ B = u('b')
 BVALUE = u('bvalue')
 
 
+class _Catchable(object):
+    # Mixin for classes which need to make assertions about the exception
+    # instance.
+    def assertRaises(self, excClass, callableObj, *args, **kwargs):
+        # Morph stdlib version to return the raised exception
+        try:
+            callableObj(*args, **kwargs)
+        except excClass as exc:
+            return exc
+        if hasattr(excClass,'__name__'):
+            excName = excClass.__name__
+        else:
+            excName = str(excClass)
+        raise self.failureException("%s not raised" % excName)
+
+
 class ZopeXMLConfigurationErrorTests(unittest.TestCase):
 
     def _getTargetClass(self):
@@ -107,7 +123,7 @@ class ParserInfoTests(unittest.TestCase):
             '    <directives namespace="http://namespaces.zope.org/zope">')
 
 
-class ConfigurationHandlerTests(unittest.TestCase):
+class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.configuration.xmlconfig import ConfigurationHandler
@@ -117,20 +133,88 @@ class ConfigurationHandlerTests(unittest.TestCase):
         return self._getTargetClass()(*args, **kw)
 
     def test_ctor_defaults(self):
-        context = object()
-        ch = self._makeOne(context)
-        self.assertTrue(ch.context is context)
-        self.assertFalse(ch.testing)
-        self.assertEqual(ch.ignore_depth, 0)
+        context = FauxContext()
+        handler = self._makeOne(context)
+        self.assertTrue(handler.context is context)
+        self.assertFalse(handler.testing)
+        self.assertEqual(handler.ignore_depth, 0)
 
     def test_ctor_explicit(self):
-        context = object()
-        ch = self._makeOne(context, True)
-        self.assertTrue(ch.context is context)
-        self.assertTrue(ch.testing)
-        self.assertEqual(ch.ignore_depth, 0)
+        context = FauxContext()
+        handler = self._makeOne(context, True)
+        self.assertTrue(handler.context is context)
+        self.assertTrue(handler.testing)
+        self.assertEqual(handler.ignore_depth, 0)
+        self.assertTrue(handler.locator is None)
 
-    def test_normal(self):
+    def test_setDocumentLocator(self):
+        context = FauxContext()
+        locator = FauxLocator('tests//sample.zcml', 1, 1)
+        handler = self._makeOne(context, True)
+        handler.setDocumentLocator(locator)
+        self.assertTrue(handler.locator is locator)
+
+    def test_startElementNS_w_zcml_condition_failing(self):
+        from zope.configuration.xmlconfig import ZCML_CONDITION
+        context = FauxContext()
+        handler = self._makeOne(context, True)
+        # No locator set:  we won't need it, due to a failed condition.
+        handler.startElementNS((NS, FOO), FOO,
+                               {ZCML_CONDITION: 'have nonesuch',
+                                (None, A): AVALUE,
+                                (None, B): BVALUE,
+                               })
+        self.assertEqual(handler.ignore_depth, 1)
+
+    def test_startElementNS_w_ignore_depth_already_set(self):
+        context = FauxContext()
+        handler = self._makeOne(context, True)
+        handler.ignore_depth = 1
+        # No locator set:  we won't need it, as an ancestor had a
+        # failed condition.
+        handler.startElementNS((NS, FOO), FOO,
+                               {(XXX, SPLAT): SPLATV,
+                                (None, A): AVALUE,
+                                (None, B): BVALUE,
+                               })
+        self.assertEqual(handler.ignore_depth, 2)
+
+    def test_startElementNS_context_begin_raises_wo_testing(self):
+        from zope.configuration.xmlconfig import ZopeXMLConfigurationError
+        class ErrorContext(FauxContext):
+          def begin(self, *args):
+            raise AttributeError("xxx")
+        context = ErrorContext()
+        locator = FauxLocator('tests//sample.zcml', 1, 1)
+        handler = self._makeOne(context)
+        handler.setDocumentLocator(locator)
+        exc = self.assertRaises(ZopeXMLConfigurationError,
+                    handler.startElementNS, (NS, FOO), FOO,
+                                     {(XXX, SPLAT): SPLATV,
+                                      (None, A): AVALUE,
+                                      (None, B): BVALUE,
+                                     })
+        self.assertEqual(exc.info.file, 'tests//sample.zcml')
+        self.assertEqual(exc.info.line, 1)
+        self.assertEqual(exc.info.column, 1)
+
+    def test_startElementNS_context_begin_raises_w_testing(self):
+        class ErrorContext(FauxContext):
+          def begin(self, *args):
+            raise AttributeError("xxx")
+        context = ErrorContext()
+        locator = FauxLocator('tests//sample.zcml', 1, 1)
+        handler = self._makeOne(context, True)
+        handler.setDocumentLocator(locator)
+        self.assertRaises(AttributeError,
+                    handler.startElementNS, (NS, FOO), FOO,
+                                     {(XXX, SPLAT): SPLATV,
+                                      (None, A): AVALUE,
+                                      (None, B): BVALUE,
+                                     })
+
+    def test_startElementNS_normal(self):
+        # Integration test of startElementNS / endElementNS pair.
         context = FauxContext()
         locator = FauxLocator('tests//sample.zcml', 1, 1)
         handler = self._makeOne(context)
@@ -141,53 +225,161 @@ class ConfigurationHandlerTests(unittest.TestCase):
                                 (None, A): AVALUE,
                                 (None, B): BVALUE,
                                })
-        self.assertEqual(repr(context.info),
-                         'File "tests//sample.zcml", line 1.1')
+        self.assertEqual(context.info.file, 'tests//sample.zcml')
+        self.assertEqual(context.info.line, 1)
+        self.assertEqual(context.info.column, 1)
         self.assertEqual(context.begin_args,
                          ((NS, FOO),
                           {'a': AVALUE, 'b': BVALUE}))
-        self.assertEqual(getattr(context, "end_called", 0), 0)
+        self.assertFalse(context._end_called)
 
-        locator.line, locator.column = 7, 16
+    def test_endElementNS_w_ignore_depth_already_set(self):
+        context = FauxContext()
+        handler = self._makeOne(context, True)
+        handler.ignore_depth = 1
+        # No locator set:  we won't need it, as we had a
+        # failed condition.
         handler.endElementNS((NS, FOO), FOO)
-        self.assertEqual(repr(context.info),
-                         'File "tests//sample.zcml", line 1.1-7.16')
-        self.assertEqual(context.end_called, 1)
+        self.assertEqual(handler.ignore_depth, 0)
 
-    def test_err_start(self):
-        from zope.configuration.xmlconfig import ZopeXMLConfigurationError
-        class ErrorContext(FauxContext):
-          def begin(self, *args):
-            raise AttributeError("xxx")
-        context = ErrorContext()
-        locator = FauxLocator('tests//sample.zcml', 1, 1)
-        handler = self._makeOne(context)
-        handler.setDocumentLocator(locator)
-        self.assertRaises(ZopeXMLConfigurationError,
-                    handler.startElementNS, (NS, FOO), FOO,
-                                     {(XXX, SPLAT): SPLATV,
-                                      (None, A): AVALUE,
-                                      (None, B): BVALUE,
-                                     })
-
-    def test_err_end(self):
+    def test_endElementNS_context_end_raises_wo_testing(self):
         from zope.configuration.xmlconfig import ZopeXMLConfigurationError
         class ErrorContext(FauxContext):
           def end(self):
             raise AttributeError("xxx")
+        class Info(object):
+            _line = _col = None
+            def end(self, line, col):
+                self._line, self._col = line, col
         context = ErrorContext()
+        info = Info()
+        context.setInfo(info)
         locator = FauxLocator('tests//sample.zcml', 1, 1)
         handler = self._makeOne(context)
         handler.setDocumentLocator(locator)
-        handler.startElementNS((NS, FOO), FOO,
-                               {(XXX, SPLAT): SPLATV,
-                                (None, A): AVALUE,
-                                (None, B): BVALUE,
-                               })
-
         locator.line, locator.column = 7, 16
-        self.assertRaises(ZopeXMLConfigurationError,
+        exc = self.assertRaises(ZopeXMLConfigurationError,
                           handler.endElementNS, (NS, FOO), FOO)
+        self.assertTrue(exc.info is context.info)
+        self.assertEqual(exc.info._line, 7)
+        self.assertEqual(exc.info._col, 16)
+
+    def test_endElementNS_context_end_raises_w_testing(self):
+        class ErrorContext(FauxContext):
+          def end(self):
+            raise AttributeError("xxx")
+        class Info(object):
+            _line = _col = None
+            def end(self, line, col):
+                self._line, self._col = line, col
+        context = ErrorContext()
+        info = Info()
+        context.setInfo(info)
+        locator = FauxLocator('tests//sample.zcml', 1, 1)
+        handler = self._makeOne(context, True)
+        handler.setDocumentLocator(locator)
+        locator.line, locator.column = 7, 16
+        self.assertRaises(AttributeError,
+                          handler.endElementNS, (NS, FOO), FOO)
+        self.assertEqual(context.info._line, 7)
+        self.assertEqual(context.info._col, 16)
+
+    def test_evaluateCondition_w_have_no_args(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        exc = self.assertRaises(ValueError,
+                                handler.evaluateCondition, 'have')
+        self.assertEqual(str(exc.args[0]), "Feature name missing: 'have'")
+
+    def test_evaluateCondition_w_not_have_too_many_args(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        exc = self.assertRaises(ValueError,
+                                handler.evaluateCondition, 'not-have a b')
+        self.assertEqual(str(exc.args[0]),
+                         "Only one feature allowed: 'not-have a b'")
+
+    def test_evaluateCondition_w_have_miss(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        self.assertFalse(handler.evaluateCondition('have feature'))
+
+    def test_evaluateCondition_w_have_hit(self):
+        context = FauxContext()
+        context._features = ('feature',)
+        handler = self._makeOne(context)
+        self.assertTrue(handler.evaluateCondition('have feature'))
+
+    def test_evaluateCondition_w_not_have_miss(self):
+        context = FauxContext()
+        context._features = ('feature',)
+        handler = self._makeOne(context)
+        self.assertFalse(handler.evaluateCondition('not-have feature'))
+
+    def test_evaluateCondition_w_not_have_hit(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        self.assertTrue(handler.evaluateCondition('not-have feature'))
+
+    def test_evaluateCondition_w_installed_no_args(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        exc = self.assertRaises(ValueError,
+                                handler.evaluateCondition, 'installed')
+        self.assertEqual(str(exc.args[0]), "Package name missing: 'installed'")
+
+    def test_evaluateCondition_w_not_installed_too_many_args(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        exc = self.assertRaises(ValueError,
+                                handler.evaluateCondition, 'not-installed a b')
+        self.assertEqual(str(exc.args[0]),
+                         "Only one package allowed: 'not-installed a b'")
+
+    def test_evaluateCondition_w_installed_miss(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        self.assertFalse(handler.evaluateCondition('installed nonsuch.package'))
+
+    def test_evaluateCondition_w_installed_hit(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        self.assertTrue(handler.evaluateCondition('installed os'))
+
+    def test_evaluateCondition_w_not_installed_miss(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        self.assertFalse(handler.evaluateCondition('not-installed os'))
+
+    def test_evaluateCondition_w_not_installed_hit(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        self.assertTrue(
+                handler.evaluateCondition('not-installed nonsuch.package'))
+
+    def test_evaluateCondition_w_unknown_verb(self):
+        context = FauxContext()
+        handler = self._makeOne(context)
+        exc = self.assertRaises(ValueError,
+                                handler.evaluateCondition, 'nonesuch')
+        self.assertEqual(str(exc.args[0]),
+                         "Invalid ZCML condition: 'nonesuch'")
+
+    def test_endElementNS_normal(self):
+        class Info(object):
+            _line = _col = None
+            def end(self, line, col):
+                self._line, self._col = line, col
+        context = FauxContext()
+        info = Info()
+        context.setInfo(info)
+        locator = FauxLocator('tests//sample.zcml', 7, 16)
+        handler = self._makeOne(context, True)
+        handler.setDocumentLocator(locator)
+        handler.endElementNS((NS, FOO), FOO)
+        self.assertEqual(context.info._line, 7)
+        self.assertEqual(context.info._col, 16)
+        self.assertTrue(context._end_called)
 
 
 class Test_processxmlfile(unittest.TestCase):
@@ -452,27 +644,30 @@ class Test_testxmlconfig(unittest.TestCase):
 
 
 class FauxLocator(object):
-  def __init__(self, file, line, column):
-    self.file, self.line, self.column = file, line, column
-  def getSystemId(self):
-    return self.file
-  def getLineNumber(self):
-    return self.line
-  def getColumnNumber(self):
-    return self.column
+    def __init__(self, file, line, column):
+        self.file, self.line, self.column = file, line, column
+    def getSystemId(self):
+        return self.file
+    def getLineNumber(self):
+        return self.line
+    def getColumnNumber(self):
+        return self.column
 
 
 class FauxContext(object):
-
-  def setInfo(self, info):
-    self.info = info
-  def getInfo(self):
-    return self.info
-  def begin(self, name, data, info):
-    self.begin_args = name, data
-    self.info = info
-  def end(self):
-    self.end_called = 1
+    _features = ()
+    _end_called = False
+    def setInfo(self, info):
+        self.info = info
+    def getInfo(self):
+        return self.info
+    def begin(self, name, data, info):
+        self.begin_args = name, data
+        self.info = info
+    def end(self):
+        self._end_called = 1
+    def hasFeature(self, feature):
+        return feature in self._features
 
 
 def path(*p):
