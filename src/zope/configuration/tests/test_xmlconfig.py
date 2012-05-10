@@ -451,105 +451,130 @@ class Test_openInOrPlain(_Catchable, unittest.TestCase):
         self.assertEqual(exc.errno, errno.ENOENT)
 
 
-class Test_include(unittest.TestCase):
+class Test_include(_Catchable, unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import include
         return include(*args, **kw)
 
-    def test_include_by_package(self):
+    def test_both_file_and_files_passed(self):
+        context = FauxContext()
+        exc = self.assertRaises(ValueError,
+                                self._callFUT, context, 'tests//sample.zcml',
+                                files=['tests/*.zcml'])
+        self.assertEqual(str(exc), "Must specify only one of file or files")
+
+    def test_neither_file_nor_files_passed_already_seen(self):
+        from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
-        from zope.configuration._compat import b
-        from zope.configuration.tests.samplepackage import foo
-        import zope.configuration.tests.samplepackage as package
+        from zope.configuration.tests import samplepackage
         context = ConfigurationMachine()
         registerCommonDirectives(context)
-        self._callFUT(context, 'configure.zcml', package)
-        context.execute_actions()
-        data = foo.data.pop()
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
-        self.assertEqual(clean_info_path(str(data.info)),
-                'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n'
-                + '    <test:foo x="blah" y="0" />')
-        self.assertTrue(data.package is package)
-        self.assertEqual(data.basepath[-13:], 'samplepackage')
-        self.assertEqual([clean_path(p) for p in data.includepath],
-                         ['tests/samplepackage/configure.zcml'])
+        context.package = samplepackage
+        fqn = _packageFile(samplepackage, 'configure.zcml')
+        context._seen_files.add(fqn)
+        logger = LoggerStub()
+        with _Monkey(xmlconfig, logger=logger):
+            self._callFUT(context) #skips
+        self.assertEqual(len(logger.debugs), 0)
+        self.assertEqual(len(context.actions), 0)
 
-    # Not any more
-    ##     Including the same file more than once produces an error:
-
-    ##     >>> try:
-    ##     ...   xmlconfig.include(context, 'configure.zcml', package)
-    ##     ... except xmlconfig.ConfigurationError, e:
-    ##     ...   'OK'
-    ##     ...
-    ##     'OK'
-
-    def test_include_by_file(self):
-        import os
+    def test_neither_file_nor_files_passed(self):
+        from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
-        from zope.configuration._compat import b
+        from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         context = ConfigurationMachine()
         registerCommonDirectives(context)
-        here = os.path.dirname(__file__)
-        path = os.path.join(here, "samplepackage", "foo.zcml")
-        self._callFUT(context, path)
-        context.execute_actions()
-        data = foo.data.pop()
-        self.assertEqual(data.args, (('x', b('foo')), ('y', 2)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                    'File "tests/samplepackage/foo.zcml.in", line 12.2-12.28')
-        self.assertEqual(clean_info_path(str(data.info)),
-                    'File "tests/samplepackage/foo.zcml.in", line 12.2-12.28\n'
-                    + '    <test:foo x="foo" y="2" />')
-        self.assertEqual(data.package, None)
-        self.assertEqual(data.basepath[-13:], 'samplepackage')
-        self.assertEqual([clean_path(p) for p in data.includepath],
-                         ['tests/samplepackage/foo.zcml.in'])
+        before_stack = context.stack[:]
+        context.package = samplepackage
+        fqn = _packageFile(samplepackage, 'configure.zcml')
+        logger = LoggerStub()
+        with _Monkey(xmlconfig, logger=logger):
+            self._callFUT(context)
+        self.assertEqual(len(logger.debugs), 1)
+        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(len(context.actions), 1)
+        action = context.actions[0]
+        self.assertEqual(action['callable'], foo.data.append)
+        self.assertEqual(action['includepath'], (fqn,))
+        self.assertEqual(context.stack, before_stack)
+        self.assertEqual(len(context._seen_files), 1)
+        self.assertTrue(fqn in context._seen_files)
 
-    def test_include_by_file_glob(self):
-        import os
+    def test_w_file_passed(self):
+        from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
-        from zope.configuration._compat import b
+        from zope.configuration import tests
+        from zope.configuration.tests import simple
+        context = ConfigurationMachine()
+        registerCommonDirectives(context)
+        before_stack = context.stack[:]
+        context.package = tests
+        fqn = _packageFile(tests, 'simple.zcml')
+        logger = LoggerStub()
+        with _Monkey(xmlconfig, logger=logger):
+            self._callFUT(context, 'simple.zcml')
+        self.assertEqual(len(logger.debugs), 1)
+        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(len(context.actions), 3)
+        action = context.actions[0]
+        self.assertEqual(action['callable'], simple.file_registry.append)
+        self.assertEqual(action['includepath'], (fqn,))
+        self.assertEqual(action['args'][0].path,
+                         _packageFile(tests, 'simple.py'))
+        action = context.actions[1]
+        self.assertEqual(action['callable'], simple.file_registry.append)
+        self.assertEqual(action['includepath'], (fqn,))
+        self.assertEqual(action['args'][0].path,
+                         _packageFile(tests, 'simple.zcml'))
+        action = context.actions[2]
+        self.assertEqual(action['callable'], simple.file_registry.append)
+        self.assertEqual(action['includepath'], (fqn,))
+        self.assertEqual(action['args'][0].path,
+                         _packageFile(tests, '__init__.py'))
+        self.assertEqual(context.stack, before_stack)
+        self.assertEqual(len(context._seen_files), 1)
+        self.assertTrue(fqn in context._seen_files)
+
+    def test_w_files_passed_and_package(self):
+        from zope.configuration import xmlconfig
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.xmlconfig import registerCommonDirectives
+        from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         context = ConfigurationMachine()
         registerCommonDirectives(context)
-        here = os.path.dirname(__file__)
-        path = os.path.join(here, "samplepackage/baz*.zcml")
-        self._callFUT(context, files=path)
-        context.execute_actions()
-
-        data = foo.data.pop()
-        self.assertEqual(data.args, (('x', b('foo')), ('y', 3)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                        'File "tests/samplepackage/baz3.zcml", line 5.2-5.28')
-
-        self.assertEqual(clean_info_path(str(data.info)), 
-                        'File "tests/samplepackage/baz3.zcml", line 5.2-5.28\n'
-                        + '    <test:foo x="foo" y="3" />')
-        self.assertEqual(data.package, None)
-        self.assertEqual(data.basepath[-13:], 'samplepackage')
-        self.assertEqual([clean_path(p) for p in data.includepath],
-                         ['tests/samplepackage/baz3.zcml'])
-
-        data = foo.data.pop()
-        self.assertEqual(data.args, (('x', b('foo')), ('y', 2)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                        'File "tests/samplepackage/baz2.zcml", line 5.2-5.28')
-        self.assertEqual(clean_info_path(str(data.info)),
-                        'File "tests/samplepackage/baz2.zcml", line 5.2-5.28\n'
-                        + '    <test:foo x="foo" y="2" />')
-        self.assertEqual(data.package, None)
-        self.assertEqual(data.basepath[-13:], 'samplepackage')
-        self.assertEqual([clean_path(p) for p in data.includepath],
-                        ['tests/samplepackage/baz2.zcml'])
+        before_stack = context.stack[:]
+        fqn1 = _packageFile(samplepackage, 'baz1.zcml')
+        fqn2 = _packageFile(samplepackage, 'baz2.zcml')
+        fqn3 = _packageFile(samplepackage, 'baz3.zcml')
+        logger = LoggerStub()
+        with _Monkey(xmlconfig, logger=logger):
+            self._callFUT(context, package=samplepackage, files='baz*.zcml')
+        self.assertEqual(len(logger.debugs), 3)
+        self.assertEqual(logger.debugs[0], ('include %s' % fqn1, (), {}))
+        self.assertEqual(logger.debugs[1], ('include %s' % fqn2, (), {}))
+        self.assertEqual(logger.debugs[2], ('include %s' % fqn3, (), {}))
+        self.assertEqual(len(context.actions), 2)
+        action = context.actions[0]
+        self.assertEqual(action['callable'], foo.data.append)
+        self.assertEqual(action['includepath'], (fqn2,))
+        self.assertTrue(isinstance(action['args'][0], foo.stuff))
+        self.assertEqual(action['args'][0].args, (('x', 'foo'), ('y', 2)))
+        action = context.actions[1]
+        self.assertEqual(action['callable'], foo.data.append)
+        self.assertEqual(action['includepath'], (fqn3,))
+        self.assertTrue(isinstance(action['args'][0], foo.stuff))
+        self.assertEqual(action['args'][0].args, (('x', 'foo'), ('y', 3)))
+        self.assertEqual(context.stack, before_stack)
+        self.assertEqual(len(context._seen_files), 3)
+        self.assertTrue(fqn1 in context._seen_files)
+        self.assertTrue(fqn2 in context._seen_files)
+        self.assertTrue(fqn3 in context._seen_files)
 
 
 class Test_exclude(unittest.TestCase):
@@ -689,6 +714,7 @@ class FauxLocator(object):
 
 
 class FauxContext(object):
+    includepath = ()
     _features = ()
     _end_called = False
     def setInfo(self, info):
@@ -743,6 +769,53 @@ def clean_text_w_paths(error):
         line = line[:l] + clean_info_path(line[l:])
       r.append(line)
     return '\n'.join(r)
+
+
+def _packageFile(package, filename):
+    import os
+    return os.path.join(os.path.dirname(package.__file__), filename)
+
+class _Monkey(object):
+
+    def __init__(self, module, **replacements):
+        self.module = module
+        self.orig = {}
+        self.replacements = replacements
+        
+    def __enter__(self):
+        for k, v in self.replacements.items():
+            orig = getattr(self.module, k, self)
+            if orig is not self:
+                self.orig[k] = orig
+            setattr(self.module, k, v)
+
+    def __exit__(self, *exc_info):
+        for k, v in self.replacements.items():
+            if k in self.orig:
+                setattr(self.module, k, self.orig[k])
+            else: #pragma NO COVERSGE
+                delattr(self.module, k)
+
+
+class LoggerStub(object):
+
+    def __init__(self):
+        self.errors = []
+        self.warnings = []
+        self.infos = []
+        self.debugs = []
+
+    def error(self, msg, *args, **kwargs):
+        self.errors.append((msg, args, kwargs))
+
+    def warning(self, msg, *args, **kwargs):
+        self.warnings.append((msg, args, kwargs))
+
+    def info(self, msg, *args, **kwargs):
+        self.infos.append((msg, args, kwargs))
+
+    def debug(self, msg, *args, **kwargs):
+        self.debugs.append((msg, args, kwargs))
 
 
 def test_suite():
