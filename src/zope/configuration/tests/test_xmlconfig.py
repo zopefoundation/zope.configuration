@@ -577,11 +577,54 @@ class Test_include(_Catchable, unittest.TestCase):
         self.assertTrue(fqn3 in context._seen_files)
 
 
-class Test_exclude(unittest.TestCase):
+class Test_exclude(_Catchable, unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import exclude
         return exclude(*args, **kw)
+
+    def test_both_file_and_files_passed(self):
+        context = FauxContext()
+        exc = self.assertRaises(ValueError,
+                                self._callFUT, context, 'tests//sample.zcml',
+                                files=['tests/*.zcml'])
+        self.assertEqual(str(exc), "Must specify only one of file or files")
+
+    def test_neither_file_nor_files_passed(self):
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.tests import samplepackage
+        context = ConfigurationMachine()
+        context.package = samplepackage
+        fqn = _packageFile(samplepackage, 'configure.zcml')
+        self._callFUT(context)
+        self.assertEqual(len(context.actions), 0)
+        self.assertEqual(len(context._seen_files), 1)
+        self.assertTrue(fqn in context._seen_files)
+
+    def test_w_file_passed(self):
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration import tests
+        context = ConfigurationMachine()
+        context.package = tests
+        fqn = _packageFile(tests, 'simple.zcml')
+        self._callFUT(context, 'simple.zcml')
+        self.assertEqual(len(context.actions), 0)
+        self.assertEqual(len(context._seen_files), 1)
+        self.assertTrue(fqn in context._seen_files)
+
+    def test_w_files_passed_and_package(self):
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.tests import samplepackage
+        context = ConfigurationMachine()
+        fqn1 = _packageFile(samplepackage, 'baz1.zcml')
+        fqn2 = _packageFile(samplepackage, 'baz2.zcml')
+        fqn3 = _packageFile(samplepackage, 'baz3.zcml')
+        self._callFUT(context, package=samplepackage, files='baz*.zcml')
+        self.assertEqual(len(context.actions), 0)
+        self.assertEqual(len(context._seen_files), 3)
+        self.assertTrue(fqn1 in context._seen_files)
+        self.assertTrue(fqn2 in context._seen_files)
+        self.assertTrue(fqn3 in context._seen_files)
 
 
 class Test_includeOverrides(unittest.TestCase):
