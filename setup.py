@@ -56,18 +56,15 @@ def alltests():
                     suite.addTest(mod.test_suite())
     return suite
 
+TESTS_REQUIRE = []
+
 setup(name='zope.configuration',
-      version = '3.8.1',
+      version = '4.0.0dev',
       author='Zope Foundation and Contributors',
       author_email='zope-dev@zope.org',
       description='Zope Configuration Markup Language (ZCML)',
       long_description=(
           read('README.txt')
-          + '\n\n' +
-          'Detailed Documentation\n' +
-          '----------------------\n'
-          + '\n\n' +
-          read('src', 'zope', 'configuration', 'README.txt')
           + '\n\n' +
           read('CHANGES.txt')
           ),
@@ -78,6 +75,12 @@ setup(name='zope.configuration',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: Zope Public License',
           'Programming Language :: Python',
+          'Programming Language :: Python :: 2.6',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python3',
+          'Programming Language :: Python :: 3.2',
+          'Programming Language :: Python :: Implementation :: CPython',
+          'Programming Language :: Python :: Implementation :: PyPy',
           'Natural Language :: English',
           'Operating System :: OS Independent',
           'Topic :: Internet :: WWW/HTTP',
@@ -87,8 +90,11 @@ setup(name='zope.configuration',
       packages=find_packages('src'),
       package_dir={'': 'src'},
       namespace_packages=['zope'],
-      extras_require=dict(
-          test=['zope.testing']),
+      extras_require={
+        'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
+        'test': ['zope.testing'],
+        'testing': TESTS_REQUIRE + ['nose', 'coverage'],
+      },
       install_requires=['zope.i18nmessageid',
                         'zope.interface',
                         'zope.schema',
@@ -96,6 +102,6 @@ setup(name='zope.configuration',
                        ],
       include_package_data=True,
       zip_safe=False,
-      tests_require = 'zope.testing',
+      tests_require = TESTS_REQUIRE,
       test_suite='__main__.alltests',
       )

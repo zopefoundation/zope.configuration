@@ -27,20 +27,21 @@ Options:
         documentation is stored. Note that this tool will create
         sub-directories with files in them. 
 """
+# XXX This should be ripped out of the package.
 import sys, os, getopt
 import zope.configuration
 from zope.schema import getFieldsInOrder 
 from zope.configuration import config, xmlconfig
 from zope.configuration.docutils import wrap, makeDocStructures
 
-def usage(code, msg=''):
+def usage(code, msg=''): #pragma NO COVER
     # Python 2.1 required
     print >> sys.stderr, __doc__
     if msg:
         print >> sys.stderr, msg
     sys.exit(code)
 
-def _directiveDocs(name, schema, handler, info, indent_offset=0):
+def _directiveDocs(name, schema, handler, info, indent_offset=0): #pragma NO COVER
     """Generate the documentation for one directive."""
 
     # Write out the name of the directive
@@ -86,7 +87,7 @@ def _directiveDocs(name, schema, handler, info, indent_offset=0):
 
     return text
 
-def _subDirectiveDocs(subdirs, namespace, name):
+def _subDirectiveDocs(subdirs, namespace, name): #pragma NO COVER
     """Appends a list of sub-directives and their full specification."""
     if subdirs.has_key((namespace, name)):
         text = '\n  Subdirectives\n\n'
@@ -100,7 +101,7 @@ def _subDirectiveDocs(subdirs, namespace, name):
         return text + '\n\n'.join(sub_dirs)
     return ''
 
-def makedocs(target_dir, zcml_file):
+def makedocs(target_dir, zcml_file): #pragma NO COVER
     """Generate the documentation tree.
 
     All we need for this is a starting ZCML file and a directory in which to
@@ -122,7 +123,7 @@ def makedocs(target_dir, zcml_file):
             text += _subDirectiveDocs(subdirs, namespace, name)
             open(dir_file, 'w').write(text)
 
-def _makeabs(path):
+def _makeabs(path): #pragma NO COVER
     """Make an absolute path from the possibly relative path."""
     if not path == os.path.abspath(path):
         cwd = os.getcwd()
@@ -132,7 +133,7 @@ def _makeabs(path):
         path = os.path.normpath(os.path.join(cwd, path))    
     return path
 
-def main(argv=sys.argv):
+def main(argv=sys.argv): #pragma NO COVER
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
@@ -159,5 +160,5 @@ def main(argv=sys.argv):
     # Generate the docs
     makedocs(output_dir, zcml_file)
 
-if __name__ == '__main__':
+if __name__ == '__main__': #pragma NO COVER
     main()

@@ -99,9 +99,13 @@ which isn't supported using the meta-configuration directives.)
 """
 __docformat__ = 'restructuredtext'
 import os
-import zope.configuration.config as config
-from zope import schema
+
 from zope.interface import Interface
+from zope.schema import BytesLine
+
+from zope.configuration.config import GroupingContextDecorator
+from zope.configuration.fields import GlobalObject
+from zope.configuration._compat import u
 
 class IZopeConfigure(Interface):
     """The ``zope:configure`` Directive
@@ -116,24 +120,24 @@ class IZopeConfigure(Interface):
     be applied whereever it is convenient. 
     """
 
-    package = config.fields.GlobalObject(
-        title=u"Package",
-        description=u"The package to be used for evaluating relative imports "
-                    u"and file names.",
+    package = GlobalObject(
+        title=u("Package"),
+        description=u("The package to be used for evaluating relative imports "
+                      "and file names."),
         required=False)
 
-    i18n_domain = schema.BytesLine(
-        title=u"Internationalization domain",
-        description=u"This is a name for the software project. It must be a "
-                    u"legal file-system name as it will be used to contruct "
-                    u"names for directories containing translation data. "
-                    u"\n"
-                    u"The domain defines a namespace for the message ids "
-                    u"used by a project.",
+    i18n_domain = BytesLine(
+        title=u("Internationalization domain"),
+        description=u("This is a name for the software project. It must be a "
+                      "legal file-system name as it will be used to contruct "
+                      "names for directories containing translation data. "
+                      "\n"
+                      "The domain defines a namespace for the message ids "
+                      "used by a project."),
         required=False)
 
 
-class ZopeConfigure(config.GroupingContextDecorator):
+class ZopeConfigure(GroupingContextDecorator):
     __doc__ = __doc__
 
     def __init__(self, context, **kw):

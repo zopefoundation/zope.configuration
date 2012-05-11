@@ -2,6 +2,30 @@
 Changes
 =======
 
+4.0.0 (unreleased)
+------------------
+
+- 100% unit test coverage.
+
+- Automated build of Sphinx HTML docs and running doctest snippets via tox.
+
+- Dropped hard testing dependency on ``zope.testing``.
+
+- Added explicit support for PyPy.
+
+- Added explicit support for Python 3.2.
+
+- Dropped explicit support for Python 2.4 / 2.5.
+
+- Added support for continuous integration using ``tox`` and ``jenkins``.
+
+- Added ``Sphinx`` documentation.
+
+- Added ``setup.py docs`` alias (installs ``Sphinx`` and dependencies).
+
+- Added ``setup.py dev`` alias (runs ``setup.py develop`` plus installs
+  ``nose`` and ``coverage``).
+
 3.8.1 (2012-05-05)
 ------------------
 

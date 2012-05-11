@@ -11,26 +11,25 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Sample module used for testing
+""" Enable "Making specific directives condition" section of narrative docs.
 """
 from zope.interface import Interface
-from zope import schema
+from zope.schema import Id
 
-data = []
 
-class S1(Interface):
-    x = schema.BytesLine()
-    y = schema.Int()
+class IRegister(Interface):
+    """Trivial sample registry."""
 
-class stuff(object):
-    def __init__(self, args, info, basepath, package, includepath):
-        (self.args, self.info, self.basepath, self.package, self.includepath
-         ) = args, info, basepath, package, includepath
+    id = Id(
+        title=u"Identifier",
+        description=u"Some identifier that can be checked.",
+        required=True,
+        )
 
-def handler(_context, **kw):
-    args = sorted(kw.items())
-    args = tuple(args)
-    discriminator = args
-    args = (stuff(args, _context.info, _context.basepath, _context.package,
-                  _context.includepath), )
-    _context.action(discriminator, data.append, args)
+registry = []
+
+def register(context, id):
+    context.action(discriminator=('Register', id),
+                   callable=registry.append,
+                   args=(id,)
+                   )

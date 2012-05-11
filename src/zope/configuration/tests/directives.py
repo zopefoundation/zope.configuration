@@ -13,11 +13,15 @@
 ##############################################################################
 """Test directives
 """
-from zope.interface import Interface, implements
-from zope.schema import Text, BytesLine
+from zope.interface import Interface
+from zope.interface import implementer
+from zope.schema import BytesLine
+from zope.schema import Text
+
 from zope.configuration.config import GroupingContextDecorator
 from zope.configuration.interfaces import IConfigurationContext
 from zope.configuration.fields import GlobalObject
+from zope.configuration._compat import u
 
 
 class F(object):
@@ -34,10 +38,10 @@ class ISimple(Interface):
     b = Text(required=False)
     c = BytesLine()
 
-def simple(context, a=None, c=None, b=u"xxx"):
+def simple(context, a=None, c=None, b=u("xxx")):
     return [(('simple', a, b, c), f, (a, b, c))]
 
-def newsimple(context, a, c, b=u"xxx"):
+def newsimple(context, a, c, b=u("xxx")):
     context.action(('newsimple', a, b, c), f, (a, b, c))
 
 
@@ -45,12 +49,14 @@ class IPackaged(Interface):
 
     package = GlobalObject()
 
+
 class IPackagedContext(IPackaged, IConfigurationContext):
     pass
 
-class Packaged(GroupingContextDecorator):
 
-    implements(IPackagedContext)
+@implementer(IPackagedContext)
+class Packaged(GroupingContextDecorator):
+    pass
 
 
 class IFactory(Interface):
@@ -62,7 +68,7 @@ def factory(context, factory):
 
 class Complex(object):
 
-    def __init__(self, context, a, c, b=u"xxx"):
+    def __init__(self, context, a, c, b=u("xxx")):
         self.a, self.b, self.c = a, b, c
         context.action("Complex.__init__")
 
