@@ -435,13 +435,13 @@ class Test_openInOrPlain(_Catchable, unittest.TestCase):
 
     def test_file_present(self):
         import os
-        fp = self._callFUT(self._makeFilename('configure.zcml'))
-        self.assertEqual(os.path.basename(fp.name), 'configure.zcml')
+        with self._callFUT(self._makeFilename('configure.zcml')) as fp:
+            self.assertEqual(os.path.basename(fp.name), 'configure.zcml')
 
     def test_file_missing_but_dot_in_present(self):
         import os
-        fp = self._callFUT(self._makeFilename('foo.zcml'))
-        self.assertEqual(os.path.basename(fp.name), 'foo.zcml.in')
+        with self._callFUT(self._makeFilename('foo.zcml')) as fp:
+            self.assertEqual(os.path.basename(fp.name), 'foo.zcml.in')
 
     def test_file_missing_and_dot_in_not_present(self):
         import errno
@@ -779,7 +779,8 @@ class Test_string(unittest.TestCase):
         from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         file_name = path("samplepackage", "configure.zcml")
-        xml = open(file_name).read()
+        with open(file_name) as f:
+            xml = f.read()
         context = self._callFUT(xml, execute=False)
         self.assertEqual(len(foo.data), 0)
         self.assertEqual(len(context.actions), 1)
@@ -795,7 +796,8 @@ class Test_string(unittest.TestCase):
         context = ConfigurationMachine()
         registerCommonDirectives(context)
         file_name = path("samplepackage", "configure.zcml")
-        xml = open(file_name).read()
+        with open(file_name) as f:
+            xml = f.read()
         ret = self._callFUT(xml, context=context, execute=False)
         self.assertTrue(ret is context)
         self.assertEqual(len(foo.data), 0)
@@ -808,7 +810,8 @@ class Test_string(unittest.TestCase):
         from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         file_name = path("samplepackage", "configure.zcml")
-        xml = open(file_name).read()
+        with open(file_name) as f:
+            xml = f.read()
         context = self._callFUT(xml)
         data = foo.data.pop()
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))

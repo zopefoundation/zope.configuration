@@ -116,11 +116,11 @@ class ParserInfo(object):
                                 'tests', 'sample.zcml')
 
         try:
-            f = open(file)
+            with open(file) as f:
+                lines = f.readlines()[self.line-1:self.eline]
         except IOError:
             src = "  Could not read source."
         else:
-            lines = f.readlines()[self.line-1:self.eline]
             ecolumn = self.ecolumn
             if lines[-1][ecolumn:ecolumn+2] == '</': #pragma NO COVER
                 # We're pointing to the start of an end tag. Try to find
@@ -392,15 +392,14 @@ def include(_context, file=None, package=None, files=None):
 
     for path in paths:
         if context.processFile(path):
-            f = openInOrPlain(path)
-            logger.debug("include %s" % f.name)
+            with openInOrPlain(path) as f:
+                logger.debug("include %s" % f.name)
 
-            context.basepath = os.path.dirname(path)
-            context.includepath = _context.includepath + (f.name, )
-            _context.stack.append(GroupingStackItem(context))
+                context.basepath = os.path.dirname(path)
+                context.includepath = _context.includepath + (f.name, )
+                _context.stack.append(GroupingStackItem(context))
 
-            processxmlfile(f, context)
-            f.close()
+                processxmlfile(f, context)
             assert _context.stack[-1].context is context
             _context.stack.pop()
 
