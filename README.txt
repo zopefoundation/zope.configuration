@@ -1,8 +1,5 @@
-zope.configuration
-==================
-
-Overview
---------
+zope.configuration README
+=========================
 
 The zope configuration system provides an extensible system for
 supporting various kinds of configurations.
