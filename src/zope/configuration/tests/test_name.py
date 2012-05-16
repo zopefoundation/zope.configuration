@@ -107,7 +107,9 @@ class Test_path(unittest.TestCase):
         return path(*args, **kw)
 
     def test_absolute(self):
-        self.assertEqual(self._callFUT('/absolute'), '/absolute')
+        import os
+        self.assertEqual(self._callFUT('/absolute'),
+                         os.path.normpath('/absolute'))
 
     def test_relative_bogus_package(self):
         self.assertRaises(ImportError,

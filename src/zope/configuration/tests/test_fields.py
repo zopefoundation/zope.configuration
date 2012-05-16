@@ -190,8 +190,9 @@ class PathTests(unittest.TestCase, _ConformsToIFromUnicode):
         return self._getTargetClass()(*args, **kw)
 
     def test_fromUnicode_absolute(self):
+        import os
         path = self._makeOne()
-        self.assertEqual(path.fromUnicode('/'), '/')
+        self.assertEqual(path.fromUnicode('/'), os.path.normpath('/'))
 
     def test_fromUnicode_relative(self):
         class Context(object):

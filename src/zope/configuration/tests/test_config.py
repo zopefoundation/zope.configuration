@@ -124,13 +124,17 @@ class ConfigurationContextTests(_Catchable,
                del sys.modules[name]
 
     def test_path_w_absolute_filename(self):
+        import os
         c = self._makeOne()
-        self.assertEqual(c.path('/path/to/somewhere'), '/path/to/somewhere')
+        self.assertEqual(c.path('/path/to/somewhere'),
+                         os.path.normpath('/path/to/somewhere'))
 
     def test_path_w_relative_filename_w_basepath(self):
+        import os
         c = self._makeOne()
         c.basepath = '/path/to'
-        self.assertEqual(c.path('somewhere'), '/path/to/somewhere')
+        self.assertEqual(c.path('somewhere'),
+                         os.path.normpath('/path/to/somewhere'))
 
     def test_path_w_relative_filename_wo_basepath_wo_package(self):
         import os
@@ -157,7 +161,7 @@ class ConfigurationContextTests(_Catchable,
             __path__ = [os.path.join('relative', 'path')]
         c = self._makeOne()
         c.package = stub()
-        os.path.isabs(c.path('y/z'))
+        self.assertTrue(os.path.isabs(c.path('y/z')))
 
     def test_checkDuplicate_miss(self):
         c = self._makeOne()
@@ -165,22 +169,25 @@ class ConfigurationContextTests(_Catchable,
         self.assertEqual(list(c._seen_files), ['/path'])
 
     def test_checkDuplicate_hit(self):
+        import os
         from zope.configuration.exceptions import ConfigurationError
         c = self._makeOne()
         c.checkDuplicate('/path')
         self.assertRaises(ConfigurationError, c.checkDuplicate, '/path')
-        self.assertEqual(list(c._seen_files), ['/path'])
+        self.assertEqual(list(c._seen_files), [os.path.normpath('/path')])
 
     def test_processFile_miss(self):
+        import os
         c = self._makeOne()
         self.assertEqual(c.processFile('/path'), True)
-        self.assertEqual(list(c._seen_files), ['/path'])
+        self.assertEqual(list(c._seen_files), [os.path.normpath('/path')])
 
     def test_processFile_hit(self):
+        import os
         c = self._makeOne()
         c.processFile('/path')
         self.assertEqual(c.processFile('/path'), False)
-        self.assertEqual(list(c._seen_files), ['/path'])
+        self.assertEqual(list(c._seen_files), [os.path.normpath('/path')])
 
     def test_action_defaults_no_info_no_includepath(self):
         DISCRIMINATOR = ('a', ('b',), 0)
