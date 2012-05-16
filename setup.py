@@ -59,7 +59,7 @@ def alltests():
 TESTS_REQUIRE = []
 
 setup(name='zope.configuration',
-      version = '4.0.0',
+      version = '4.0.1dev',
       author='Zope Foundation and Contributors',
       author_email='zope-dev@zope.org',
       description='Zope Configuration Markup Language (ZCML)',
@@ -77,7 +77,6 @@ setup(name='zope.configuration',
           'Programming Language :: Python',
           'Programming Language :: Python :: 2.6',
           'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python3',
           'Programming Language :: Python :: 3.2',
           'Programming Language :: Python :: Implementation :: CPython',
           'Programming Language :: Python :: Implementation :: PyPy',
