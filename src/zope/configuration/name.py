@@ -74,7 +74,7 @@ def path(file='', package='zopeproducts', _silly=('__doc__',), _globals={}):
     try:
         package = __import__(package, _globals, _globals, _silly)
     except ImportError:
-        if file and os.path.abspath(file) == file:
+        if file and os.path.abspath(os.path.normpath(file)) == file:
             # The package didn't matter
             return file
         raise

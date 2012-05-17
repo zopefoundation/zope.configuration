@@ -748,6 +748,7 @@ class Test_file(unittest.TestCase):
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_w_execute(self):
+        import os
         from zope.configuration import xmlconfig
         from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
@@ -760,13 +761,14 @@ class Test_file(unittest.TestCase):
         data = foo.data.pop()
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
         self.assertTrue(data.info.file.endswith(
-                            'tests/samplepackage/configure.zcml'))
+                        os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
         self.assertEqual(data.info.ecolumn, 29)
         self.assertEqual(data.package, None)
-        self.assertTrue(data.basepath.endswith('tests/samplepackage'))
+        self.assertTrue(data.basepath.endswith(
+                        os.path.normpath('tests/samplepackage')))
 
 
 class Test_string(unittest.TestCase):
@@ -899,6 +901,7 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(action['callable'], foo.data.append)
 
     def test___call__(self):
+        import os
         from zope.configuration import xmlconfig
         from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
@@ -915,7 +918,7 @@ class XMLConfigTests(unittest.TestCase):
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
         self.assertTrue(data.info.file.endswith(
-                'tests/samplepackage/configure.zcml'))
+                        os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
@@ -942,6 +945,7 @@ class Test_xmlconfig(unittest.TestCase):
         return xmlconfig(*args, **kw)
 
     def test_wo_testing_passed(self):
+        import os
         from zope.configuration import xmlconfig
         from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
@@ -962,13 +966,14 @@ class Test_xmlconfig(unittest.TestCase):
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
         self.assertTrue(data.info.file.endswith(
-                'tests/samplepackage/configure.zcml'))
+                        os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
         self.assertEqual(data.info.ecolumn, 29)
 
     def test_w_testing_passed(self):
+        import os
         from zope.configuration import xmlconfig
         from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
@@ -989,7 +994,7 @@ class Test_xmlconfig(unittest.TestCase):
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
         self.assertTrue(data.info.file.endswith(
-                'tests/samplepackage/configure.zcml'))
+                        os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
@@ -1015,6 +1020,7 @@ class Test_testxmlconfig(unittest.TestCase):
         return testxmlconfig(*args, **kw)
 
     def test_w_testing_passed(self):
+        import os
         from zope.configuration import xmlconfig
         from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
@@ -1035,7 +1041,7 @@ class Test_testxmlconfig(unittest.TestCase):
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
         self.assertTrue(data.info.file.endswith(
-                'tests/samplepackage/configure.zcml'))
+                        os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)

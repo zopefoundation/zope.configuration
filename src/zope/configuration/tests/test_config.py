@@ -164,9 +164,10 @@ class ConfigurationContextTests(_Catchable,
         self.assertTrue(os.path.isabs(c.path('y/z')))
 
     def test_checkDuplicate_miss(self):
+        import os
         c = self._makeOne()
         c.checkDuplicate('/path') # doesn't raise
-        self.assertEqual(list(c._seen_files), ['/path'])
+        self.assertEqual(list(c._seen_files), [os.path.normpath('/path')])
 
     def test_checkDuplicate_hit(self):
         import os
