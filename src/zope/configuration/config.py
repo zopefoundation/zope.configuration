@@ -199,7 +199,7 @@ class ConfigurationContext(object):
                 basepath = os.path.abspath(os.path.normpath(basepath))
             self.basepath = basepath
 
-        return os.path.join(basepath, filename)
+        return os.path.normpath(os.path.join(basepath, filename))
 
     def checkDuplicate(self, filename):
         """Check for duplicate imports of the same file.
