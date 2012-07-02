@@ -1,5 +1,5 @@
 Hacking on :mod:`zope.configuration`
-============================
+====================================
 
 
 Getting the Code
