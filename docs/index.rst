@@ -24,6 +24,10 @@ Contents:
    api/xmlconfig
    api/zopeconfigure
 
+.. toctree::
+   :maxdepth: 2
+   hacking
+
 
 Indices and tables
 ==================
