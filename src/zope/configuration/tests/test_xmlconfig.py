@@ -445,7 +445,7 @@ class Test_openInOrPlain(_Catchable, unittest.TestCase):
 
     def test_file_missing_and_dot_in_not_present(self):
         import errno
-        exc = self.assertRaises(    
+        exc = self.assertRaises(
                 IOError,
                 self._callFUT, self._makeFilename('nonesuch.zcml'))
         self.assertEqual(exc.errno, errno.ENOENT)
@@ -626,6 +626,21 @@ class Test_exclude(_Catchable, unittest.TestCase):
         self.assertTrue(fqn1 in context._seen_files)
         self.assertTrue(fqn2 in context._seen_files)
         self.assertTrue(fqn3 in context._seen_files)
+
+    def test_w_subpackage(self):
+        from zope.configuration.config import ConfigurationMachine
+        from zope.configuration.tests import excludedemo
+        from zope.configuration.tests.excludedemo import sub
+        context = ConfigurationMachine()
+        fqne_spam = _packageFile(excludedemo, 'spam.zcml')
+        fqne_config = _packageFile(excludedemo, 'configure.zcml')
+        fqns_config = _packageFile(sub, 'configure.zcml')
+        self._callFUT(context, package=sub)
+        self.assertEqual(len(context.actions), 0)
+        self.assertEqual(len(context._seen_files), 1)
+        self.assertTrue(not fqne_spam in context._seen_files)
+        self.assertTrue(not fqne_config in context._seen_files)
+        self.assertTrue(fqns_config in context._seen_files)
 
 
 class Test_includeOverrides(unittest.TestCase):
@@ -1128,7 +1143,7 @@ class _Monkey(object):
         self.module = module
         self.orig = {}
         self.replacements = replacements
-        
+
     def __enter__(self):
         for k, v in self.replacements.items():
             orig = getattr(self.module, k, self)
