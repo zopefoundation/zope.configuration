@@ -638,8 +638,8 @@ class Test_exclude(_Catchable, unittest.TestCase):
         self._callFUT(context, package=sub)
         self.assertEqual(len(context.actions), 0)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(not fqne_spam in context._seen_files)
-        self.assertTrue(not fqne_config in context._seen_files)
+        self.assertFalse(fqne_spam in context._seen_files)
+        self.assertFalse(fqne_config in context._seen_files)
         self.assertTrue(fqns_config in context._seen_files)
 
 
