@@ -106,7 +106,6 @@ you can see how well the tests cover the code:
    zope.configuration.fields            111      0   100%   
    zope.configuration.interfaces         18      0   100%   
    zope.configuration.name               54      0   100%   
-   zope.configuration.stxdocs             6      0   100%   
    zope.configuration.xmlconfig         269      0   100%   
    zope.configuration.zopeconfigure      17      0   100%   
    ----------------------------------------------------------------

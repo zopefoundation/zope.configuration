@@ -10,7 +10,6 @@
    api/fields
    api/interfaces
    api/name
-   api/stxdocs
    api/xmlconfig
    api/zopeconfigure
 
