@@ -5,6 +5,9 @@ zope.configuration Changelog
 ------------------
 
 - Removed the deprecated 'zope.configuration.stxdocs' script.
+  and made the 'zope.configuration.tests.conditions' helper module
+  (used in running Sphinx doctest snippets) Py3k compatible.
+  https://bugs.launchpad.net/zope.configuration/+bug/1025390
 
 4.0.0 (2012-05-16)
 ------------------
