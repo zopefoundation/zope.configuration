@@ -16,13 +16,15 @@
 from zope.interface import Interface
 from zope.schema import Id
 
+from zope.configuration._compat import u
+
 
 class IRegister(Interface):
     """Trivial sample registry."""
 
     id = Id(
-        title=u"Identifier",
-        description=u"Some identifier that can be checked.",
+        title=u("Identifier"),
+        description=u("Some identifier that can be checked."),
         required=True,
         )
 
