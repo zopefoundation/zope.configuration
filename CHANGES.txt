@@ -4,7 +4,7 @@ zope.configuration Changelog
 4.0.2 (unreleased)
 ------------------
 
-- TBD
+- Removed spurious declaration of 'test' dependency on ``zope.testing``.
 
 4.0.1 (2012-11-21)
 ------------------

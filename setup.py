@@ -92,7 +92,7 @@ setup(name='zope.configuration',
       namespace_packages=['zope'],
       extras_require={
         'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
-        'test': ['zope.testing'],
+        'test': [],
         'testing': TESTS_REQUIRE + ['nose', 'coverage'],
       },
       install_requires=['zope.i18nmessageid',
