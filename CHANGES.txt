@@ -4,6 +4,8 @@ zope.configuration Changelog
 4.0.1 (unreleased)
 ------------------
 
+- Added support for Python 3.3.
+
 - Removed the deprecated 'zope.configuration.stxdocs' script.
   and made the 'zope.configuration.tests.conditions' helper module
   (used in running Sphinx doctest snippets) Py3k compatible.
