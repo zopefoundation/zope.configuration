@@ -64,9 +64,9 @@ setup(name='zope.configuration',
       author_email='zope-dev@zope.org',
       description='Zope Configuration Markup Language (ZCML)',
       long_description=(
-          read('README.txt')
+          read('README.rst')
           + '\n\n' +
-          read('CHANGES.txt')
+          read('CHANGES.rst')
           ),
       keywords = "zope configuration zcml",
       classifiers = [
