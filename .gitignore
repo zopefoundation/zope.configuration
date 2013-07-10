@@ -11,3 +11,7 @@ docs/_build
 .coverage
 nosetests.xml
 src/coverage.xml
+.installed.cfg
+bin
+develop-eggs
+eggs
