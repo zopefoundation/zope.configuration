@@ -1,7 +1,7 @@
 zope.configuration Changelog
 ============================
 
-4.0.3 (unreleased)
+4.0.3 (2014-03-19)
 ------------------
 
 - Added explicit support for Python 3.4.
