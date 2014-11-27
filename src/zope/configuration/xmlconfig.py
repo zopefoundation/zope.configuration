@@ -284,7 +284,7 @@ class ConfigurationHandler(ContentHandler):
 def processxmlfile(file, context, testing=False):
     """Process a configuration file
 
-    See examples in tests/text_xmlconfig.py
+    See examples in tests/test_xmlconfig.py
     """
     src = InputSource(getattr(file, 'name', '<string>'))
     src.setByteStream(file)
