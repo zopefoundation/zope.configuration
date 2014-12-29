@@ -1,5 +1,5 @@
-zope.configuration Changelog
-============================
+Changes
+=======
 
 4.0.4 (unreleased)
 ------------------

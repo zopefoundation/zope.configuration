@@ -1,7 +1,10 @@
-zope.configuration README
-=========================
+``zope.configuration``
+======================
 
-The zope configuration system provides an extensible system for
+.. image:: https://travis-ci.org/zopefoundation/zope.configuration.png?branch=master
+        :target: https://travis-ci.org/zopefoundation/zope.configuration
+
+The Zope configuration system provides an extensible system for
 supporting various kinds of configurations.
 
 It is based on the idea of configuration directives. Users of the
