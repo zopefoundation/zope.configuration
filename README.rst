@@ -1,7 +1,7 @@
 ``zope.configuration``
 ======================
 
-.. image:: https://pypip.in/version/zope.configuration/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/v/zope.configuration.svg
     :target: https://pypi.python.org/pypi/zope.configuration/
     :alt: Latest Version
 
