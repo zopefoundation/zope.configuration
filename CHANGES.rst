@@ -1,29 +1,31 @@
 Changes
 =======
 
-4.0.4 (unreleased)
+4.1.0 (unreleased)
 ------------------
 
-- Claim support for Python 3.5.
+- Drop support for Python 2.6 and 3.2.
+
+- Add support for Python 3.5.
 
 4.0.3 (2014-03-19)
 ------------------
 
-- Added explicit support for Python 3.4.
+- Add explicit support for Python 3.4.
 
 4.0.2 (2012-12-31)
 ------------------
 
-- Fleshed out PyPI Trove classifiers.
+- Flesh out PyPI Trove classifiers.
 
-- Removed spurious declaration of 'test' dependency on ``zope.testing``.
+- Remove spurious declaration of 'test' dependency on ``zope.testing``.
 
 4.0.1 (2012-11-21)
 ------------------
 
-- Added support for Python 3.3.
+- Add support for Python 3.3.
 
-- Removed the deprecated 'zope.configuration.stxdocs' script.
+- Remove the deprecated 'zope.configuration.stxdocs' script.
   and made the 'zope.configuration.tests.conditions' helper module
   (used in running Sphinx doctest snippets) Py3k compatible.
   https://bugs.launchpad.net/zope.configuration/+bug/1025390
@@ -31,44 +33,44 @@ Changes
 4.0.0 (2012-05-16)
 ------------------
 
-- 100% unit test coverage.
+- Bring unit test coverage to 100%.
 
-- Automated build of Sphinx HTML docs and running doctest snippets via tox.
+- Automate build of Sphinx HTML docs and running doctest snippets via tox.
 
-- Dropped hard testing dependency on ``zope.testing``.
+- Drop hard testing dependency on ``zope.testing``.
 
-- Added explicit support for PyPy.
+- Add explicit support for PyPy.
 
-- Added explicit support for Python 3.2.
+- Add explicit support for Python 3.2.
 
-- Dropped explicit support for Python 2.4 / 2.5.
+- Drop explicit support for Python 2.4 / 2.5.
 
-- Added support for continuous integration using ``tox`` and ``jenkins``.
+- Add support for continuous integration using ``tox`` and ``jenkins``.
 
-- Added ``Sphinx`` documentation.
+- Add ``Sphinx`` documentation.
 
-- Added ``setup.py docs`` alias (installs ``Sphinx`` and dependencies).
+- Add ``setup.py docs`` alias (installs ``Sphinx`` and dependencies).
 
-- Added ``setup.py dev`` alias (runs ``setup.py develop`` plus installs
+- Add ``setup.py dev`` alias (runs ``setup.py develop`` plus installs
   ``nose`` and ``coverage``).
 
 3.8.1 (2012-05-05)
 ------------------
 
-- Fixed Python 2.4 backwards incompat (itemgetter used with multiple args);
+- Fix Python 2.4 backwards incompat (itemgetter used with multiple args);
   Python 2.4 now works (at least if you use zope.schema == 3.8.1).
   This is the last release which will support Python 2.4 or 2.5.
 
 3.8.0 (2011-12-06)
 ------------------
 
-- Action structures changed from tuples to dictionaries to allow for action
+- Change action structures from tuples to dictionaries to allow for action
   structure extensibility (merged chrism-dictactions branch).
 
 3.7.4 (2011-04-03)
 ------------------
 
-- Test fixes for Windows.
+- Apply test fixes for Windows.
 
 3.7.3 (2011-03-11)
 ------------------
