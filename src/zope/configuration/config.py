@@ -246,7 +246,7 @@ class ConfigurationContext(object):
 
         if includepath is None:
             includepath = getattr(self, 'includepath', ())
-            
+
         action.update(
             dict(
                 discriminator=discriminator,
@@ -380,11 +380,11 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                                 None, tb)
                     finally:
                        del t, v, tb
-                
+
         finally:
             if clear:
                 del self.actions[:]
-        
+
 class ConfigurationExecutionError(ConfigurationError):
     """An error occurred during execution of a configuration action
     """
@@ -926,9 +926,7 @@ class ConfigurationConflictError(ConfigurationError):
 
     def __str__(self): #pragma NO COVER
         r = ["Conflicting configuration actions"]
-        items = self._conflicts.items()
-        items.sort()
-        for discriminator, infos in items:
+        for discriminator, infos in sorted(self._conflicts.items()):
             r.append("  For: %s" % (discriminator, ))
             for info in infos:
                 for line in text_type(info).rstrip().split(u('\n')):

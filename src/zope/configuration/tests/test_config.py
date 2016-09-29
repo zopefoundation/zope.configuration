@@ -38,7 +38,7 @@ class ConfigurationContextTests(_Catchable,
     def _getTargetClass(self):
         from zope.configuration.config import ConfigurationContext
         return ConfigurationContext
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -93,7 +93,7 @@ class ConfigurationContextTests(_Catchable,
         # Import error caused by a totally wrong dotted name.
         from zope.configuration.exceptions import ConfigurationError
         c = self._makeOne()
-        exc = self.assertRaises(ConfigurationError, 
+        exc = self.assertRaises(ConfigurationError,
                           c.resolve, 'zope.configuration.nosuch.noreally')
         self.assertTrue('ImportError' in str(exc))
 
@@ -115,7 +115,7 @@ class ConfigurationContextTests(_Catchable,
         #dotted name. Here we keep the standard traceback.
         import sys
         c = self._makeOne()
-        self.assertRaises(ImportError, 
+        self.assertRaises(ImportError,
                           c.resolve, 'zope.configuration.tests.victim.nosuch')
         #Cleanup:
         for name in ('zope.configuration.tests.victim',
@@ -302,7 +302,7 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
     def _getTargetClass(self):
         from zope.configuration.config import ConfigurationAdapterRegistry
         return ConfigurationAdapterRegistry
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -486,7 +486,7 @@ class ConfigurationMachineTests(_Catchable,
     def _getTargetClass(self):
         from zope.configuration.config import ConfigurationMachine
         return ConfigurationMachine
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -793,7 +793,7 @@ class SimpleStackItemTests(_ConformsToIStackItem,
     def _getTargetClass(self):
         from zope.configuration.config import SimpleStackItem
         return SimpleStackItem
-    
+
     def _makeOne(self,
                  context=None, handler=None, info=None,
                  schema=None, data=None):
@@ -901,7 +901,7 @@ class RootStackItemTests(_ConformsToIStackItem,
     def _getTargetClass(self):
         from zope.configuration.config import RootStackItem
         return RootStackItem
-    
+
     def _makeOne(self, context=None):
         if context is None:
             context = object()
@@ -943,7 +943,7 @@ class GroupingStackItemTests(_ConformsToIStackItem,
     def _getTargetClass(self):
         from zope.configuration.config import GroupingStackItem
         return GroupingStackItem
-    
+
     def _makeOne(self, context=None):
         if context is None:
             context = object()
@@ -1057,7 +1057,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
     def _getTargetClass(self):
         from zope.configuration.config import ComplexStackItem
         return ComplexStackItem
-    
+
     def _makeOne(self, meta=None, context=None, data=None, info=None):
         if meta is None:
             meta = self._makeMeta()
@@ -1223,7 +1223,7 @@ class GroupingContextDecoratorTests(_ConformsToIConfigurationContext,
     def _getTargetClass(self):
         from zope.configuration.config import GroupingContextDecorator
         return GroupingContextDecorator
-    
+
     def _makeOne(self, context=None, **kw):
         if context is None:
             context = FauxContext()
@@ -1279,7 +1279,7 @@ class DirectivesHandlerTests(_ConformsToIDirectivesContext,
     def _getTargetClass(self):
         from zope.configuration.config import DirectivesHandler
         return DirectivesHandler
-    
+
     def _makeOne(self, context=None):
         if context is None:
             context = FauxContext()
@@ -1473,7 +1473,7 @@ class ComplexDirectiveDefinitionTests(_ConformsToIComplexDirectiveContext,
     def _getTargetClass(self):
         from zope.configuration.config import ComplexDirectiveDefinition
         return ComplexDirectiveDefinition
-    
+
     def _makeOne(self, context=None):
         if context is None:
             context = self._makeContext()
@@ -1840,6 +1840,24 @@ class Test_resolveConflicts(_Catchable, unittest.TestCase):
         exc = self.assertRaises(ConfigurationConflictError,
                                 self._callFUT, actions)
         self.assertEqual(exc._conflicts, {('a', 1): ['X', 'Y']})
+
+    def test_configuration_conflict_error_has_readable_exception(self):
+        from zope.configuration.config import ConfigurationConflictError
+        from zope.configuration.config import expand_action
+        def _a():
+            pass
+        def _b():
+            pass
+        actions = [
+            expand_action(('a', 1), _a, includepath=('a',), info='conflict!'),
+            expand_action(('a', 1), _b, includepath=('a',), info='conflict2!'),
+        ]
+        exc = self.assertRaises(ConfigurationConflictError,
+                                self._callFUT, actions)
+        self.assertEqual(
+            "Conflicting configuration actions\n  "
+            "For: ('a', 1)\n    conflict!\n    conflict2!",
+            str(exc))
 
     def test_wo_discriminators_final_sorting_order(self):
         from zope.configuration.config import expand_action
