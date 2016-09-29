@@ -556,12 +556,12 @@ class Test_include(unittest.TestCase):
         action = context.actions[0]
         self.assertEqual(action['callable'], foo.data.append)
         self.assertEqual(action['includepath'], (fqn2,))
-        self.assertTrue(isinstance(action['args'][0], foo.stuff))
+        self.assertIsInstance(action['args'][0], foo.stuff)
         self.assertEqual(action['args'][0].args, (('x', b('foo')), ('y', 2)))
         action = context.actions[1]
         self.assertEqual(action['callable'], foo.data.append)
         self.assertEqual(action['includepath'], (fqn3,))
-        self.assertTrue(isinstance(action['args'][0], foo.stuff))
+        self.assertIsInstance(action['args'][0], foo.stuff)
         self.assertEqual(action['args'][0].args, (('x', b('foo')), ('y', 3)))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 3)

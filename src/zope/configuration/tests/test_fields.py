@@ -150,7 +150,7 @@ class GlobalInterfaceTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_ctor(self):
         from zope.schema import InterfaceField
         gi = self._makeOne()
-        self.assertTrue(isinstance(gi.value_type, InterfaceField))
+        self.assertIsInstance(gi.value_type, InterfaceField)
 
 class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
 

@@ -494,7 +494,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         self.assertEqual(len(cm.actions), 0)
         self.assertEqual(len(cm.stack), 1)
         root = cm.stack[0]
-        self.assertTrue(isinstance(root, RootStackItem))
+        self.assertIsInstance(root, RootStackItem)
         self.assertTrue(root.context is cm)
         self.assertEqual(len(cm.i18n_strings), 0)
         # Check bootstrapped meta:*.
@@ -542,7 +542,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
                                  }, 'INFO')
         self.assertEqual(len(cm.stack), 2)
         root = cm.stack[0]
-        self.assertTrue(isinstance(root, RootStackItem))
+        self.assertIsInstance(root, RootStackItem)
         nested = cm.stack[1]
         self.assertTrue(nested is item)
         self.assertEqual(_called_with,
@@ -579,7 +579,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
                 )
         self.assertEqual(len(cm.stack), 2)
         root = cm.stack[0]
-        self.assertTrue(isinstance(root, RootStackItem))
+        self.assertIsInstance(root, RootStackItem)
         nested = cm.stack[1]
         self.assertTrue(nested is item)
         self.assertEqual(_called_with,
@@ -601,7 +601,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         cm.end()
         self.assertEqual(len(cm.stack), 1)
         root = cm.stack[0]
-        self.assertTrue(isinstance(root, RootStackItem))
+        self.assertIsInstance(root, RootStackItem)
         self.assertTrue(item._finished)
 
     def test___call__(self):
@@ -635,7 +635,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
            )
         self.assertEqual(len(cm.stack), 1)
         root = cm.stack[0]
-        self.assertTrue(isinstance(root, RootStackItem))
+        self.assertIsInstance(root, RootStackItem)
         self.assertEqual(_called_with,
                         [(cm, {'name': 'testing',
                                'schema': ISchema,
@@ -815,7 +815,7 @@ class SimpleStackItemTests(_ConformsToIStackItem,
             pass
         _data = {}
         ssi = self._makeOne(context, _handler, 'INFO', ISchema, _data)
-        self.assertTrue(isinstance(ssi.context, GroupingContextDecorator))
+        self.assertIsInstance(ssi.context, GroupingContextDecorator)
         self.assertTrue(ssi.context.context is context)
         self.assertEqual(ssi.context.info, 'INFO')
         self.assertEqual(ssi.handler, _handler)
@@ -1083,7 +1083,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
         context = FauxContext()
         _data = {'name': 'NAME'}
         csi = self._makeOne(meta, context, _data, 'INFO')
-        self.assertTrue(isinstance(csi.context, GroupingContextDecorator))
+        self.assertIsInstance(csi.context, GroupingContextDecorator)
         self.assertTrue(csi.context.context is context)
         self.assertEqual(csi.context.info, 'INFO')
         self.assertEqual(csi.handler, meta._handler)
@@ -1115,8 +1115,8 @@ class ComplexStackItemTests(_ConformsToIStackItem,
         _data = {'name': 'NAME'}
         csi = self._makeOne(meta, context, _data, 'INFO')
         ssi = csi.contained((NS, NAME), {}, 'SUBINFO')
-        self.assertTrue(isinstance(ssi, SimpleStackItem))
-        self.assertTrue(isinstance(ssi.context, GroupingContextDecorator))
+        self.assertIsInstance(ssi, SimpleStackItem)
+        self.assertIsInstance(ssi.context, GroupingContextDecorator)
         self.assertTrue(ssi.context.context is csi.context)
         self.assertEqual(ssi.context.info, 'SUBINFO')
         self.assertEqual(ssi.handler, wn.testing)
