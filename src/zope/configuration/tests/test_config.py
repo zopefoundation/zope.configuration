@@ -78,7 +78,7 @@ class ConfigurationContextTests(unittest.TestCase):
         c = self._makeOne()
         with self.assertRaises(ConfigurationError) as exc:
             c.resolve('zope.configuration.tests.nosuch')
-        self.assertTrue('ImportError' in str(exc.exception))
+        self.assertIn('ImportError', str(exc.exception))
 
     def test_resolve_bad_dotted_import(self):
         # Import error caused by a totally wrong dotted name.
@@ -86,7 +86,7 @@ class ConfigurationContextTests(unittest.TestCase):
         c = self._makeOne()
         with self.assertRaises(ConfigurationError) as exc:
             c.resolve('zope.configuration.nosuch.noreally')
-        self.assertTrue('ImportError' in str(exc.exception))
+        self.assertIn('ImportError', str(exc.exception))
 
     def test_resolve_bad_sub_last_import(self):
         #Import error caused by a bad sub import inside the referenced
@@ -498,12 +498,12 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         self.assertTrue(root.context is cm)
         self.assertEqual(len(cm.i18n_strings), 0)
         # Check bootstrapped meta:*.
-        self.assertTrue((metans, 'directive') in cm._registry)
-        self.assertTrue((metans, 'directives') in cm._registry)
-        self.assertTrue((metans, 'complexDirective') in cm._registry)
-        self.assertTrue((metans, 'groupingDirective') in cm._registry)
-        self.assertTrue((metans, 'provides') in cm._registry)
-        self.assertTrue((metans, 'subdirective') in cm._registry)
+        self.assertIn((metans, 'directive'), cm._registry)
+        self.assertIn((metans, 'directives'), cm._registry)
+        self.assertIn((metans, 'complexDirective'), cm._registry)
+        self.assertIn((metans, 'groupingDirective'), cm._registry)
+        self.assertIn((metans, 'provides'), cm._registry)
+        self.assertIn((metans, 'subdirective'), cm._registry)
 
     def test_begin_w___data_and_kw(self):
         from zope.configuration.config import IConfigurationContext
@@ -1243,7 +1243,7 @@ class GroupingContextDecoratorTests(_ConformsToIConfigurationContext,
         gcd = self._makeOne(context)
         context.foo = 'bar'
         self.assertEqual(gcd.foo, 'bar')
-        self.assertTrue('foo' in gcd.__dict__)
+        self.assertIn('foo', gcd.__dict__)
 
     def test_before(self):
         gcd = self._makeOne()

@@ -494,7 +494,7 @@ class Test_include(unittest.TestCase):
         self.assertEqual(action['includepath'], (fqn,))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
     def test_w_file_passed(self):
         from zope.configuration import xmlconfig
@@ -530,7 +530,7 @@ class Test_include(unittest.TestCase):
                          _packageFile(tests, '__init__.py'))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
     def test_w_files_passed_and_package(self):
         from zope.configuration import xmlconfig
@@ -565,9 +565,9 @@ class Test_include(unittest.TestCase):
         self.assertEqual(action['args'][0].args, (('x', b('foo')), ('y', 3)))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 3)
-        self.assertTrue(fqn1 in context._seen_files)
-        self.assertTrue(fqn2 in context._seen_files)
-        self.assertTrue(fqn3 in context._seen_files)
+        self.assertIn(fqn1, context._seen_files)
+        self.assertIn(fqn2, context._seen_files)
+        self.assertIn(fqn3, context._seen_files)
 
 
 class Test_exclude(unittest.TestCase):
@@ -593,7 +593,7 @@ class Test_exclude(unittest.TestCase):
         self._callFUT(context)
         self.assertEqual(len(context.actions), 0)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
     def test_w_file_passed(self):
         from zope.configuration.config import ConfigurationMachine
@@ -604,7 +604,7 @@ class Test_exclude(unittest.TestCase):
         self._callFUT(context, 'simple.zcml')
         self.assertEqual(len(context.actions), 0)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
     def test_w_files_passed_and_package(self):
         from zope.configuration.config import ConfigurationMachine
@@ -616,9 +616,9 @@ class Test_exclude(unittest.TestCase):
         self._callFUT(context, package=samplepackage, files='baz*.zcml')
         self.assertEqual(len(context.actions), 0)
         self.assertEqual(len(context._seen_files), 3)
-        self.assertTrue(fqn1 in context._seen_files)
-        self.assertTrue(fqn2 in context._seen_files)
-        self.assertTrue(fqn3 in context._seen_files)
+        self.assertIn(fqn1, context._seen_files)
+        self.assertIn(fqn2, context._seen_files)
+        self.assertIn(fqn3, context._seen_files)
 
     def test_w_subpackage(self):
         from zope.configuration.config import ConfigurationMachine
@@ -633,7 +633,7 @@ class Test_exclude(unittest.TestCase):
         self.assertEqual(len(context._seen_files), 1)
         self.assertFalse(fqne_spam in context._seen_files)
         self.assertFalse(fqne_config in context._seen_files)
-        self.assertTrue(fqns_config in context._seen_files)
+        self.assertIn(fqns_config, context._seen_files)
 
 
 class Test_includeOverrides(unittest.TestCase):
@@ -687,7 +687,7 @@ class Test_includeOverrides(unittest.TestCase):
                          _packageFile(tests, '__init__.py'))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
 
 class Test_file(unittest.TestCase):
