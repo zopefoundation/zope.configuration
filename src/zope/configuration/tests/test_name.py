@@ -113,8 +113,8 @@ class Test_path(unittest.TestCase):
                          os.path.normpath(absolute_path))
 
     def test_relative_bogus_package(self):
-        self.assertRaises(ImportError,
-                          self._callFUT, '', 'no.such.package.exists')
+        with self.assertRaises(ImportError):
+            self._callFUT('', 'no.such.package.exists')
 
     def test_relative_empty(self):
         import os

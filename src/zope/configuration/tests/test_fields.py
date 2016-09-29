@@ -55,8 +55,8 @@ class PythonIdentifierTests(unittest.TestCase, _ConformsToIFromUnicode):
         from zope.schema import ValidationError
         from zope.configuration._compat import u
         pi = self._makeOne()
-        self.assertRaises(ValidationError,
-                          pi._validate, u('not-an-identifier'))
+        with self.assertRaises(ValidationError):
+            pi._validate(u('not-an-identifier'))
 
     def test__validate_hit(self):
         from zope.configuration._compat import u
@@ -88,7 +88,8 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
         go = self._makeOne(value_type=Text())
         go.validate(u(''))
         for value in [0, 0.0, (), [], set(), frozenset(), b('')]:
-            self.assertRaises(WrongType, go._validate, value)
+            with self.assertRaises(WrongType):
+                go._validate(value)
 
     def test_fromUnicode_w_star_and_extra_ws(self):
         go = self._makeOne()
@@ -104,7 +105,8 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
         go = self._makeOne()
         context = Context()
         bound = go.bind(context)
-        self.assertRaises(ValidationError, bound.fromUnicode, 'tried')
+        with self.assertRaises(ValidationError):
+            bound.fromUnicode('tried')
         self.assertEqual(context._resolved, 'tried')
 
     def test_fromUnicode_w_resolve_success(self):
@@ -131,7 +133,8 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
         go = self._makeOne(value_type=Text())
         context = Context()
         bound = go.bind(context)
-        self.assertRaises(ValidationError, bound.fromUnicode, 'tried')
+        with self.assertRaises(ValidationError):
+            bound.fromUnicode('tried')
         self.assertEqual(context._resolved, 'tried')
 
 
@@ -147,7 +150,7 @@ class GlobalInterfaceTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_ctor(self):
         from zope.schema import InterfaceField
         gi = self._makeOne()
-        self.assertTrue(isinstance(gi.value_type, InterfaceField))
+        self.assertIsInstance(gi.value_type, InterfaceField)
 
 class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
 
@@ -176,8 +179,8 @@ class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
         from zope.configuration._compat import u
         tok = self._makeOne(value_type=Int(min=0))
         context = object()
-        self.assertRaises(InvalidToken,
-                          tok.fromUnicode, u(' 1 -1 3 '))
+        with self.assertRaises(InvalidToken):
+            tok.fromUnicode(u(' 1 -1 3 '))
 
 
 class PathTests(unittest.TestCase, _ConformsToIFromUnicode):
@@ -232,7 +235,8 @@ class BoolTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_fromUnicode_w_invalid(self):
         from zope.schema import ValidationError
         bo = self._makeOne()
-        self.assertRaises(ValidationError, bo.fromUnicode, 'notvalid')
+        with self.assertRaises(ValidationError):
+            bo.fromUnicode('notvalid')
 
 
 class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):

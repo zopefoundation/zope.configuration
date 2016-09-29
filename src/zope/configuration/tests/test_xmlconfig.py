@@ -28,21 +28,6 @@ B = u('b')
 BVALUE = u('bvalue')
 
 
-class _Catchable(object):
-    # Mixin for classes which need to make assertions about the exception
-    # instance.
-    def assertRaises(self, excClass, callableObj, *args, **kwargs):
-        # Morph stdlib version to return the raised exception
-        try:
-            callableObj(*args, **kwargs)
-        except excClass as exc:
-            return exc
-        if hasattr(excClass,'__name__'):
-            excName = excClass.__name__
-        else:
-            excName = str(excClass)
-        raise self.failureException("%s not raised" % excName)
-
 
 class ZopeXMLConfigurationErrorTests(unittest.TestCase):
 
@@ -123,7 +108,7 @@ class ParserInfoTests(unittest.TestCase):
             '    <directives namespace="http://namespaces.zope.org/zope">')
 
 
-class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
+class ConfigurationHandlerTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.configuration.xmlconfig import ConfigurationHandler
@@ -188,15 +173,17 @@ class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
         locator = FauxLocator('tests//sample.zcml', 1, 1)
         handler = self._makeOne(context)
         handler.setDocumentLocator(locator)
-        exc = self.assertRaises(ZopeXMLConfigurationError,
-                    handler.startElementNS, (NS, FOO), FOO,
-                                     {(XXX, SPLAT): SPLATV,
-                                      (None, A): AVALUE,
-                                      (None, B): BVALUE,
-                                     })
-        self.assertEqual(exc.info.file, 'tests//sample.zcml')
-        self.assertEqual(exc.info.line, 1)
-        self.assertEqual(exc.info.column, 1)
+        with self.assertRaises(ZopeXMLConfigurationError) as exc:
+            handler.startElementNS(
+                (NS, FOO),
+                FOO,
+                {(XXX, SPLAT): SPLATV,
+                 (None, A): AVALUE,
+                 (None, B): BVALUE,
+                })
+        self.assertEqual(exc.exception.info.file, 'tests//sample.zcml')
+        self.assertEqual(exc.exception.info.line, 1)
+        self.assertEqual(exc.exception.info.column, 1)
 
     def test_startElementNS_context_begin_raises_w_testing(self):
         class ErrorContext(FauxContext):
@@ -206,12 +193,13 @@ class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
         locator = FauxLocator('tests//sample.zcml', 1, 1)
         handler = self._makeOne(context, True)
         handler.setDocumentLocator(locator)
-        self.assertRaises(AttributeError,
-                    handler.startElementNS, (NS, FOO), FOO,
-                                     {(XXX, SPLAT): SPLATV,
-                                      (None, A): AVALUE,
-                                      (None, B): BVALUE,
-                                     })
+        with self.assertRaises(AttributeError):
+            handler.startElementNS(
+                (NS, FOO), FOO,
+                {(XXX, SPLAT): SPLATV,
+                 (None, A): AVALUE,
+                 (None, B): BVALUE,
+                })
 
     def test_startElementNS_normal(self):
         # Integration test of startElementNS / endElementNS pair.
@@ -258,11 +246,11 @@ class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
         handler = self._makeOne(context)
         handler.setDocumentLocator(locator)
         locator.line, locator.column = 7, 16
-        exc = self.assertRaises(ZopeXMLConfigurationError,
-                          handler.endElementNS, (NS, FOO), FOO)
-        self.assertTrue(exc.info is context.info)
-        self.assertEqual(exc.info._line, 7)
-        self.assertEqual(exc.info._col, 16)
+        with self.assertRaises(ZopeXMLConfigurationError) as exc:
+            handler.endElementNS((NS, FOO), FOO)
+        self.assertTrue(exc.exception.info is context.info)
+        self.assertEqual(exc.exception.info._line, 7)
+        self.assertEqual(exc.exception.info._col, 16)
 
     def test_endElementNS_context_end_raises_w_testing(self):
         class ErrorContext(FauxContext):
@@ -279,24 +267,25 @@ class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
         handler = self._makeOne(context, True)
         handler.setDocumentLocator(locator)
         locator.line, locator.column = 7, 16
-        self.assertRaises(AttributeError,
-                          handler.endElementNS, (NS, FOO), FOO)
+        with self.assertRaises(AttributeError):
+            handler.endElementNS((NS, FOO), FOO)
         self.assertEqual(context.info._line, 7)
         self.assertEqual(context.info._col, 16)
 
     def test_evaluateCondition_w_have_no_args(self):
         context = FauxContext()
         handler = self._makeOne(context)
-        exc = self.assertRaises(ValueError,
-                                handler.evaluateCondition, 'have')
-        self.assertEqual(str(exc.args[0]), "Feature name missing: 'have'")
+        with self.assertRaises(ValueError) as exc:
+            handler.evaluateCondition('have')
+        self.assertEqual(str(exc.exception.args[0]),
+                         "Feature name missing: 'have'")
 
     def test_evaluateCondition_w_not_have_too_many_args(self):
         context = FauxContext()
         handler = self._makeOne(context)
-        exc = self.assertRaises(ValueError,
-                                handler.evaluateCondition, 'not-have a b')
-        self.assertEqual(str(exc.args[0]),
+        with self.assertRaises(ValueError) as exc:
+            handler.evaluateCondition('not-have a b')
+        self.assertEqual(str(exc.exception.args[0]),
                          "Only one feature allowed: 'not-have a b'")
 
     def test_evaluateCondition_w_have_miss(self):
@@ -324,22 +313,24 @@ class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
     def test_evaluateCondition_w_installed_no_args(self):
         context = FauxContext()
         handler = self._makeOne(context)
-        exc = self.assertRaises(ValueError,
-                                handler.evaluateCondition, 'installed')
-        self.assertEqual(str(exc.args[0]), "Package name missing: 'installed'")
+        with self.assertRaises(ValueError) as exc:
+                handler.evaluateCondition('installed')
+        self.assertEqual(str(exc.exception.args[0]),
+                         "Package name missing: 'installed'")
 
     def test_evaluateCondition_w_not_installed_too_many_args(self):
         context = FauxContext()
         handler = self._makeOne(context)
-        exc = self.assertRaises(ValueError,
-                                handler.evaluateCondition, 'not-installed a b')
-        self.assertEqual(str(exc.args[0]),
+        with self.assertRaises(ValueError) as exc:
+            handler.evaluateCondition('not-installed a b')
+        self.assertEqual(str(exc.exception.args[0]),
                          "Only one package allowed: 'not-installed a b'")
 
     def test_evaluateCondition_w_installed_miss(self):
         context = FauxContext()
         handler = self._makeOne(context)
-        self.assertFalse(handler.evaluateCondition('installed nonsuch.package'))
+        self.assertFalse(
+            handler.evaluateCondition('installed nonsuch.package'))
 
     def test_evaluateCondition_w_installed_hit(self):
         context = FauxContext()
@@ -360,9 +351,9 @@ class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
     def test_evaluateCondition_w_unknown_verb(self):
         context = FauxContext()
         handler = self._makeOne(context)
-        exc = self.assertRaises(ValueError,
-                                handler.evaluateCondition, 'nonesuch')
-        self.assertEqual(str(exc.args[0]),
+        with self.assertRaises(ValueError) as exc:
+            handler.evaluateCondition('nonesuch')
+        self.assertEqual(str(exc.exception.args[0]),
                          "Invalid ZCML condition: 'nonesuch'")
 
     def test_endElementNS_normal(self):
@@ -382,7 +373,7 @@ class ConfigurationHandlerTests(_Catchable, unittest.TestCase):
         self.assertTrue(context._end_called)
 
 
-class Test_processxmlfile(_Catchable, unittest.TestCase):
+class Test_processxmlfile(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import processxmlfile
@@ -395,9 +386,10 @@ class Test_processxmlfile(_Catchable, unittest.TestCase):
         from zope.configuration._compat import StringIO
         context = ConfigurationMachine()
         registerCommonDirectives(context)
-        exc = self.assertRaises(ZopeSAXParseException,
-                                self._callFUT, StringIO(), context)
-        self.assertEqual(str(exc._v), '<string>:1:0: no element found')
+        with self.assertRaises(ZopeSAXParseException) as exc:
+            self._callFUT(StringIO(), context)
+        self.assertEqual(str(exc.exception._v),
+                         '<string>:1:0: no element found')
 
     def test_w_valid_xml_fp(self):
         # Integration test, really
@@ -422,7 +414,7 @@ class Test_processxmlfile(_Catchable, unittest.TestCase):
         self.assertEqual(data.basepath, None)
 
 
-class Test_openInOrPlain(_Catchable, unittest.TestCase):
+class Test_openInOrPlain(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import openInOrPlain
@@ -445,13 +437,12 @@ class Test_openInOrPlain(_Catchable, unittest.TestCase):
 
     def test_file_missing_and_dot_in_not_present(self):
         import errno
-        exc = self.assertRaises(
-                IOError,
-                self._callFUT, self._makeFilename('nonesuch.zcml'))
-        self.assertEqual(exc.errno, errno.ENOENT)
+        with self.assertRaises(IOError) as exc:
+            self._callFUT(self._makeFilename('nonesuch.zcml'))
+        self.assertEqual(exc.exception.errno, errno.ENOENT)
 
 
-class Test_include(_Catchable, unittest.TestCase):
+class Test_include(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import include
@@ -459,10 +450,11 @@ class Test_include(_Catchable, unittest.TestCase):
 
     def test_both_file_and_files_passed(self):
         context = FauxContext()
-        exc = self.assertRaises(ValueError,
-                                self._callFUT, context, 'tests//sample.zcml',
-                                files=['tests/*.zcml'])
-        self.assertEqual(str(exc), "Must specify only one of file or files")
+        with self.assertRaises(ValueError) as exc:
+            self._callFUT(
+                context, 'tests//sample.zcml', files=['tests/*.zcml'])
+        self.assertEqual(str(exc.exception),
+                         "Must specify only one of file or files")
 
     def test_neither_file_nor_files_passed_already_seen(self):
         from zope.configuration import xmlconfig
@@ -502,7 +494,7 @@ class Test_include(_Catchable, unittest.TestCase):
         self.assertEqual(action['includepath'], (fqn,))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
     def test_w_file_passed(self):
         from zope.configuration import xmlconfig
@@ -538,7 +530,7 @@ class Test_include(_Catchable, unittest.TestCase):
                          _packageFile(tests, '__init__.py'))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
     def test_w_files_passed_and_package(self):
         from zope.configuration import xmlconfig
@@ -564,21 +556,21 @@ class Test_include(_Catchable, unittest.TestCase):
         action = context.actions[0]
         self.assertEqual(action['callable'], foo.data.append)
         self.assertEqual(action['includepath'], (fqn2,))
-        self.assertTrue(isinstance(action['args'][0], foo.stuff))
+        self.assertIsInstance(action['args'][0], foo.stuff)
         self.assertEqual(action['args'][0].args, (('x', b('foo')), ('y', 2)))
         action = context.actions[1]
         self.assertEqual(action['callable'], foo.data.append)
         self.assertEqual(action['includepath'], (fqn3,))
-        self.assertTrue(isinstance(action['args'][0], foo.stuff))
+        self.assertIsInstance(action['args'][0], foo.stuff)
         self.assertEqual(action['args'][0].args, (('x', b('foo')), ('y', 3)))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 3)
-        self.assertTrue(fqn1 in context._seen_files)
-        self.assertTrue(fqn2 in context._seen_files)
-        self.assertTrue(fqn3 in context._seen_files)
+        self.assertIn(fqn1, context._seen_files)
+        self.assertIn(fqn2, context._seen_files)
+        self.assertIn(fqn3, context._seen_files)
 
 
-class Test_exclude(_Catchable, unittest.TestCase):
+class Test_exclude(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.configuration.xmlconfig import exclude
@@ -586,10 +578,11 @@ class Test_exclude(_Catchable, unittest.TestCase):
 
     def test_both_file_and_files_passed(self):
         context = FauxContext()
-        exc = self.assertRaises(ValueError,
-                                self._callFUT, context, 'tests//sample.zcml',
-                                files=['tests/*.zcml'])
-        self.assertEqual(str(exc), "Must specify only one of file or files")
+        with self.assertRaises(ValueError) as exc:
+            self._callFUT(
+                context, 'tests//sample.zcml', files=['tests/*.zcml'])
+        self.assertEqual(str(exc.exception),
+                         "Must specify only one of file or files")
 
     def test_neither_file_nor_files_passed(self):
         from zope.configuration.config import ConfigurationMachine
@@ -600,7 +593,7 @@ class Test_exclude(_Catchable, unittest.TestCase):
         self._callFUT(context)
         self.assertEqual(len(context.actions), 0)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
     def test_w_file_passed(self):
         from zope.configuration.config import ConfigurationMachine
@@ -611,7 +604,7 @@ class Test_exclude(_Catchable, unittest.TestCase):
         self._callFUT(context, 'simple.zcml')
         self.assertEqual(len(context.actions), 0)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
     def test_w_files_passed_and_package(self):
         from zope.configuration.config import ConfigurationMachine
@@ -623,9 +616,9 @@ class Test_exclude(_Catchable, unittest.TestCase):
         self._callFUT(context, package=samplepackage, files='baz*.zcml')
         self.assertEqual(len(context.actions), 0)
         self.assertEqual(len(context._seen_files), 3)
-        self.assertTrue(fqn1 in context._seen_files)
-        self.assertTrue(fqn2 in context._seen_files)
-        self.assertTrue(fqn3 in context._seen_files)
+        self.assertIn(fqn1, context._seen_files)
+        self.assertIn(fqn2, context._seen_files)
+        self.assertIn(fqn3, context._seen_files)
 
     def test_w_subpackage(self):
         from zope.configuration.config import ConfigurationMachine
@@ -640,7 +633,7 @@ class Test_exclude(_Catchable, unittest.TestCase):
         self.assertEqual(len(context._seen_files), 1)
         self.assertFalse(fqne_spam in context._seen_files)
         self.assertFalse(fqne_config in context._seen_files)
-        self.assertTrue(fqns_config in context._seen_files)
+        self.assertIn(fqns_config, context._seen_files)
 
 
 class Test_includeOverrides(unittest.TestCase):
@@ -694,7 +687,7 @@ class Test_includeOverrides(unittest.TestCase):
                          _packageFile(tests, '__init__.py'))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertTrue(fqn in context._seen_files)
+        self.assertIn(fqn, context._seen_files)
 
 
 class Test_file(unittest.TestCase):
@@ -716,7 +709,8 @@ class Test_file(unittest.TestCase):
         self.assertEqual(len(foo.data), 0)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
-        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['discriminator'],
+                         (('x', b('blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_wo_execute_wo_context_w_package(self):
@@ -735,7 +729,8 @@ class Test_file(unittest.TestCase):
         self.assertTrue(context.package is samplepackage)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
-        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['discriminator'],
+                         (('x', b('blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_wo_execute_w_context(self):
@@ -759,7 +754,8 @@ class Test_file(unittest.TestCase):
         self.assertEqual(len(foo.data), 0)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
-        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['discriminator'],
+                         (('x', b('blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_w_execute(self):
@@ -775,8 +771,9 @@ class Test_file(unittest.TestCase):
         self.assertEqual(logger.debugs[0], ('include %s' % file_name, (), {}))
         data = foo.data.pop()
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
-        self.assertTrue(data.info.file.endswith(
-                        os.path.normpath('tests/samplepackage/configure.zcml')))
+        self.assertTrue(
+            data.info.file.endswith(
+                os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
@@ -802,7 +799,8 @@ class Test_string(unittest.TestCase):
         self.assertEqual(len(foo.data), 0)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
-        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['discriminator'],
+                         (('x', b('blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_wo_execute_w_context(self):
@@ -820,7 +818,8 @@ class Test_string(unittest.TestCase):
         self.assertEqual(len(foo.data), 0)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
-        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['discriminator'],
+                         (('x', b('blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_w_execute(self):
@@ -878,7 +877,8 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(foo.data), 0) # no execut_actions
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
-        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['discriminator'],
+                         (('x', b('blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_ctor(self):
@@ -895,7 +895,8 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(foo.data), 0) # no execut_actions
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
-        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['discriminator'],
+                         (('x', b('blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_ctor_w_module(self):
@@ -912,7 +913,8 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(foo.data), 0) # no execut_actions
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
-        self.assertEqual(action['discriminator'], (('x', b('blah')), ('y', 0)))
+        self.assertEqual(action['discriminator'],
+                         (('x', b('blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test___call__(self):
@@ -932,8 +934,9 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
-        self.assertTrue(data.info.file.endswith(
-                        os.path.normpath('tests/samplepackage/configure.zcml')))
+        self.assertTrue(
+            data.info.file.endswith(
+                os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
@@ -980,8 +983,9 @@ class Test_xmlconfig(unittest.TestCase):
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
-        self.assertTrue(data.info.file.endswith(
-                        os.path.normpath('tests/samplepackage/configure.zcml')))
+        self.assertTrue(
+            data.info.file.endswith(
+                os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
@@ -1008,8 +1012,9 @@ class Test_xmlconfig(unittest.TestCase):
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
-        self.assertTrue(data.info.file.endswith(
-                        os.path.normpath('tests/samplepackage/configure.zcml')))
+        self.assertTrue(
+            data.info.file.endswith(
+                os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
@@ -1055,8 +1060,9 @@ class Test_testxmlconfig(unittest.TestCase):
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
-        self.assertTrue(data.info.file.endswith(
-                        os.path.normpath('tests/samplepackage/configure.zcml')))
+        self.assertTrue(
+            data.info.file.endswith(
+                os.path.normpath('tests/samplepackage/configure.zcml')))
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
