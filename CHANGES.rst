@@ -6,7 +6,7 @@ Changes
 
 - Drop support for Python 2.6 and 3.2.
 
-- Add support for Python 3.5.
+- Add support for Python 3.5 and 3.6.
 
 4.0.3 (2014-03-19)
 ------------------
