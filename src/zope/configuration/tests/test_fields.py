@@ -34,7 +34,7 @@ class PythonIdentifierTests(unittest.TestCase, _ConformsToIFromUnicode):
     def _getTargetClass(self):
         from zope.configuration.fields import PythonIdentifier
         return PythonIdentifier
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -69,7 +69,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
     def _getTargetClass(self):
         from zope.configuration.fields import GlobalObject
         return GlobalObject
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -143,7 +143,7 @@ class GlobalInterfaceTests(unittest.TestCase, _ConformsToIFromUnicode):
     def _getTargetClass(self):
         from zope.configuration.fields import GlobalInterface
         return GlobalInterface
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -157,7 +157,7 @@ class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
     def _getTargetClass(self):
         from zope.configuration.fields import Tokens
         return Tokens
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -188,7 +188,7 @@ class PathTests(unittest.TestCase, _ConformsToIFromUnicode):
     def _getTargetClass(self):
         from zope.configuration.fields import Path
         return Path
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -214,7 +214,7 @@ class BoolTests(unittest.TestCase, _ConformsToIFromUnicode):
     def _getTargetClass(self):
         from zope.configuration.fields import Bool
         return Bool
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -244,7 +244,7 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
     def _getTargetClass(self):
         from zope.configuration.fields import MessageID
         return MessageID
-    
+
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
@@ -306,14 +306,13 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
         self.assertEqual(context.i18n_strings,
                          {'testing_domain': {'testing': [('test_file', 42)]}})
 
+    def test_domain_decodes_bytes(self):
+        mid = self._makeOne()
+        context = self._makeContext(domain=b'domain')
+        bound = mid.bind(context)
+        msgid = bound.fromUnicode(u'msgid')
+        self.assertIsInstance(msgid.domain, str)
+        self.assertEqual(msgid.domain, 'domain')
 
 def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(PythonIdentifierTests),
-        unittest.makeSuite(GlobalObjectTests),
-        unittest.makeSuite(GlobalInterfaceTests),
-        unittest.makeSuite(TokensTests),
-        unittest.makeSuite(PathTests),
-        unittest.makeSuite(BoolTests),
-        unittest.makeSuite(MessageIDTests),
-        ))
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)
