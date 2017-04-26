@@ -21,7 +21,8 @@ import os
 from setuptools import setup, find_packages
 
 def read(*rnames):
-    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
+    with open(os.path.join(os.path.dirname(__file__), *rnames)) as f:
+        return f.read()
 
 def _modname(path, base, name=''):
     if path == base:
@@ -36,7 +37,7 @@ def alltests():
 
     class NullHandler(logging.Handler):
         level = 50
-        
+
         def emit(self, record):
             pass
 
@@ -56,10 +57,12 @@ def alltests():
                     suite.addTest(mod.test_suite())
     return suite
 
-TESTS_REQUIRE = []
+TESTS_REQUIRE = [
+    'zope.testrunner',
+]
 
 setup(name='zope.configuration',
-      version = '4.1.0.dev0',
+      version='4.1.0.dev0',
       author='Zope Foundation and Contributors',
       author_email='zope-dev@zope.org',
       description='Zope Configuration Markup Language (ZCML)',
@@ -68,8 +71,8 @@ setup(name='zope.configuration',
           + '\n\n' +
           read('CHANGES.rst')
           ),
-      keywords = "zope configuration zcml",
-      classifiers = [
+      keywords="zope configuration zcml",
+      classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Environment :: Web Environment',
           'Intended Audience :: Developers',
@@ -95,16 +98,17 @@ setup(name='zope.configuration',
       namespace_packages=['zope'],
       extras_require={
         'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
-        'test': [],
+        'test': TESTS_REQUIRE,
         'testing': TESTS_REQUIRE + ['nose', 'coverage'],
       },
-      install_requires=['zope.i18nmessageid',
-                        'zope.interface',
-                        'zope.schema',
-                        'setuptools',
-                       ],
+      install_requires=[
+          'setuptools',
+          'zope.i18nmessageid',
+          'zope.interface',
+          'zope.schema',
+      ],
       include_package_data=True,
       zip_safe=False,
-      tests_require = TESTS_REQUIRE,
+      tests_require=TESTS_REQUIRE,
       test_suite='__main__.alltests',
-      )
+)

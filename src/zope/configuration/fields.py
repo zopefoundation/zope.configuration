@@ -15,6 +15,7 @@
 """
 import os
 import re
+import sys
 import warnings
 
 from zope.interface import implementer
@@ -158,6 +159,14 @@ class MessageID(Text):
                 "You did not specify an i18n translation domain for the "\
                 "'%s' field in %s" % (self.getName(), context.info.file )
                 )
+        if not isinstance(domain, str):
+            # IZopeConfigure specifies i18n_domain as a BytesLine, but that's
+            # wrong on Python 3, where the filesystem uses str, and hence
+            # zope.i18n registers ITranslationDomain utilities with str names.
+            # If we keep bytes, we can't find those utilities.
+            enc = sys.getfilesystemencoding() or sys.getdefaultencoding()
+            domain = domain.decode(enc)
+
         v = super(MessageID, self).fromUnicode(u)
 
         # Check whether there is an explicit message is specified

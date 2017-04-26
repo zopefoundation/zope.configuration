@@ -8,6 +8,11 @@ Changes
 
 - Add support for Python 3.5 and 3.6.
 
+- Fix the ``domain`` of MessageID fields to be a native string.
+  Previously on Python 3 they were bytes, which meant that they
+  couldn't be used to find translation utilities registered by
+  zope.i18n. See `issue 17 <https://github.com/zopefoundation/zope.configuration/issues/17>`_.
+
 4.0.3 (2014-03-19)
 ------------------
 
