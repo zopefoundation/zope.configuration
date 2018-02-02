@@ -42,8 +42,6 @@ zopens = 'http://namespaces.zope.org/zope'
 metans = 'http://namespaces.zope.org/meta'
 testns = 'http://namespaces.zope.org/test'
 
-_import_chickens = {}, {}, ("*",) # dead chickens needed by __import__
-
 
 class ConfigurationContext(object):
     """Mix-in that implements IConfigurationContext
@@ -148,7 +146,8 @@ class ConfigurationContext(object):
             oname = ''
 
         try:
-            mod = __import__(mname, *_import_chickens)
+            __import__(mname)
+            mod = sys.modules[mname]
         except ImportError as v:
             if sys.exc_info()[2].tb_next is not None:
                 # ImportError was caused deeper
@@ -167,7 +166,9 @@ class ConfigurationContext(object):
         except AttributeError:
             # No such name, maybe it's a module that we still need to import
             try:
-                return __import__(mname+'.'+oname, *_import_chickens)
+                moname = mname + '.' + oname
+                __import__(moname)
+                return sys.modules[moname]
             except ImportError:
                 if sys.exc_info()[2].tb_next is not None:
                     # ImportError was caused deeper

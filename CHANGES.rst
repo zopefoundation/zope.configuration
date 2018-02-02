@@ -4,8 +4,8 @@ Changes
 4.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix resolving names from a Python 2 package whose `__init__.py` has
+  unicode elements in `__all__`.
 
 4.1.0 (2017-04-26)
 ------------------
