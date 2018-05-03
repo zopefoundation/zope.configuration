@@ -114,6 +114,23 @@ class ConfigurationContextTests(unittest.TestCase):
            if name in sys.modules:
                del sys.modules[name]
 
+    def test_resolve_unicode_all(self):
+        # If a package's __init__.py is in the process of being ported from
+        # Python 2 to Python 3 using unicode_literals, then it can end up
+        # with unicode items in __all__, which breaks star imports from that
+        # package; but we tolerate this.
+        import sys
+        c = self._makeOne()
+        self.assertEqual(
+            c.resolve('zope.configuration.tests.unicode_all').foo, 'sentinel')
+        self.assertEqual(
+            c.resolve('zope.configuration.tests.unicode_all.foo'), 'sentinel')
+        # Cleanup:
+        for name in ('zope.configuration.tests.unicode_all',
+                     'zope.configuration.tests.unicode_all.__future__'):
+            if name in sys.modules:
+                del sys.modules[name]
+
     def test_path_w_absolute_filename(self):
         import os
         c = self._makeOne()
