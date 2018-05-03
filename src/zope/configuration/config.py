@@ -146,6 +146,12 @@ class ConfigurationContext(object):
             oname = ''
 
         try:
+            # Without a fromlist, this returns the package rather than the
+            # module if the name contains a dot.  Using a fromlist requires
+            # star imports to work, which may not be true if there are
+            # unicode items in __all__ due to unicode_literals on Python 2.
+            # Getting the module from sys.modules instead avoids both
+            # problems.
             __import__(mname)
             mod = sys.modules[mname]
         except ImportError as v:
