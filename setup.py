@@ -24,39 +24,6 @@ def read(*rnames):
     with open(os.path.join(os.path.dirname(__file__), *rnames)) as f:
         return f.read()
 
-def _modname(path, base, name=''):
-    if path == base:
-        return name
-    dirname, basename = os.path.split(path)
-    return _modname(dirname, base, basename + '.' + name)
-
-def alltests():
-    import logging
-    import pkg_resources
-    import unittest
-
-    class NullHandler(logging.Handler):
-        level = 50
-
-        def emit(self, record):
-            pass
-
-    logging.getLogger().addHandler(NullHandler())
-
-    suite = unittest.TestSuite()
-    base = pkg_resources.working_set.find(
-        pkg_resources.Requirement.parse('zope.configuration')).location
-    for dirpath, dirnames, filenames in os.walk(base):
-        if os.path.basename(dirpath) == 'tests':
-            for filename in filenames:
-                if ( filename.endswith('.py') and
-                     filename.startswith('test') ):
-                    mod = __import__(
-                        _modname(dirpath, base, os.path.splitext(filename)[0]),
-                        {}, {}, ['*'])
-                    suite.addTest(mod.test_suite())
-    return suite
-
 TESTS_REQUIRE = [
     'zope.testrunner',
 ]
@@ -70,7 +37,7 @@ setup(name='zope.configuration',
           read('README.rst')
           + '\n\n' +
           read('CHANGES.rst')
-          ),
+      ),
       keywords="zope configuration zcml",
       classifiers=[
           'Development Status :: 5 - Production/Stable',
@@ -81,10 +48,10 @@ setup(name='zope.configuration',
           "Programming Language :: Python :: 2",
           'Programming Language :: Python :: 2.7',
           "Programming Language :: Python :: 3",
-          'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
           'Programming Language :: Python :: Implementation :: CPython',
           'Programming Language :: Python :: Implementation :: PyPy',
           'Natural Language :: English',
@@ -97,9 +64,8 @@ setup(name='zope.configuration',
       package_dir={'': 'src'},
       namespace_packages=['zope'],
       extras_require={
-        'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
-        'test': TESTS_REQUIRE,
-        'testing': TESTS_REQUIRE + ['nose', 'coverage'],
+          'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
+          'test': TESTS_REQUIRE,
       },
       install_requires=[
           'setuptools',
@@ -110,5 +76,4 @@ setup(name='zope.configuration',
       include_package_data=True,
       zip_safe=False,
       tests_require=TESTS_REQUIRE,
-      test_suite='__main__.alltests',
 )
