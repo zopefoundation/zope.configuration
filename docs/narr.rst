@@ -685,7 +685,7 @@ Now, we'll include the zope.configuration.tests.excludedemo config:
    >>> _ = string('<include package="zope.configuration.tests.excludedemo" />')
    >>> len(handler.buffer)
    3
-   >>> logged = [x.msg for x in handler.buffer]
+   >>> logged = [x.getMessage() for x in handler.buffer]
    >>> logged[0].startswith('include ')
    True
    >>> logged[0].endswith('zope/configuration/tests/excludedemo/configure.zcml')
@@ -708,7 +708,7 @@ rerunning gives the same thing:
    >>> _ = string('<include package="zope.configuration.tests.excludedemo" />')
    >>> len(handler.buffer)
    3
-   >>> logged = [x.msg for x in handler.buffer]
+   >>> logged = [x.getMessage() for x in handler.buffer]
    >>> logged[0].startswith('include ')
    True
    >>> logged[0].endswith('zope/configuration/tests/excludedemo/configure.zcml')
@@ -738,7 +738,7 @@ by the configuration file in zope.configuration.tests.excludedemo:
    ... ''')
    >>> len(handler.buffer)
    1
-   >>> logged = [x.msg for x in handler.buffer]
+   >>> logged = [x.getMessage() for x in handler.buffer]
    >>> logged[0].startswith('include ')
    True
    >>> logged[0].endswith('zope/configuration/tests/excludedemo/configure.zcml')

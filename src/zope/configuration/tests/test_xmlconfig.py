@@ -487,7 +487,7 @@ class Test_include(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             self._callFUT(context)
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (fqn,), {}))
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action['callable'], foo.data.append)
@@ -511,7 +511,7 @@ class Test_include(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             self._callFUT(context, 'simple.zcml')
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (fqn,), {}))
         self.assertEqual(len(context.actions), 3)
         action = context.actions[0]
         self.assertEqual(action['callable'], simple.file_registry.append)
@@ -549,9 +549,9 @@ class Test_include(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             self._callFUT(context, package=samplepackage, files='baz*.zcml')
         self.assertEqual(len(logger.debugs), 3)
-        self.assertEqual(logger.debugs[0], ('include %s' % fqn1, (), {}))
-        self.assertEqual(logger.debugs[1], ('include %s' % fqn2, (), {}))
-        self.assertEqual(logger.debugs[2], ('include %s' % fqn3, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (fqn1,), {}))
+        self.assertEqual(logger.debugs[1], ('include %s', (fqn2,), {}))
+        self.assertEqual(logger.debugs[2], ('include %s', (fqn3,), {}))
         self.assertEqual(len(context.actions), 2)
         action = context.actions[0]
         self.assertEqual(action['callable'], foo.data.append)
@@ -665,7 +665,7 @@ class Test_includeOverrides(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             self._callFUT(context, 'simple.zcml')
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (fqn,), {}))
         self.assertEqual(len(context.actions), 4)
         action = context.actions[0]
         self.assertEqual(action['discriminator'], None)
@@ -705,7 +705,7 @@ class Test_file(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             context = self._callFUT(file_name, execute=False)
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % file_name, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (file_name,), {}))
         self.assertEqual(len(foo.data), 0)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
@@ -724,7 +724,7 @@ class Test_file(unittest.TestCase):
             context = self._callFUT('configure.zcml', package=samplepackage,
                                     execute=False)
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % file_name, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (file_name,), {}))
         self.assertEqual(len(foo.data), 0)
         self.assertTrue(context.package is samplepackage)
         self.assertEqual(len(context.actions), 1)
@@ -750,7 +750,7 @@ class Test_file(unittest.TestCase):
                                 execute=False)
         self.assertTrue(ret is context)
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % file_name, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (file_name,), {}))
         self.assertEqual(len(foo.data), 0)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
@@ -768,7 +768,7 @@ class Test_file(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             context = self._callFUT(file_name)
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % file_name, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (file_name,), {}))
         data = foo.data.pop()
         self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
         self.assertTrue(
@@ -873,7 +873,7 @@ class XMLConfigTests(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             xc = self._makeOne(path)
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % path, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (path,), {}))
         self.assertEqual(len(foo.data), 0) # no execut_actions
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
@@ -891,7 +891,7 @@ class XMLConfigTests(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             xc = self._makeOne(fqn)
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (fqn,), {}))
         self.assertEqual(len(foo.data), 0) # no execut_actions
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
@@ -909,7 +909,7 @@ class XMLConfigTests(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             xc = self._makeOne("configure.zcml", samplepackage)
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (fqn,), {}))
         self.assertEqual(len(foo.data), 0) # no execut_actions
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
@@ -928,7 +928,7 @@ class XMLConfigTests(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             xc = self._makeOne(fqn)
         self.assertEqual(len(logger.debugs), 1)
-        self.assertEqual(logger.debugs[0], ('include %s' % fqn, (), {}))
+        self.assertEqual(logger.debugs[0], ('include %s', (fqn,), {}))
         self.assertEqual(len(foo.data), 0)
         xc() # call to process the actions
         self.assertEqual(len(foo.data), 1)
@@ -1184,22 +1184,3 @@ class LoggerStub(object):
 
     def debug(self, msg, *args, **kwargs):
         self.debugs.append((msg, args, kwargs))
-
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(ZopeXMLConfigurationErrorTests),
-        unittest.makeSuite(ZopeSAXParseExceptionTests),
-        unittest.makeSuite(ParserInfoTests),
-        unittest.makeSuite(ConfigurationHandlerTests),
-        unittest.makeSuite(Test_processxmlfile),
-        unittest.makeSuite(Test_openInOrPlain),
-        unittest.makeSuite(Test_include),
-        unittest.makeSuite(Test_exclude),
-        unittest.makeSuite(Test_includeOverrides),
-        unittest.makeSuite(Test_file),
-        unittest.makeSuite(Test_string),
-        unittest.makeSuite(XMLConfigTests),
-        unittest.makeSuite(Test_xmlconfig),
-        unittest.makeSuite(Test_testxmlconfig),
-    ))
