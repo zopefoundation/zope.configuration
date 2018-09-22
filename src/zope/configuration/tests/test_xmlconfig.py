@@ -1128,14 +1128,14 @@ def clean_actions(actions):
 
 def clean_text_w_paths(error):
     r = []
-    for line in unicode(error).split("\n"):
-      line = line.rstrip()
-      if not line:
-        continue
-      l = line.find('File "')
-      if l >= 0:
-        line = line[:l] + clean_info_path(line[l:])
-      r.append(line)
+    for line in str(error).split("\n"):
+        line = line.rstrip()
+        if not line:
+            continue
+        l = line.find('File "')
+        if l >= 0:
+            line = line[:l] + clean_info_path(line[l:])
+        r.append(line)
     return '\n'.join(r)
 
 

@@ -17,7 +17,7 @@
 from zope.interface import Attribute
 from zope.interface import Interface
 from zope.interface import implementer
-from zope.schema import BytesLine
+from zope.schema import NativeStringLine
 from zope.schema import Id
 from zope.schema import Int
 from zope.schema import Text
@@ -46,7 +46,7 @@ class ISchema(Interface):
     """
 
     fields = Attribute("Dictionary of field definitions")
-    
+
 
 @implementer(IConfigurationContext, ISchema)
 class Schema(GroupingContextDecorator):
@@ -70,11 +70,11 @@ class Schema(GroupingContextDecorator):
             callable=schema_registry.__setitem__,
             args=(self.id, schema),
             )
-        
+
 
 class IFieldInfo(Interface):
 
-    name = BytesLine(
+    name = NativeStringLine(
         title=u("The field name"),
         )
 
@@ -127,7 +127,7 @@ def field(context, constructor, name, **kw):
         raise ValueError("Duplicate field", name)
     schema.fields[name] = field
 
-    
+
 def textField(context, **kw):
     field(context, Text, **kw)
 
@@ -144,6 +144,6 @@ class IIntInfo(IFieldInfo):
         required=False,
         default=None
         )
-    
+
 def intField(context, **kw):
     field(context, Int, **kw)

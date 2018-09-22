@@ -57,7 +57,7 @@ the directive.  There are four kinds of directives:
   To learn how to implement nested directives, look at the
   documentation in the "Creating Nested Directives" section below.
 
-- Complex directives are directives that have subdirectives.  
+- Complex directives are directives that have subdirectives.
   Subdirectives have handlers that are simply methods of complex
   directives. Complex diretives are handled by factories, typically
   classes, that create objects that have methods for handling
@@ -76,7 +76,7 @@ the directive.  There are four kinds of directives:
 
 .. todo::
    Flesh out narrative docs.
-    
+
 Using the configuration machinery programatically
 ==================================================
 
@@ -132,24 +132,24 @@ and try them out:
    >>> machine((ns, "newsimple"), "second", a=u"naa", c=u"ncc", b=u"nbb")
 
    >>> from pprint import PrettyPrinter
-   >>> pprint = PrettyPrinter(width=50).pprint
+   >>> pprint = PrettyPrinter(width=48).pprint
 
    >>> pprint(machine.actions)
-   [{'args': (u'aa', u'xxx', 'cc'),
+   [{'args': ('aa', 'xxx', 'cc'),
      'callable': f,
      'discriminator': ('simple',
-                       u'aa',
-                       u'xxx',
+                       'aa',
+                       'xxx',
                        'cc'),
      'includepath': (),
      'info': 'first',
      'kw': {},
      'order': 0},
-    {'args': (u'naa', u'nbb', 'ncc'),
+    {'args': ('naa', 'nbb', 'ncc'),
      'callable': f,
      'discriminator': ('newsimple',
-                       u'naa',
-                       u'nbb',
+                       'naa',
+                       'nbb',
                        'ncc'),
      'includepath': (),
      'info': 'second',
@@ -204,21 +204,21 @@ it:
 
    >>> machine.end()
    >>> pprint(machine.actions)
-   [{'args': (u'aa', u'xxx', 'cc'),
+   [{'args': ('aa', 'xxx', 'cc'),
      'callable': f,
      'discriminator': ('simple',
-                       u'aa',
-                       u'xxx',
+                       'aa',
+                       'xxx',
                        'cc'),
      'includepath': (),
      'info': 'first',
      'kw': {},
      'order': 0},
-    {'args': (u'naa', u'nbb', 'ncc'),
+    {'args': ('naa', 'nbb', 'ncc'),
      'callable': f,
      'discriminator': ('newsimple',
-                       u'naa',
-                       u'nbb',
+                       'naa',
+                       'nbb',
                        'ncc'),
      'includepath': (),
      'info': 'second',
@@ -238,14 +238,14 @@ it:
      'info': 'third',
      'kw': {},
      'order': 0},
-    {'args': (u'ca',),
+    {'args': ('ca',),
      'callable': f,
      'discriminator': ('Complex.factory', 1, 2),
      'includepath': (),
      'info': 'fourth',
      'kw': {},
      'order': 0},
-    {'args': (u'xxx', 'cc'),
+    {'args': ('xxx', 'cc'),
      'callable': f,
      'discriminator': ('Complex', 1, 2),
      'includepath': (),
@@ -278,21 +278,21 @@ inside a package directive:
       """ "Can't use leading dots in dotted names, no package has been set.")
 
    >>> pprint(machine.actions)
-   [{'args': (u'aa', u'xxx', 'cc'),
+   [{'args': ('aa', 'xxx', 'cc'),
      'callable': f,
      'discriminator': ('simple',
-                       u'aa',
-                       u'xxx',
+                       'aa',
+                       'xxx',
                        'cc'),
      'includepath': (),
      'info': 'first',
      'kw': {},
      'order': 0},
-    {'args': (u'naa', u'nbb', 'ncc'),
+    {'args': ('naa', 'nbb', 'ncc'),
      'callable': f,
      'discriminator': ('newsimple',
-                       u'naa',
-                       u'nbb',
+                       'naa',
+                       'nbb',
                        'ncc'),
      'includepath': (),
      'info': 'second',
@@ -312,25 +312,25 @@ inside a package directive:
      'info': 'third',
      'kw': {},
      'order': 0},
-    {'args': (u'ca',),
+    {'args': ('ca',),
      'callable': f,
      'discriminator': ('Complex.factory', 1, 2),
      'includepath': (),
      'info': 'fourth',
      'kw': {},
      'order': 0},
-    {'args': (u'xxx', 'cc'),
+    {'args': ('xxx', 'cc'),
      'callable': f,
      'discriminator': ('Complex', 1, 2),
      'includepath': (),
      'info': 'third',
      'kw': {},
      'order': 0},
-    {'args': (u'oaa', u'obb', 'occ'),
+    {'args': ('oaa', 'obb', 'occ'),
      'callable': f,
      'discriminator': ('simple',
-                       u'oaa',
-                       u'obb',
+                       'oaa',
+                       'obb',
                        'occ'),
      'includepath': (),
      'info': None,
@@ -355,10 +355,10 @@ Look at the file ``bar.zcml`` (in ``zope/configuration/tests/samplepackage``):
 
 - ``bar1.zcml`` includes ``configure.zcml`` and has a ``foo``
   directive.
-  
+
 - ``bar2.zcml`` includes ``bar21.zcml``, and has a ``foo``
   directive that conflicts with one in ``bar1.zcml``.
-  
+
 - ``bar2.zcml`` also overrides a foo directive in ``bar21.zcml``.
 
 - ``bar21.zcml`` has a ``foo`` directive that conflicts with one in in
@@ -385,32 +385,32 @@ So far so good, let's look at the configuration actions:
 .. doctest::
 
    >>> from zope.configuration.tests.test_xmlconfig import clean_actions
-   >>> pprint = PrettyPrinter(width=70).pprint
+   >>> pprint = PrettyPrinter(width=72).pprint
    >>> pprint(clean_actions(context.actions))
-   [{'discriminator': (('x', 'blah'), ('y', 0)),
+   [{'discriminator': (('x', b'blah'), ('y', 0)),
      'includepath': ['tests/samplepackage/bar.zcml',
                      'tests/samplepackage/bar1.zcml',
                      'tests/samplepackage/configure.zcml'],
      'info': 'File "tests/samplepackage/configure.zcml", line 12.2-12.29'},
-    {'discriminator': (('x', 'blah'), ('y', 1)),
+    {'discriminator': (('x', b'blah'), ('y', 1)),
      'includepath': ['tests/samplepackage/bar.zcml',
                      'tests/samplepackage/bar1.zcml'],
      'info': 'File "tests/samplepackage/bar1.zcml", line 5.2-5.24'},
-    {'discriminator': (('x', 'blah'), ('y', 0)),
+    {'discriminator': (('x', b'blah'), ('y', 0)),
      'includepath': ['tests/samplepackage/bar.zcml',
                      'tests/samplepackage/bar2.zcml',
                      'tests/samplepackage/bar21.zcml'],
      'info': 'File "tests/samplepackage/bar21.zcml", line 3.2-3.24'},
-    {'discriminator': (('x', 'blah'), ('y', 2)),
+    {'discriminator': (('x', b'blah'), ('y', 2)),
      'includepath': ['tests/samplepackage/bar.zcml',
                      'tests/samplepackage/bar2.zcml',
                      'tests/samplepackage/bar21.zcml'],
      'info': 'File "tests/samplepackage/bar21.zcml", line 4.2-4.24'},
-    {'discriminator': (('x', 'blah'), ('y', 2)),
+    {'discriminator': (('x', b'blah'), ('y', 2)),
      'includepath': ['tests/samplepackage/bar.zcml',
                      'tests/samplepackage/bar2.zcml'],
      'info': 'File "tests/samplepackage/bar2.zcml", line 5.2-5.24'},
-    {'discriminator': (('x', 'blah'), ('y', 1)),
+    {'discriminator': (('x', b'blah'), ('y', 1)),
      'includepath': ['tests/samplepackage/bar.zcml',
                      'tests/samplepackage/bar2.zcml'],
      'info': 'File "tests/samplepackage/bar2.zcml", line 6.2-6.24'}]
@@ -425,16 +425,16 @@ we'll find if we try to execuse the actions:
    >>> from zope.configuration.tests.test_xmlconfig import clean_text_w_paths
    >>> try:
    ...    v = context.execute_actions()
-   ... except ConfigurationConflictError, v:
-   ...    pass
-   >>> print clean_text_w_paths(str(v))
+   ... except ConfigurationConflictError as e:
+   ...    v = e
+   >>> print(clean_text_w_paths(str(v)))
    Conflicting configuration actions
-     For: (('x', 'blah'), ('y', 0))
+     For: (('x', b'blah'), ('y', 0))
        File "tests/samplepackage/configure.zcml", line 12.2-12.29
            <test:foo x="blah" y="0" />
        File "tests/samplepackage/bar21.zcml", line 3.2-3.24
            <foo x="blah" y="0" />
-     For: (('x', 'blah'), ('y', 1))
+     For: (('x', b'blah'), ('y', 1))
        File "tests/samplepackage/bar1.zcml", line 5.2-5.24
            <foo x="blah" y="1" />
        File "tests/samplepackage/bar2.zcml", line 6.2-6.24
@@ -458,22 +458,22 @@ Now, if we look at the actions:
 .. doctest::
 
    >>> pprint(clean_actions(context.actions))
-   [{'discriminator': (('x', 'blah'), ('y', 0)),
+   [{'discriminator': (('x', b'blah'), ('y', 0)),
      'includepath': ['tests/samplepackage/baro.zcml',
                      'tests/samplepackage/bar1.zcml',
                      'tests/samplepackage/configure.zcml'],
      'info': 'File "tests/samplepackage/configure.zcml", line 12.2-12.29'},
-    {'discriminator': (('x', 'blah'), ('y', 1)),
+    {'discriminator': (('x', b'blah'), ('y', 1)),
      'includepath': ['tests/samplepackage/baro.zcml',
                      'tests/samplepackage/bar1.zcml'],
      'info': 'File "tests/samplepackage/bar1.zcml", line 5.2-5.24'},
-    {'discriminator': (('x', 'blah'), ('y', 0)),
+    {'discriminator': (('x', b'blah'), ('y', 0)),
      'includepath': ['tests/samplepackage/baro.zcml'],
      'info': 'File "tests/samplepackage/bar21.zcml", line 3.2-3.24'},
-    {'discriminator': (('x', 'blah'), ('y', 2)),
+    {'discriminator': (('x', b'blah'), ('y', 2)),
      'includepath': ['tests/samplepackage/baro.zcml'],
      'info': 'File "tests/samplepackage/bar2.zcml", line 5.2-5.24'},
-    {'discriminator': (('x', 'blah'), ('y', 1)),
+    {'discriminator': (('x', b'blah'), ('y', 1)),
      'includepath': ['tests/samplepackage/baro.zcml'],
      'info': 'File "tests/samplepackage/bar2.zcml", line 6.2-6.24'}]
 
@@ -505,20 +505,20 @@ We should now have three entries in foo.data:
 
    >>> data = foo.data.pop(0)
    >>> data.args
-   (('x', 'blah'), ('y', 0))
-   >>> print clean_info_path(`data.info`)
+   (('x', b'blah'), ('y', 0))
+   >>> print(clean_info_path(repr(data.info)))
    File "tests/samplepackage/bar21.zcml", line 3.2-3.24
 
    >>> data = foo.data.pop(0)
    >>> data.args
-   (('x', 'blah'), ('y', 2))
-   >>> print clean_info_path(`data.info`)
+   (('x', b'blah'), ('y', 2))
+   >>> print(clean_info_path(repr(data.info)))
    File "tests/samplepackage/bar2.zcml", line 5.2-5.24
 
    >>> data = foo.data.pop(0)
    >>> data.args
-   (('x', 'blah'), ('y', 1))
-   >>> print clean_info_path(`data.info`)
+   (('x', b'blah'), ('y', 1))
+   >>> print(clean_info_path(repr(data.info)))
    File "tests/samplepackage/bar2.zcml", line 6.2-6.24
 
 
@@ -538,22 +538,22 @@ Actions look like above:
 .. doctest::
 
    >>> pprint(clean_actions(context.actions))
-   [{'discriminator': (('x', 'blah'), ('y', 0)),
+   [{'discriminator': (('x', b'blah'), ('y', 0)),
      'includepath': ['tests/samplepackage/baro2.zcml',
                      'tests/samplepackage/bar1.zcml',
                      'tests/samplepackage/configure.zcml'],
      'info': 'File "tests/samplepackage/configure.zcml", line 12.2-12.29'},
-    {'discriminator': (('x', 'blah'), ('y', 1)),
+    {'discriminator': (('x', b'blah'), ('y', 1)),
      'includepath': ['tests/samplepackage/baro2.zcml',
                      'tests/samplepackage/bar1.zcml'],
      'info': 'File "tests/samplepackage/bar1.zcml", line 5.2-5.24'},
-    {'discriminator': (('x', 'blah'), ('y', 0)),
+    {'discriminator': (('x', b'blah'), ('y', 0)),
      'includepath': ['tests/samplepackage/baro2.zcml'],
      'info': 'File "tests/samplepackage/bar21.zcml", line 3.2-3.24'},
-    {'discriminator': (('x', 'blah'), ('y', 2)),
+    {'discriminator': (('x', b'blah'), ('y', 2)),
      'includepath': ['tests/samplepackage/baro2.zcml'],
      'info': 'File "tests/samplepackage/bar2.zcml", line 5.2-5.24'},
-    {'discriminator': (('x', 'blah'), ('y', 1)),
+    {'discriminator': (('x', b'blah'), ('y', 1)),
      'includepath': ['tests/samplepackage/baro2.zcml'],
      'info': 'File "tests/samplepackage/bar2.zcml", line 6.2-6.24'}]
 
@@ -676,7 +676,7 @@ We'll set a log handler so we can see what's going on:
    >>> logger.setLevel(logging.DEBUG)
    >>> handler = logging.handlers.MemoryHandler(10)
    >>> logger.addHandler(handler)
- 
+
 Now, we'll include the zope.configuration.tests.excludedemo config:
 
 .. doctest::
@@ -809,7 +809,7 @@ Our handler is given in the function,
 
 It takes a context, a path and a title. All directive handlers take the
 directive context as the first argument.  A directive context, at a minimim,
-implements, ``zope.configuration.IConfigurationContext``. 
+implements, ``zope.configuration.IConfigurationContext``.
 (Specialized contexts can implement more specific interfaces. We'll say more
 about that when we talk about grouping directives.)  The title argument
 must have a default value, because we indicated that the title was not
@@ -883,13 +883,13 @@ Now we should see some file information in the registry:
 
    >>> from zope.configuration.tests.test_xmlconfig import clean_text_w_paths
    >>> from zope.configuration.tests.test_xmlconfig import clean_path
-   >>> print clean_path(file_registry[0].path)
+   >>> print(clean_path(file_registry[0].path))
    tests/simple.py
-   >>> print file_registry[0].title
+   >>> print(file_registry[0].title)
    How to create a simple directive
-   >>> print file_registry[0].description
+   >>> print(file_registry[0].description)
    Describes how to implement a simple directive
-   >>> print clean_text_w_paths(file_registry[0].info)
+   >>> print(clean_text_w_paths(file_registry[0].info))
    File "tests/simple.zcml", line 19.2-24.2
        <files:register
            path="simple.py"
@@ -897,29 +897,29 @@ Now we should see some file information in the registry:
            >
          Describes how to implement a simple directive
        </files:register>
-   >>> print clean_path(file_registry[1].path)
+   >>> print(clean_path(file_registry[1].path))
    tests/simple.zcml
-   >>> print file_registry[1].title
+   >>> print(file_registry[1].title)
    <BLANKLINE>
    >>> desc = file_registry[1].description
-   >>> print '\n'.join([l.rstrip()
+   >>> print('\n'.join([l.rstrip()
    ...                  for l in desc.strip().splitlines()
-   ...                    if l.rstrip()])
+   ...                    if l.rstrip()]))
    Shows the ZCML directives needed to register a simple directive.
        Also show some usage examples,
-   >>> print clean_text_w_paths(file_registry[1].info)
+   >>> print(clean_text_w_paths(file_registry[1].info))
    File "tests/simple.zcml", line 26.2-30.2
        <files:register path="simple.zcml">
          Shows the ZCML directives needed to register a simple directive.
          Also show some usage examples,
        </files:register>
-   >>> print clean_path(file_registry[2].path)
+   >>> print(clean_path(file_registry[2].path))
    tests/__init__.py
-   >>> print file_registry[2].title
+   >>> print(file_registry[2].title)
    Make this a package
-   >>> print file_registry[2].description
+   >>> print(file_registry[2].description)
    <BLANKLINE>
-   >>> print clean_text_w_paths(file_registry[2].info)
+   >>> print(clean_text_w_paths(file_registry[2].info))
    File "tests/simple.zcml", line 32.2-32.67
        <files:register path="__init__.py" title="Make this a package" />
 
@@ -1026,10 +1026,10 @@ which it uses for the field description.
 After computing the field instance, it gets the ``Schema`` instance,
 which is the context of the context passed to the function. The
 function checks to see if there is already a field with that name. If
-there is, it raises an error. Otherwise, it saves the field. 
+there is, it raises an error. Otherwise, it saves the field.
 
 We also define an ``IIntInfo`` schema and ``intField`` handler
-function to support defining integer fields. 
+function to support defining integer fields.
 
 We register the ``text`` and ``int`` directives in ``schema.zcml``.
 These are like the simple directive definition we saw in
@@ -1066,13 +1066,13 @@ And verify that the schema registery has the schemas we expect:
    >>> i1['a'].__class__.__name__
    'Text'
    >>> i1['a'].description.strip()
-   u'A\n\n          Blah blah'
+   'A\n\n          Blah blah'
    >>> i1['a'].min_length
    1
    >>> i1['b'].__class__.__name__
    'Int'
    >>> i1['b'].description.strip()
-   u'B\n\n          Not feeling very creative'
+   'B\n\n          Not feeling very creative'
    >>> i1['b'].min
    1
    >>> i1['b'].max
@@ -1096,11 +1096,11 @@ redefine our directives:
    ...    v = string(
    ...      '<text xmlns="http://sample.namespaces.zope.org/schema" name="x" />',
    ...      context)
-   ... except ZopeXMLConfigurationError, v:
-   ...   pass
-   >>> print v
+   ... except ZopeXMLConfigurationError as e:
+   ...   v = e
+   >>> print(v)
    File "<string>", line 1.0
-       ConfigurationError: The directive (u'http://sample.namespaces.zope.org/schema', u'text') cannot be used in this context
+       ConfigurationError: The directive ('http://sample.namespaces.zope.org/schema', 'text') cannot be used in this context
 
 Let's see what happens if we declare duplicate fields:
 
@@ -1116,9 +1116,8 @@ Let's see what happens if we declare duplicate fields:
    ...      </schema>
    ...      ''',
    ...      context)
-   ... except ZopeXMLConfigurationError, v:
-   ...   pass
-   >>> print v
+   ... except ZopeXMLConfigurationError as e:
+   ...   v = e
+   >>> print(v)
    File "<string>", line 5.7-5.24
        ValueError: ('Duplicate field', 'x')
-

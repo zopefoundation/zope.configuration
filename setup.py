@@ -25,6 +25,11 @@ def read(*rnames):
         return f.read()
 
 TESTS_REQUIRE = [
+    'manuel',
+    # We test the specific exceptions raised, which
+    # chang from version to version.
+    'zope.schema >= 4.8.0',
+    'zope.testing',
     'zope.testrunner',
 ]
 
