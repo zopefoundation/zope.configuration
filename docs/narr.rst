@@ -385,7 +385,7 @@ So far so good, let's look at the configuration actions:
 .. doctest::
 
    >>> from zope.configuration.tests.test_xmlconfig import clean_actions
-   >>> pprint = PrettyPrinter(width=72).pprint
+   >>> pprint = PrettyPrinter(width=73).pprint
    >>> pprint(clean_actions(context.actions))
    [{'discriminator': (('x', b'blah'), ('y', 0)),
      'includepath': ['tests/samplepackage/bar.zcml',
