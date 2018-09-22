@@ -8,6 +8,8 @@ Changes
 
 - Drop support for Python 3.3.
 
+- Drop support for ``python setup.py test``.
+
 - Fix resolving names from a Python 2 package whose `__init__.py` has
   unicode elements in `__all__`.
 
