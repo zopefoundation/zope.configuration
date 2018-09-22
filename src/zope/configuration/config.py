@@ -386,7 +386,7 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                         reraise(ConfigurationExecutionError(t, v, info),
                                 None, tb)
                     finally:
-                       del t, v, tb
+                        del t, v, tb
 
         finally:
             if clear:
@@ -597,8 +597,7 @@ class GroupingContextDecorator(ConfigurationContext):
         for name, v in kw.items():
             setattr(self, name, v)
 
-    def __getattr__(self, name,
-                    getattr=getattr, setattr=setattr):
+    def __getattr__(self, name):
         v = getattr(self.context, name)
         # cache result in self
         setattr(self, name, v)
@@ -1039,4 +1038,3 @@ def _bootstrap(context):
             handler="zope.configuration.config.provides",
             schema="zope.configuration.config.IProvidesDirectiveInfo"
             )
-

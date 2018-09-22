@@ -10,8 +10,13 @@ Changes
 
 - Drop support for ``python setup.py test``.
 
-- Fix resolving names from a Python 2 package whose `__init__.py` has
-  unicode elements in `__all__`.
+- Fix resolving names from a Python 2 package whose ``__init__.py`` has
+  unicode elements in ``__all__``.
+
+- Make ``GroupingContextDecorator`` stop shadowing builtins in its
+  ``__getattr__``. These were not intended as arguments to be used by
+  subclasses, and the signature caused confusion.
+
 
 4.1.0 (2017-04-26)
 ------------------
