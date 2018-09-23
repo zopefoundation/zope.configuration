@@ -25,7 +25,7 @@ from zope.schema import TextLine
 from zope.configuration.config import GroupingContextDecorator
 from zope.configuration.config import IConfigurationContext
 from zope.configuration.fields import Bool
-from zope.configuration._compat import u
+
 
 
 schema_registry = {}
@@ -35,11 +35,11 @@ class ISchemaInfo(Interface):
     """
 
     name = TextLine(
-        title=u("The schema name"),
-        description=u("This is a descriptive name for the schema."),
+        title=u"The schema name",
+        description=u"This is a descriptive name for the schema.",
         )
 
-    id = Id(title=u("The unique id for the schema"))
+    id = Id(title=u"The unique id for the schema")
 
 class ISchema(Interface):
     """Interface that distinguishes the schema directive
@@ -75,43 +75,47 @@ class Schema(GroupingContextDecorator):
 class IFieldInfo(Interface):
 
     name = NativeStringLine(
-        title=u("The field name"),
-        )
+        title=u"The field name",
+    )
 
     title = TextLine(
-        title=u("Title"),
-        description=u("A short summary or label"),
-        default=u(""),
+        title=u"Title",
+        description=u"A short summary or label",
+        default=u"",
         required=False,
-        )
+    )
 
     required = Bool(
-        title=u("Required"),
-        description=u("Determines whether a value is required."),
+        title=u"Required",
+        description=u"Determines whether a value is required.",
         default=True)
 
     readonly = Bool(
-        title=u("Read Only"),
-        description=u("Can the value be modified?"),
+        title=u"Read Only",
+        description=u"Can the value be modified?",
         required=False,
         default=False)
 
 class ITextInfo(IFieldInfo):
 
     min_length = Int(
-        title=u("Minimum length"),
-        description=u("Value after whitespace processing cannot have less than "
-                      "min_length characters. If min_length is None, there is "
-                      "no minimum."),
+        title=u"Minimum length",
+        description=(
+            u"Value after whitespace processing cannot have less than "
+            u"min_length characters. If min_length is None, there is "
+            u"no minimum."
+        ),
         required=False,
         min=0, # needs to be a positive number
         default=0)
 
     max_length = Int(
-        title=u("Maximum length"),
-        description=u("Value after whitespace processing cannot have greater "
-                      "or equal than max_length characters. If max_length is "
-                      "None, there is no maximum."),
+        title=u"Maximum length",
+        description=(
+            u"Value after whitespace processing cannot have greater "
+            u"or equal than max_length characters. If max_length is "
+            u"None, there is no maximum."
+        ),
         required=False,
         min=0, # needs to be a positive number
         default=None)
@@ -134,13 +138,13 @@ def textField(context, **kw):
 class IIntInfo(IFieldInfo):
 
     min = Int(
-        title=u("Start of the range"),
+        title=u"Start of the range",
         required=False,
         default=None
         )
 
     max = Int(
-        title=u("End of the range (excluding the value itself)"),
+        title=u"End of the range (excluding the value itself)",
         required=False,
         default=None
         )

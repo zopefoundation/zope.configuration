@@ -53,15 +53,13 @@ class PythonIdentifierTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test__validate_miss(self):
         from zope.schema import ValidationError
-        from zope.configuration._compat import u
         pi = self._makeOne()
         with self.assertRaises(ValidationError):
-            pi._validate(u('not-an-identifier'))
+            pi._validate(u'not-an-identifier')
 
     def test__validate_hit(self):
-        from zope.configuration._compat import u
         pi = self._makeOne()
-        pi._validate(u('is_an_identifier'))
+        pi._validate(u'is_an_identifier')
 
 
 class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
@@ -74,20 +72,16 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
         return self._getTargetClass()(*args, **kw)
 
     def test__validate_wo_value_type(self):
-        from zope.configuration._compat import u
-        from zope.configuration._compat import b
         go = self._makeOne(value_type=None)
-        for value in [0, 0.0, (), [], set(), frozenset(), u(''), b('')]:
+        for value in [0, 0.0, (), [], set(), frozenset(), u'', b'']:
             go._validate(value) #noraise
 
     def test__validate_w_value_type(self):
         from zope.schema import Text
         from zope.schema.interfaces import WrongType
-        from zope.configuration._compat import u
-        from zope.configuration._compat import b
         go = self._makeOne(value_type=Text())
-        go.validate(u(''))
-        for value in [0, 0.0, (), [], set(), frozenset(), b('')]:
+        go.validate(u'')
+        for value in [0, 0.0, (), [], set(), frozenset(), b'']:
             with self.assertRaises(WrongType):
                 go._validate(value)
 
@@ -167,20 +161,18 @@ class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_fromUnicode_strips_ws(self):
         from zope.schema import Text
-        from zope.configuration._compat import u
         tok = self._makeOne(value_type=Text())
         context = object()
-        self.assertEqual(tok.fromUnicode(u(' one two three ')),
-                         [u('one'), u('two'), u('three')])
+        self.assertEqual(tok.fromUnicode(u' one two three '),
+                         [u'one', u'two', u'three'])
 
     def test_fromUnicode_invalid(self):
         from zope.schema import Int
         from zope.configuration.interfaces import InvalidToken
-        from zope.configuration._compat import u
         tok = self._makeOne(value_type=Int(min=0))
         context = object()
         with self.assertRaises(InvalidToken):
-            tok.fromUnicode(u(' 1 -1 3 '))
+            tok.fromUnicode(u' 1 -1 3 ')
 
 
 class PathTests(unittest.TestCase, _ConformsToIFromUnicode):
@@ -261,12 +253,11 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_wo_domain(self):
         import warnings
-        from zope.configuration._compat import u
         mid = self._makeOne()
         context = self._makeContext(None)
         bound = mid.bind(context)
         with warnings.catch_warnings(record=True) as log:
-            msgid = bound.fromUnicode(u('testing'))
+            msgid = bound.fromUnicode(u'testing')
         self.assertEqual(len(log), 1)
         self.assertTrue(str(log[0].message).startswith(
                             'You did not specify an i18n translation domain'))
@@ -278,12 +269,11 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_w_empty_id(self):
         import warnings
-        from zope.configuration._compat import u
         mid = self._makeOne()
         context = self._makeContext()
         bound = mid.bind(context)
         with warnings.catch_warnings(record=True) as log:
-            msgid = bound.fromUnicode(u('[] testing'))
+            msgid = bound.fromUnicode(u'[] testing')
         self.assertEqual(len(log), 0)
         self.assertEqual(msgid, 'testing')
         self.assertEqual(msgid.default, None)
@@ -293,12 +283,11 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_w_id_and_default(self):
         import warnings
-        from zope.configuration._compat import u
         mid = self._makeOne()
         context = self._makeContext()
         bound = mid.bind(context)
         with warnings.catch_warnings(record=True) as log:
-            msgid = bound.fromUnicode(u('[testing] default'))
+            msgid = bound.fromUnicode(u'[testing] default')
         self.assertEqual(len(log), 0)
         self.assertEqual(msgid, 'testing')
         self.assertEqual(msgid.default, 'default')

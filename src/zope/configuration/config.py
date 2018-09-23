@@ -35,7 +35,7 @@ from zope.configuration._compat import builtins
 from zope.configuration._compat import reraise
 from zope.configuration._compat import string_types
 from zope.configuration._compat import text_type
-from zope.configuration._compat import u
+
 
 
 zopens = 'http://namespaces.zope.org/zope'
@@ -621,10 +621,11 @@ class IDirectivesInfo(Interface):
     """
 
     namespace = URI(
-        title=u("Namespace"),
-        description=u("The namespace in which directives' names "
-                      "will be defined"),
-        )
+        title=u"Namespace",
+        description=(
+            u"The namespace in which directives' names "
+            u"will be defined"),
+    )
 
 
 class IDirectivesContext(IDirectivesInfo, IConfigurationContext):
@@ -642,35 +643,39 @@ class DirectivesHandler(GroupingContextDecorator):
 
 
 class IDirectiveInfo(Interface):
-    """Information common to all directive definitions have
+    """Information common to all directive definitions.
     """
 
     name = TextLine(
-        title = u("Directive name"),
-        description = u("The name of the directive being defined"),
-        )
+        title=u"Directive name",
+        description=u"The name of the directive being defined",
+    )
 
     schema = DirectiveSchema(
-        title = u("Directive handler"),
-        description = u("The dotted name of the directive handler"),
-        )
+        title=u"Directive handler",
+        description=u"The dotted name of the directive handler",
+    )
+
 
 class IFullInfo(IDirectiveInfo):
-    """Information that all top-level directives (not subdirectives) have
+    """Information that all top-level directives (not subdirectives)
+    have.
     """
 
     handler = GlobalObject(
-        title = u("Directive handler"),
-        description = u("The dotted name of the directive handler"),
-        )
+        title=u"Directive handler",
+        description=u"The dotted name of the directive handler",
+    )
 
     usedIn = GlobalInterface(
-        title = u("The directive types the directive can be used in"),
-        description = u("The interface of the directives that can contain "
-                        "the directive"
-                       ),
-        default = IConfigurationContext,
-        )
+        title=u"The directive types the directive can be used in",
+        description=(
+            u"The interface of the directives that can contain "
+            u"the directive"
+        ),
+        default=IConfigurationContext,
+    )
+
 
 class IStandaloneDirectiveInfo(IDirectivesInfo, IFullInfo):
     """Info for full directives defined outside a directives directives
@@ -752,12 +757,12 @@ class IProvidesDirectiveInfo(Interface):
     """Information for a <meta:provides> directive"""
 
     feature = TextLine(
-        title = u("Feature name"),
-        description = u("""The name of the feature being provided
+        title=u"Feature name",
+        description=u"""The name of the feature being provided
 
         You can test available features with zcml:condition="have featurename".
-        """),
-        )
+        """,
+    )
 
 def provides(context, feature):
     """Declare that a feature is provided in context.
@@ -935,8 +940,8 @@ class ConfigurationConflictError(ConfigurationError):
         for discriminator, infos in sorted(self._conflicts.items()):
             r.append("  For: %s" % (discriminator, ))
             for info in infos:
-                for line in text_type(info).rstrip().split(u('\n')):
-                    r.append(u("    ") + line)
+                for line in text_type(info).rstrip().split(u'\n'):
+                    r.append(u"    " + line)
 
         return "\n".join(r)
 

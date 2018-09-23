@@ -189,8 +189,7 @@
    .. doctest::
 
       >>> import os
-      >>> from zope.configuration._compat import u as unicode
-      >>> p = unicode(os.path.join(os.sep, 'a', 'b'))
+      >>> p = os.path.join(os.sep, u'a', u'b')
       >>> n = field.fromUnicode(p)
       >>> n.split(os.sep)
       ['', 'a', 'b']
@@ -208,7 +207,7 @@
 
    .. doctest::
 
-      >>> p = unicode(os.path.join('a', 'b'))
+      >>> p = os.path.join(u'a', u'b')
       >>> n = field.fromUnicode(p)
       >>> n.split(os.sep)
       ['', 'faux', 'context', 'a', 'b']

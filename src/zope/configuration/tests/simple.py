@@ -18,20 +18,19 @@ from zope.interface import Interface
 from zope.schema import Text
 
 from zope.configuration.fields import Path
-from zope.configuration._compat import u
 
 class IRegisterFile(Interface):
 
     path = Path(
-        title=u("File path"),
-        description=u("This is the path name of the file to be registered."),
-        )
+        title=u"File path",
+        description=u"This is the path name of the file to be registered.",
+    )
 
     title = Text(
-        title=u("Short summary of the file"),
-        description=u("This will be used in file listings"),
-        required = False
-        )
+        title=u"Short summary of the file",
+        description=u"This will be used in file listings",
+        required=False
+    )
 
 class FileInfo(object):
 
@@ -41,7 +40,7 @@ class FileInfo(object):
 
 file_registry = []
 
-def registerFile(context, path, title=u("")):
+def registerFile(context, path, title=u""):
     info = context.info
     description = info.text.strip()
     context.action(discriminator=('RegisterFile', path),
