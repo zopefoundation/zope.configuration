@@ -32,6 +32,7 @@ rqmt = pkg_resources.require('zope.configuration')[0]
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'repoze.sphinx.autointerface',
@@ -250,3 +251,12 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
+
+intersphinx_mapping = {
+    'https://docs.python.org/': None,
+    'https://zopeschema.readthedocs.io/en/latest': None,
+}
+
+autodoc_default_flags = ['members', 'show-inheritance']
+autoclass_content = 'both'
+autodoc_member_order = 'bysource'
