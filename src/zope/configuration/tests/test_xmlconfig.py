@@ -62,13 +62,6 @@ class ZopeSAXParseExceptionTests(unittest.TestCase):
 
 class ParserInfoTests(unittest.TestCase):
 
-    _tempdir = None
-
-    def tearDown(self):
-        if self._tempdir is not None:
-            import shutil
-            shutil.rmtree(self._tempdir)
-
     def _getTargetClass(self):
         from zope.configuration.xmlconfig import ParserInfo
         return ParserInfo
@@ -656,7 +649,7 @@ class Test_includeOverrides(unittest.TestCase):
         # dummy action, path from "previous" include
         context.includepath = (fqp,)
         def _callable():
-            pass
+            raise NotImplementedError
         context.actions.append({'discriminator': None,
                                 'callable': _callable,
                                })
@@ -1154,20 +1147,15 @@ class _Monkey(object):
 
 class LoggerStub(object):
 
+    debugs = errors = warnings = infos = ()
+
     def __init__(self):
-        self.errors = []
-        self.warnings = []
-        self.infos = []
-        self.debugs = []
+        def make_append(lst):
+            return lambda msg, *args, **kwargs: lst.append((msg, args, kwargs))
 
-    def error(self, msg, *args, **kwargs):
-        self.errors.append((msg, args, kwargs))
+        for name in 'error', 'warning', 'info', 'debug':
+            lst = []
+            setattr(self, name + 's', lst)
 
-    def warning(self, msg, *args, **kwargs):
-        self.warnings.append((msg, args, kwargs))
-
-    def info(self, msg, *args, **kwargs):
-        self.infos.append((msg, args, kwargs))
-
-    def debug(self, msg, *args, **kwargs):
-        self.debugs.append((msg, args, kwargs))
+            func = make_append(lst)
+            setattr(self, name, func)
