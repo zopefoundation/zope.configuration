@@ -22,11 +22,11 @@
    .. doctest::
 
       >>> field.fromUnicode(u'foo')
-      u'foo'
+      'foo'
       >>> field.fromUnicode(u'foo3')
-      u'foo3'
+      'foo3'
       >>> field.fromUnicode(u'_foo3')
-      u'_foo3'
+      '_foo3'
 
    Now let's see whether validation works alright
 
@@ -39,7 +39,7 @@
       ...     try:
       ...         field._validate(value)
       ...     except ValidationError:
-      ...         print 'Validation Error'
+      ...         print('Validation Error')
       Validation Error
       Validation Error
       Validation Error
@@ -84,7 +84,7 @@
       42
       >>> g = GlobalObject()
       >>> gg = g.bind(fake)
-      >>> print gg.fromUnicode('*')
+      >>> print(gg.fromUnicode('*'))
       None
 
 .. autoclass:: GlobalInterface
@@ -122,7 +122,7 @@
       >>> gg.fromUnicode('Foo')
       Traceback (most recent call last):
       ...
-      WrongType: ('An interface is required', ...
+      NotAnInterface: (<class 'Foo'>, ...
 
 .. autoclass:: Tokens
    :members:
@@ -189,10 +189,11 @@
    .. doctest::
 
       >>> import os
+      >>> from zope.configuration._compat import u as unicode
       >>> p = unicode(os.path.join(os.sep, 'a', 'b'))
       >>> n = field.fromUnicode(p)
       >>> n.split(os.sep)
-      [u'', u'a', u'b']
+      ['', 'a', 'b']
 
    This should also work with extra spaces around the path:
 
@@ -201,7 +202,7 @@
       >>> p = "   \n   %s   \n\n   " % p
       >>> n = field.fromUnicode(p)
       >>> n.split(os.sep)
-      [u'', u'a', u'b']
+      ['', 'a', 'b']
 
    Now try a relative path:
 
@@ -210,7 +211,7 @@
       >>> p = unicode(os.path.join('a', 'b'))
       >>> n = field.fromUnicode(p)
       >>> n.split(os.sep)
-      [u'', u'faux', u'context', u'a', u'b']
+      ['', 'faux', 'context', 'a', 'b']
 
 .. autoclass:: Bool
    :members:
@@ -262,7 +263,7 @@
 
       >>> i = field.fromUnicode(u"Hello world!")
       >>> i
-      u'Hello world!'
+      'Hello world!'
       >>> i.domain
       'untranslated'
       >>> warned
@@ -283,7 +284,7 @@
 
       >>> i = field.fromUnicode(u"Hello world!")
       >>> i
-      u'Hello world!'
+      'Hello world!'
       >>> i.domain
       'testing'
 
@@ -292,19 +293,19 @@
    .. doctest::
 
       >>> context.i18n_strings
-      {'testing': {u'Hello world!': [('file location', 8)]}}
+      {'testing': {'Hello world!': [('file location', 8)]}}
 
       >>> i = field.fromUnicode(u"Foo Bar")
       >>> i = field.fromUnicode(u"Hello world!")
       >>> from pprint import PrettyPrinter
       >>> pprint=PrettyPrinter(width=70).pprint
       >>> pprint(context.i18n_strings)
-      {'testing': {u'Foo Bar': [('file location', 8)],
-                   u'Hello world!': [('file location', 8),
-                                     ('file location', 8)]}}
+      {'testing': {'Foo Bar': [('file location', 8)],
+                   'Hello world!': [('file location', 8),
+                                    ('file location', 8)]}}
 
       >>> from zope.i18nmessageid import Message
-      >>> isinstance(context.i18n_strings['testing'].keys()[0], Message)
+      >>> isinstance(list(context.i18n_strings['testing'].keys())[0], Message)
       True
 
    Explicit Message IDs
@@ -313,12 +314,12 @@
 
       >>> i = field.fromUnicode(u'[View-Permission] View')
       >>> i
-      u'View-Permission'
+      'View-Permission'
       >>> i.default
-      u'View'
+      'View'
 
       >>> i = field.fromUnicode(u'[] [Some] text')
       >>> i
-      u'[Some] text'
+      '[Some] text'
       >>> i.default is None
       True

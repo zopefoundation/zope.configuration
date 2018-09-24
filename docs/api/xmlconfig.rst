@@ -11,7 +11,7 @@
 
       >>> from zope.configuration.xmlconfig import ZopeXMLConfigurationError
       >>> v = ZopeXMLConfigurationError("blah", AttributeError, "xxx")
-      >>> print v
+      >>> print(v)
       'blah'
           AttributeError: xxx
 
@@ -23,7 +23,7 @@
 
       >>> from zope.configuration.xmlconfig import ZopeSAXParseException
       >>> v = ZopeSAXParseException("foo.xml:12:3:Not well formed")
-      >>> print v
+      >>> print(v)
       File "foo.xml", line 12.3, Not well formed
 
 .. autoclass:: ParserInfo
@@ -39,19 +39,19 @@
       >>> info
       File "tests//sample.zcml", line 1.0
 
-      >>> print info
+      >>> print(info)
       File "tests//sample.zcml", line 1.0
 
       >>> info.characters("blah\\n")
       >>> info.characters("blah")
       >>> info.text
-      u'blah\\nblah'
+      'blah\\nblah'
 
       >>> info.end(7, 0)
       >>> info
       File "tests//sample.zcml", line 1.0-7.0
 
-      >>> print info
+      >>> print(info)
       File "tests//sample.zcml", line 1.0-7.0
         <configure xmlns='http://namespaces.zope.org/zope'>
           <!-- zope.configure -->
@@ -106,7 +106,7 @@
 
       The ``installed`` and ``not-installed`` verbs each take one argument:
       the dotted name of a pacakge.
-      
+
       If the pacakge is found, in other words, can be imported,
       then the condition will return true / false:
 
@@ -159,6 +159,7 @@
       >>> f = openInOrPlain(path)
       >>> f.name[-14:]
       'configure.zcml'
+      >>> f.close()
 
    But if we open foo.zcml, we'll get foo.zcml.in, since there isn't a
    foo.zcml:
@@ -169,6 +170,7 @@
       >>> f = openInOrPlain(path)
       >>> f.name[-11:]
       'foo.zcml.in'
+      >>> f.close()
 
    Make sure other IOErrors are re-raised.  We need to do this in a
    try-except block because different errors are raised on Windows and
@@ -179,9 +181,9 @@
       >>> try:
       ...     f = openInOrPlain('.')
       ... except IOError:
-      ...     print "passed"
+      ...     print("passed")
       ... else:
-      ...     print "failed"
+      ...     print("failed")
       passed
 
 .. autointerface:: IInclude

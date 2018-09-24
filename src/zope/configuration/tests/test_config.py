@@ -745,8 +745,6 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         # This is really an integraiton test.
         from zope.configuration.config import metans
         from zope.configuration.tests.directives import f
-        from zope.configuration._compat import b
-        from zope.configuration._compat import u
         machine = self._makeOne()
         ns = "http://www.zope.org/testing"
 
@@ -770,13 +768,13 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
                 schema=".Ik", handler=".k")
 
         machine((ns, "k"), "yee ha",
-                **{"for": u("f"), "class": u("c"), "x": u("x")})
+                **{"for": u"f", "class": u"c", "x": u"x"})
 
         self.assertEqual(len(machine.actions), 1)
         self.assertEqual(machine.actions[0],
-                         {'args': (b('f'), b('c'), b('x')),
+                         {'args': ('f', 'c', 'x'),
                           'callable': f,
-                          'discriminator': ('k', b('f')),
+                          'discriminator': ('k', 'f'),
                           'includepath': (),
                           'info': 'yee ha',
                           'kw': {},

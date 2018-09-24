@@ -17,6 +17,9 @@ Changes
   ``__getattr__``. These were not intended as arguments to be used by
   subclasses, and the signature caused confusion.
 
+- Fix the doctests with zope.schema 4.7 and above, and run the
+  doctests on both Python 2 and Python 3. See `issue 21
+  <https://github.com/zopefoundation/zope.configuration/issues/21>`_.
 
 4.1.0 (2017-04-26)
 ------------------

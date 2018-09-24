@@ -15,13 +15,12 @@
 """
 from zope.interface import Interface
 from zope.interface import implementer
-from zope.schema import BytesLine
+from zope.schema import NativeStringLine
 from zope.schema import Text
 
 from zope.configuration.config import GroupingContextDecorator
 from zope.configuration.interfaces import IConfigurationContext
 from zope.configuration.fields import GlobalObject
-from zope.configuration._compat import u
 
 
 class F(object):
@@ -36,12 +35,12 @@ class ISimple(Interface):
 
     a = Text()
     b = Text(required=False)
-    c = BytesLine()
+    c = NativeStringLine()
 
-def simple(context, a=None, c=None, b=u("xxx")):
+def simple(context, a=None, c=None, b=u"xxx"):
     return [(('simple', a, b, c), f, (a, b, c))]
 
-def newsimple(context, a, c, b=u("xxx")):
+def newsimple(context, a, c, b=u"xxx"):
     context.action(('newsimple', a, b, c), f, (a, b, c))
 
 
@@ -68,7 +67,7 @@ def factory(context, factory):
 
 class Complex(object):
 
-    def __init__(self, context, a, c, b=u("xxx")):
+    def __init__(self, context, a, c, b=u"xxx"):
         self.a, self.b, self.c = a, b, c
         context.action("Complex.__init__")
 
@@ -83,10 +82,10 @@ class Complex(object):
 
 
 class Ik(Interface):
-    for_ = BytesLine()
-    class_ = BytesLine()
-    x = BytesLine()
-    
+    for_ = NativeStringLine()
+    class_ = NativeStringLine()
+    x = NativeStringLine()
+
 def k(context, for_, class_, x):
     context.action(('k', for_), f, (for_, class_, x))
 

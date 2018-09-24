@@ -37,8 +37,8 @@
          True
          >>> c.resolve('..interface') is zope.interface
          True
-         >>> c.resolve('str')
-         <type 'str'>
+         >>> c.resolve('str') is str
+         True
 
    .. automethod:: path
 
@@ -349,9 +349,9 @@
       >>> from pprint import PrettyPrinter
       >>> pprint = PrettyPrinter(width=60).pprint
       >>> pprint(machine.actions)
-      [{'args': (u'aa', u'xxx', 'cc'),
+      [{'args': ('aa', 'xxx', 'cc'),
         'callable': f,
-        'discriminator': ('simple', u'aa', u'xxx', 'cc'),
+        'discriminator': ('simple', 'aa', 'xxx', 'cc'),
         'includepath': (),
         'info': None,
         'kw': {},
@@ -404,10 +404,10 @@
          ...   ]
          >>> try:
          ...    v = context.execute_actions()
-         ... except ConfigurationExecutionError as v:
-         ...    pass
+         ... except ConfigurationExecutionError as e:
+         ...    v = e
          >>> lines = str(v).splitlines()
-         >>> 'exceptions.AttributeError' in lines[0]
+         >>> 'AttributeError' in lines[0]
          True
          >>> lines[0].endswith("'function' object has no attribute 'xxx'")
          True
@@ -708,7 +708,7 @@
         'order': 0},
        {'args': (),
         'callable': f,
-        'discriminator': ('sub', u'av', u'bv'),
+        'discriminator': ('sub', 'av', 'bv'),
         'includepath': (),
         'info': 'baz',
         'kw': {},
@@ -738,14 +738,14 @@
         'order': 0},
        {'args': (),
         'callable': f,
-        'discriminator': ('sub', u'av', u'bv'),
+        'discriminator': ('sub', 'av', 'bv'),
         'includepath': (),
         'info': 'baz',
         'kw': {},
         'order': 0},
        {'args': (),
         'callable': f,
-        'discriminator': ('call', u'xv', u'yv'),
+        'discriminator': ('call', 'xv', 'yv'),
         'includepath': (),
         'info': 'foo',
         'kw': {},
@@ -809,7 +809,7 @@
       >>> pprint(context.actions)
       [{'args': (),
         'callable': f,
-        'discriminator': ('s', u'vx', u'vy'),
+        'discriminator': ('s', 'vx', 'vy'),
         'includepath': (),
         'info': None,
         'kw': {},
@@ -827,7 +827,7 @@
       >>> pprint(context.actions)
       [{'args': (),
         'callable': f,
-        'discriminator': ('s', u'vx', u'vy'),
+        'discriminator': ('s', 'vx', 'vy'),
         'includepath': (),
         'info': None,
         'kw': {},
@@ -861,9 +861,9 @@
 
       >>> context.begin((testns, "g"), x=u"vx", y=u"vy")
       >>> context.stack[-1].context.x
-      u'vx'
+      'vx'
       >>> context.stack[-1].context.y
-      u'vy'
+      'vy'
 
       >>> context(('http://www.zope.com/t1', "g"), x=u"vx", y=u"vy")
       Traceback (most recent call last):
@@ -876,9 +876,9 @@
 
       >>> context.begin(('http://www.zope.com/t1', "g"), x=u"vx", y=u"vy")
       >>> context.stack[-1].context.x
-      u'vx'
+      'vx'
       >>> context.stack[-1].context.y
-      u'vy'
+      'vy'
 
 .. autointerface:: IComplexDirectiveContext
    :members:
@@ -948,9 +948,9 @@
       ...          'u': u'http://www.zope.org' }))
       {'f': 1.2,
        'in_': 1,
-       'n': u'bob',
+       'n': 'bob',
        'u': 'http://www.zope.org',
-       'x': 'x.y.z'}
+       'x': b'x.y.z'}
 
    If we have extra data, we'll get an error:
 
@@ -972,12 +972,12 @@
       >>> pprint(toargs(context, schema,
       ...        {'in': u'1', 'f': u'1.2', 'n': u'bob', 'x': u'x.y.z',
       ...          'u': u'http://www.zope.org', 'a': u'1'}))
-      {'a': u'1',
+      {'a': '1',
        'f': 1.2,
        'in_': 1,
-       'n': u'bob',
+       'n': 'bob',
        'u': 'http://www.zope.org',
-       'x': 'x.y.z'}
+       'x': b'x.y.z'}
 
    If we omit required data we get an error telling us what was omitted:
 
@@ -996,10 +996,10 @@
       >>> pprint(toargs(context, schema,
       ...        {'in': u'1', 'f': u'1.2', 'n': u'bob',
       ...          'u': u'http://www.zope.org', 'a': u'1'}))
-      {'a': u'1',
+      {'a': '1',
        'f': 1.2,
        'in_': 1,
-       'n': u'bob',
+       'n': 'bob',
        'u': 'http://www.zope.org'}
 
    And we can omit required fields if they have valid defaults
@@ -1010,10 +1010,10 @@
       >>> pprint(toargs(context, schema,
       ...        {'in': u'1', 'f': u'1.2',
       ...          'u': u'http://www.zope.org', 'a': u'1'}))
-      {'a': u'1',
+      {'a': '1',
        'f': 1.2,
        'in_': 1,
-       'n': u'rob',
+       'n': 'rob',
        'u': 'http://www.zope.org'}
 
    We also get an error if any data was invalid:
