@@ -44,12 +44,11 @@ from zope.configuration.zopeconfigure import IZopeConfigure
 from zope.configuration.zopeconfigure import ZopeConfigure
 from zope.configuration._compat import StringIO
 from zope.configuration._compat import reraise
-from zope.configuration._compat import u
 
 logger = logging.getLogger("config")
 
 ZCML_NAMESPACE = "http://namespaces.zope.org/zcml"
-ZCML_CONDITION = (ZCML_NAMESPACE, u("condition"))
+ZCML_CONDITION = (ZCML_NAMESPACE, u"condition")
 
 
 class ZopeXMLConfigurationError(ConfigurationError):
@@ -87,7 +86,7 @@ class ParserInfo(object):
     This includes the directive location, as well as text data
     contained in the directive.
     """
-    text = u('')
+    text = u''
 
     def __init__(self, file, line, column):
         self.file, self.line, self.column = file, line, column
@@ -122,31 +121,31 @@ class ParserInfo(object):
             src = "  Could not read source."
         else:
             ecolumn = self.ecolumn
-            if lines[-1][ecolumn:ecolumn+2] == '</': #pragma NO COVER
+            if lines[-1][ecolumn:ecolumn+2] == '</': # pragma: no cover
                 # We're pointing to the start of an end tag. Try to find
                 # the end
                 l = lines[-1].find('>', ecolumn)
                 if l >= 0:
                     lines[-1] = lines[-1][:l+1]
-            else: #pragma NO COVER
+            else: # pragma: no cover
                 lines[-1] = lines[-1][:ecolumn+1]
 
             column = self.column
-            if lines[0][:column].strip(): #pragma NO COVER
+            if lines[0][:column].strip(): # pragma: no cover
                 # Remove text before start if it's noy whitespace
                 lines[0] = lines[0][self.column:]
 
-            pad = u('  ')
-            blank = u('')
+            pad = u'  '
+            blank = u''
             try:
                 src = blank.join([pad + l for l in lines])
-            except UnicodeDecodeError: #pragma NO COVER
+            except UnicodeDecodeError: # pragma: no cover
                 # XXX:
                 # I hope so most internation zcml will use UTF-8 as encoding
                 # otherwise this code must be made more clever
                 src = blank.join([pad + l.decode('utf-8') for l in lines])
                 # unicode won't be printable, at least on my console
-                src = src.encode('ascii','replace')
+                src = src.encode('ascii', 'replace')
 
         return "%s\n%s" % (repr(self), src)
 
@@ -202,7 +201,7 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.begin(name, data, info)
-        except (KeyboardInterrupt, SystemExit): #pragma NO COVER
+        except (KeyboardInterrupt, SystemExit): # pragma: no cover
             raise
         except:
             if self.testing:
@@ -270,7 +269,7 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.end()
-        except (KeyboardInterrupt, SystemExit): #pragma NO COVER
+        except (KeyboardInterrupt, SystemExit): # pragma: no cover
             raise
         except:
             if self.testing:
@@ -317,24 +316,25 @@ def openInOrPlain(filename):
 
 
 class IInclude(Interface):
-    """The ``include``, ``includeOverrides`` and ``exclude`` directives
+    """The `include`, `includeOverrides` and `exclude`
+    directives.
 
-    These directives allows you to include or preserve including of another
-    ZCML file in the configuration. This enables you to write configuration
-    files in each package and then link them together.
+    These directives allows you to include or preserve including of
+    another ZCML file in the configuration. This enables you to write
+    configuration files in each package and then link them together.
     """
 
     file = NativeStringLine(
-        title=u("Configuration file name"),
-        description=u("The name of a configuration file to be included/"
-                      "excluded, relative to the directive containing the "
-                      "including configuration file."),
+        title=u"Configuration file name",
+        description=(u"The name of a configuration file to be included/"
+                     u"excluded, relative to the directive containing the "
+                     u"including configuration file."),
         required=False,
-        )
+    )
 
     files = NativeStringLine(
-        title=u("Configuration file name pattern"),
-        description=u("""
+        title=u"Configuration file name pattern",
+        description=u"""
         The names of multiple configuration files to be included/excluded,
         expressed as a file-name pattern, relative to the directive
         containing the including or excluding configuration file.
@@ -350,24 +350,22 @@ class IInclude(Interface):
 
         The file names are included in sorted order, where sorting is
         without regard to case.
-        """),
+        """,
         required=False,
-        )
+    )
 
     package = GlobalObject(
-        title=u("Include or exclude package"),
-        description=u("""
+        title=u"Include or exclude package",
+        description=u"""
         Include or exclude the named file (or configure.zcml) from the
         directory of this package.
-        """),
+        """,
         required=False,
-        )
+    )
 
 
 def include(_context, file=None, package=None, files=None):
     """Include a zcml file
-
-    See examples in tests/text_xmlconfig.py
     """
 
     if files:
@@ -393,7 +391,7 @@ def include(_context, file=None, package=None, files=None):
     for path in paths:
         if context.processFile(path):
             with openInOrPlain(path) as f:
-                logger.debug("include %s" % f.name)
+                logger.debug("include %s", f.name)
 
                 context.basepath = os.path.dirname(path)
                 context.includepath = _context.includepath + (f.name, )
@@ -405,7 +403,7 @@ def include(_context, file=None, package=None, files=None):
 
 def exclude(_context, file=None, package=None, files=None):
     """Exclude a zcml file
-    
+
     This directive should be used before any ZML that includes
     configuration you want to exclude.
     """
@@ -437,13 +435,17 @@ def exclude(_context, file=None, package=None, files=None):
         context.processFile(path)
 
 def includeOverrides(_context, file=None, package=None, files=None):
-    """Include zcml file containing overrides
+    """Include zcml file containing overrides.
 
-    The actions in the included file are added to the context as if they
-    were in the including file directly.
+    The actions in the included file are added to the context as if
+    they were in the including file directly. Conflicting actions
+    added by the named *file* or *files* are resolved before this
+    directive completes.
 
-    See the detailed example in test_includeOverrides in
-    tests/text_xmlconfig.py
+    .. caution::
+        If you do not specify a *file*, then the default file
+        of ``configure.zcml`` will be used. A common use is to set *file*
+        to ``overrides.zcml``.
     """
 
     # We need to remember how many actions we had before
@@ -534,9 +536,9 @@ def _getContext():
         _clearContext()
         try:
             from zope.testing.cleanup import addCleanUp
-        except ImportError: #pragma NO COVER
+        except ImportError: # pragma: no cover
             pass
-        else: #pragma NO COVER
+        else: # pragma: no cover
             addCleanUp(_clearContext)
             del addCleanUp
     return _context
@@ -569,4 +571,3 @@ def testxmlconfig(file):
     context = _getContext()
     processxmlfile(file, context, testing=True)
     context.execute_actions(testing=True)
-
