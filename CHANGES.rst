@@ -27,6 +27,14 @@ Changes
   doctests on both Python 2 and Python 3. See `issue 21
   <https://github.com/zopefoundation/zope.configuration/issues/21>`_.
 
+- Fix ``GlobalObject`` and ``GlobalInterface`` fields to only accept
+  dotted names instead of names with ``/``. Previously, slash
+  delimited names could result in incorrect imports. See `issue 6
+  <https://github.com/zopefoundation/zope.configuration/issues/6>`_.
+
+- Fix the schema fields to include the ``value`` and ``field`` values
+  on exceptions they raise.
+
 4.1.0 (2017-04-26)
 ------------------
 
