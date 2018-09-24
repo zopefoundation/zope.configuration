@@ -43,7 +43,7 @@
       Validation Error '3foo'
       Validation Error 'foo:'
       Validation Error '\\'
-      ''
+      Validation Error ''
 
 .. autoclass:: GlobalObject
    :members:

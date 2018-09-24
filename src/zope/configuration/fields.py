@@ -35,8 +35,13 @@ from zope.configuration.interfaces import InvalidToken
 
 class PythonIdentifier(schema_PythonIdentifier):
     """
-    This class is deprecated, prefer `zope.schema.PythonIdentifier`.
+    This class is like `zope.schema.PythonIdentifier`, but does not allow empty strings.
     """
+
+    def _validate(self, value):
+        super(PythonIdentifier, self)._validate(value)
+        if not value:
+            raise ValidationError(value).with_field_and_value(self, value)
 
 
 @implementer(IFromUnicode)
