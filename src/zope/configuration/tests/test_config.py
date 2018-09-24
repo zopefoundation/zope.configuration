@@ -15,6 +15,8 @@
 """
 import unittest
 
+# pylint:disable=inherit-non-class,protected-access
+# pylint:disable=attribute-defined-outside-init, arguments-differ
 
 class ConfigurationContextTests(unittest.TestCase):
 
@@ -64,7 +66,7 @@ class ConfigurationContextTests(unittest.TestCase):
 
     def test_resolve_relative_miss_w_package_too_many_dots(self):
         class FauxPackage(object):
-            pass
+            __name__ = None
         from zope.configuration.exceptions import ConfigurationError
         c = self._makeOne()
         package = c.package = FauxPackage()
@@ -88,31 +90,28 @@ class ConfigurationContextTests(unittest.TestCase):
             c.resolve('zope.configuration.nosuch.noreally')
         self.assertIn('ImportError', str(exc.exception))
 
+    def _cleanup_bad_imports(self):
+        import sys
+
+        for name in ('zope.configuration.tests.victim',
+                     'zope.configuration.tests.bad'):
+            sys.modules.pop(name, None)
+
     def test_resolve_bad_sub_last_import(self):
         #Import error caused by a bad sub import inside the referenced
         #dotted name. Here we keep the standard traceback.
-        import sys
         c = self._makeOne()
         with self.assertRaises(ImportError):
             c.resolve('zope.configuration.tests.victim')
-        #Cleanup:
-        for name in ('zope.configuration.tests.victim',
-                     'zope.configuration.tests.bad'):
-           if name in sys.modules:
-               del sys.modules[name]
+        self._cleanup_bad_imports()
 
     def test_resolve_bad_sub_import(self):
         #Import error caused by a bad sub import inside part of the referenced
         #dotted name. Here we keep the standard traceback.
-        import sys
         c = self._makeOne()
         with self.assertRaises(ImportError):
             c.resolve('zope.configuration.tests.victim.nosuch')
-        #Cleanup:
-        for name in ('zope.configuration.tests.victim',
-                     'zope.configuration.tests.bad'):
-           if name in sys.modules:
-               del sys.modules[name]
+        self._cleanup_bad_imports()
 
     def test_resolve_unicode_all(self):
         # If a package's __init__.py is in the process of being ported from
@@ -238,7 +237,7 @@ class ConfigurationContextTests(unittest.TestCase):
         INCLUDE_PATH = ('p', 'q/r')
         INFO = 'INFO'
         def _callable():
-            pass
+            raise NotImplementedError
         c = self._makeOne()
         c.actions = [] # normally provided by subclass
         c.action(DISCRIMINATOR,
@@ -266,7 +265,7 @@ class ConfigurationContextTests(unittest.TestCase):
         INCLUDE_PATH = ('p', 'q/r')
         INFO = 'INFO'
         def _callable():
-            pass
+            raise NotImplementedError
         c = self._makeOne()
         c.actions = [] # normally provided by subclass
         c.action(DISCRIMINATOR,
@@ -327,7 +326,7 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         def _factory():
-            pass
+            raise NotImplementedError
         reg = self._makeOne()
         reg.register(IFoo, (NS, NAME), _factory)
         self.assertEqual(len(reg._registry), 1)
@@ -342,9 +341,9 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         def _factory():
-            pass
+            raise NotImplementedError
         def _rival():
-            pass
+            raise NotImplementedError
         reg = self._makeOne()
         reg.register(IFoo, (NS, NAME), _factory)
         reg.register(IFoo, (NS, NAME), _rival)
@@ -361,9 +360,9 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         NAME = 'testing'
         NAME2 = 'other'
         def _factory():
-            pass
+            raise NotImplementedError
         def _rival():
-            pass
+            raise NotImplementedError
         reg = self._makeOne()
         reg.register(IFoo, (NS, NAME), _factory)
         reg.register(IFoo, (NS, NAME2), _rival)
@@ -438,7 +437,7 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         NAME = 'testing'
         context = Context()
         def _factory():
-            pass
+            raise NotImplementedError
         reg = self._makeOne()
         reg.register(IFoo, (NS, NAME), _factory)
         self.assertEqual(reg.factory(context, (NS, NAME)), _factory)
@@ -455,7 +454,7 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         NAME = 'testing'
         context = Context()
         def _factory():
-            pass
+            raise NotImplementedError
         reg = self._makeOne()
         reg.register(IFoo, NAME, _factory)
         self.assertEqual(reg.factory(context, (NS, NAME)), _factory)
@@ -469,7 +468,7 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         NAME = 'testing'
         context = object() # doesn't provide IFoo
         def _factory():
-            pass
+            raise NotImplementedError
         reg = self._makeOne()
         reg.register(IFoo, (NS, NAME), _factory)
         with self.assertRaises(ConfigurationError):
@@ -477,6 +476,12 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
 
 
 class _ConformsToIConfigurationContext(object):
+
+    def _getTargetClass(self):
+        raise NotImplementedError
+
+    def _makeOne(self, *args, **kwargs):
+        raise NotImplementedError
 
     def test_class_conforms_to_IConfigurationContext(self):
         from zope.interface.verify import verifyClass
@@ -527,7 +532,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         def _factory(context, data, info):
-            pass
+            raise NotImplementedError
         cm = self._makeOne()
         cm.register(IConfigurationContext, (NS, NAME), _factory)
         with self.assertRaises(TypeError):
@@ -542,7 +547,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         class IUsedIn(Interface):
             pass
         def _handler(*args, **kw):
-            pass
+            raise NotImplementedError
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         _called_with = []
@@ -552,22 +557,24 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
             return item
         cm = self._makeOne()
         cm.register(IConfigurationContext, (NS, NAME), _factory)
-        cm.begin((NS, NAME), {'name': 'testing',
-                                  'schema': ISchema,
-                                  'usedIn': IUsedIn,
-                                  'handler': _handler,
-                                 }, 'INFO')
+        cm.begin((NS, NAME), {
+            'name': 'testing',
+            'schema': ISchema,
+            'usedIn': IUsedIn,
+            'handler': _handler,
+        }, 'INFO')
         self.assertEqual(len(cm.stack), 2)
         root = cm.stack[0]
         self.assertIsInstance(root, RootStackItem)
         nested = cm.stack[1]
         self.assertTrue(nested is item)
         self.assertEqual(_called_with,
-                        [(cm, {'name': 'testing',
-                               'schema': ISchema,
-                               'usedIn': IUsedIn,
-                               'handler': _handler,
-                              }, 'INFO')])
+                         [(cm, {
+                             'name': 'testing',
+                             'schema': ISchema,
+                             'usedIn': IUsedIn,
+                             'handler': _handler,
+                         }, 'INFO')])
 
     def test_begin_wo___data_w_kw(self):
         from zope.interface import Interface
@@ -578,7 +585,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         class IUsedIn(Interface):
             pass
         def _handler(*args, **kw):
-            pass
+            raise NotImplementedError
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         _called_with = []
@@ -588,23 +595,25 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
             return item
         cm = self._makeOne()
         cm.register(IConfigurationContext, (NS, NAME), _factory)
-        cm.begin((NS, NAME), None, 'INFO',
-                  name='testing',
-                  schema=ISchema,
-                  usedIn=IUsedIn,
-                  handler=_handler,
-                )
+        cm.begin(
+            (NS, NAME), None, 'INFO',
+            name='testing',
+            schema=ISchema,
+            usedIn=IUsedIn,
+            handler=_handler,
+        )
         self.assertEqual(len(cm.stack), 2)
         root = cm.stack[0]
         self.assertIsInstance(root, RootStackItem)
         nested = cm.stack[1]
         self.assertTrue(nested is item)
         self.assertEqual(_called_with,
-                        [(cm, {'name': 'testing',
-                               'schema': ISchema,
-                               'usedIn': IUsedIn,
-                               'handler': _handler,
-                              }, 'INFO')])
+                         [(cm, {
+                             'name': 'testing',
+                             'schema': ISchema,
+                             'usedIn': IUsedIn,
+                             'handler': _handler,
+                         }, 'INFO')])
 
     def test_end(self):
         from zope.configuration.config import RootStackItem
@@ -634,7 +643,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
             def finish(self):
                 self._finished = True
         def _handler(*args, **kw):
-            pass
+            raise NotImplementedError
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         _called_with = []
@@ -644,21 +653,23 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
             return item
         cm = self._makeOne()
         cm.register(IConfigurationContext, (NS, NAME), _factory)
-        cm((NS, NAME), 'INFO',
+        cm(
+            (NS, NAME), 'INFO',
             name='testing',
             schema=ISchema,
             usedIn=IUsedIn,
             handler=_handler,
-           )
+        )
         self.assertEqual(len(cm.stack), 1)
         root = cm.stack[0]
         self.assertIsInstance(root, RootStackItem)
         self.assertEqual(_called_with,
-                        [(cm, {'name': 'testing',
-                               'schema': ISchema,
-                               'usedIn': IUsedIn,
-                               'handler': _handler,
-                              }, 'INFO')])
+                         [(cm, {
+                             'name': 'testing',
+                             'schema': ISchema,
+                             'usedIn': IUsedIn,
+                             'handler': _handler,
+                         }, 'INFO')])
         self.assertTrue(item._finished)
 
     def test_getInfo_only_root_default(self):
@@ -712,12 +723,12 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         cm.action(None, _a1, ('b', 2), {'foo': 'qux'}, 2)
         cm.execute_actions()
         self.assertEqual(_called_with['_a1'],
-                        [(('b', 2), {'foo': 'qux'}),
-                         (('a', 0), {'foo': 'bar'}),
-                        ])
+                         [(('b', 2), {'foo': 'qux'}),
+                          (('a', 0), {'foo': 'bar'}),
+                         ])
         self.assertEqual(_called_with['_a2'],
-                        [(('a', 1), {'foo': 'baz'}),
-                        ])
+                         [(('a', 1), {'foo': 'baz'}),
+                         ])
 
     def test_execute_actions_w_errors_w_testing(self):
         def _err(*args, **kw):
@@ -751,16 +762,18 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         #Register some test directives, starting with a grouping directive
         # that sets a package:
 
-        machine((metans, "groupingDirective"),
-                 name="package", namespace=ns,
-                 schema="zope.configuration.tests.directives.IPackaged",
-                 handler="zope.configuration.tests.directives.Packaged",
-                )
+        machine(
+            (metans, "groupingDirective"),
+            name="package", namespace=ns,
+            schema="zope.configuration.tests.directives.IPackaged",
+            handler="zope.configuration.tests.directives.Packaged",
+        )
 
         # set the package:
-        machine.begin((ns, "package"),
-                       package="zope.configuration.tests.directives",
-                      )
+        machine.begin(
+            (ns, "package"),
+            package="zope.configuration.tests.directives",
+        )
 
         #Which makes it easier to define the other directives:
         machine((metans, "directive"),
@@ -783,6 +796,12 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
 
 
 class _ConformsToIStackItem(object):
+
+    def _getTargetClass(self):
+        raise NotImplementedError
+
+    def _makeOne(self, *args, **kwargs):
+        raise NotImplementedError
 
     def test_class_conforms_to_IStackItem(self):
         from zope.interface.verify import verifyClass
@@ -811,7 +830,7 @@ class SimpleStackItemTests(_ConformsToIStackItem,
             context = FauxContext()
         if handler is None:
             def handler():
-                pass
+                raise NotImplementedError
         if info is None:
             info = 'INFO'
         if schema is None:
@@ -827,7 +846,7 @@ class SimpleStackItemTests(_ConformsToIStackItem,
             pass
         context = FauxContext()
         def _handler():
-            pass
+            raise NotImplementedError
         _data = {}
         ssi = self._makeOne(context, _handler, 'INFO', ISchema, _data)
         self.assertIsInstance(ssi.context, GroupingContextDecorator)
@@ -862,7 +881,7 @@ class SimpleStackItemTests(_ConformsToIStackItem,
             name = Text(required=True)
         context = FauxContext()
         def _action(context, **kw):
-            pass
+            raise NotImplementedError
         def _handler(context, **kw):
             return [(None, _action)]
         _data = {'name': 'NAME'}
@@ -885,7 +904,7 @@ class SimpleStackItemTests(_ConformsToIStackItem,
             name = Text(required=True)
         context = FauxContext()
         def _action(context, **kw):
-            pass
+            raise NotImplementedError
         def _handler(context, **kw):
             return [{'discriminator': None, 'callable': _action}]
         _data = {'name': 'NAME'}
@@ -920,7 +939,7 @@ class RootStackItemTests(_ConformsToIStackItem,
         from zope.configuration.exceptions import ConfigurationError
         class _Context(object):
             def factory(self, context, name):
-                pass
+                "does nothing"
         rsi = self._makeOne(_Context())
         with self.assertRaises(ConfigurationError):
             rsi.contained(('ns', 'name'), {}, '')
@@ -965,7 +984,7 @@ class GroupingStackItemTests(_ConformsToIStackItem,
             _called_with.append((context, data, info))
             return _adapter
         def _action(*args, **kw):
-            pass
+            raise NotImplementedError
         class _Context(FauxContext):
             def factory(self, context, name):
                 return _factory
@@ -998,9 +1017,9 @@ class GroupingStackItemTests(_ConformsToIStackItem,
             _called_with.append((context, data, info))
             return _adapter
         def _before(*args, **kw):
-            pass
+            raise NotImplementedError
         def _after(*args, **kw):
-            pass
+            raise NotImplementedError
         class _Context(FauxContext):
             def factory(self, context, name):
                 return _factory
@@ -1027,9 +1046,9 @@ class GroupingStackItemTests(_ConformsToIStackItem,
 
     def test_finish_calls_before_if_not_already_called(self):
         def _before(*args, **kw):
-            pass
+            raise NotImplementedError
         def _after(*args, **kw):
-            pass
+            raise NotImplementedError
         class _Context(FauxContext):
             def before(self):
                 return [(None, _before)]
@@ -1037,7 +1056,7 @@ class GroupingStackItemTests(_ConformsToIStackItem,
                 return [(None, _after)]
         context = _Context()
         rsi = self._makeOne(context)
-        adapter = rsi.finish()
+        rsi.finish()
         self.assertEqual(len(context.actions), 2)
         self.assertEqual(context.actions[0], # no GSI to add extras
                          {'discriminator': None,
@@ -1122,7 +1141,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
             pass
         class WithName(object):
             def testing(self, *args):
-                pass
+                raise NotImplementedError
         meta = self._makeMeta()
         wn = meta._handler = WithName()
         meta[NAME] = (ISubSchema, 'SUBINFO')
@@ -1169,7 +1188,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
 
     def test_finish_handler_returns_oldstyle_actions(self):
         def _action():
-            pass
+            raise NotImplementedError
         def _handler():
             return [(None, _action)]
         meta = self._makeMeta()
@@ -1191,7 +1210,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
 
     def test_finish_handler_returns_newstyle_actions(self):
         def _action():
-            pass
+            raise NotImplementedError
         def _handler():
             return [{'discriminator': None, 'callable': _action}]
         meta = self._makeMeta()
@@ -1213,6 +1232,12 @@ class ComplexStackItemTests(_ConformsToIStackItem,
 
 
 class _ConformsToIGroupingContext(object):
+
+    def _getTargetClass(self):
+        raise NotImplementedError
+
+    def _makeOne(self, *args, **kwargs):
+        raise NotImplementedError
 
     def test_class_conforms_to_IGroupingContext(self):
         from zope.interface.verify import verifyClass
@@ -1271,6 +1296,12 @@ class GroupingContextDecoratorTests(_ConformsToIConfigurationContext,
 
 class _ConformsToIDirectivesContext(object):
 
+    def _getTargetClass(self):
+        raise NotImplementedError
+
+    def _makeOne(self, *args, **kwargs):
+        raise NotImplementedError
+
     def test_class_conforms_to_IDirectivesContext(self):
         from zope.interface.verify import verifyClass
         from zope.configuration.config import IDirectivesContext
@@ -1308,6 +1339,7 @@ class Test_defineSimpleDirective(unittest.TestCase):
     def _makeContext(self):
         class _Context(FauxContext):
             def __init__(self):
+                FauxContext.__init__(self)
                 self._registered = []
                 self._documented = []
             def register(self, usedIn, name, factory):
@@ -1327,7 +1359,7 @@ class Test_defineSimpleDirective(unittest.TestCase):
         context.namespace = NS
         context.info = 'INFO'
         def _handler():
-            pass
+            raise NotImplementedError
 
         self._callFUT(context, NAME, ISchema, _handler)
 
@@ -1357,7 +1389,7 @@ class Test_defineSimpleDirective(unittest.TestCase):
         context.namespace = NS
         context.info = 'INFO'
         def _handler():
-            pass
+            raise NotImplementedError
 
         self._callFUT(context, NAME, ISchema, _handler,
                       namespace='*', usedIn=IUsedIn)
@@ -1386,6 +1418,7 @@ class Test_defineGroupingDirective(unittest.TestCase):
     def _makeContext(self):
         class _Context(FauxContext):
             def __init__(self):
+                FauxContext.__init__(self)
                 self._registered = []
                 self._documented = []
             def register(self, usedIn, name, factory):
@@ -1465,6 +1498,12 @@ class Test_defineGroupingDirective(unittest.TestCase):
 
 class _ConformsToIComplexDirectiveContext(object):
 
+    def _getTargetClass(self):
+        raise NotImplementedError
+
+    def _makeOne(self, *args, **kwargs):
+        raise NotImplementedError
+
     def test_class_conforms_to_IComplexDirectiveContext(self):
         from zope.interface.verify import verifyClass
         from zope.configuration.config import IComplexDirectiveContext
@@ -1543,7 +1582,7 @@ class ComplexDirectiveDefinitionTests(_ConformsToIComplexDirectiveContext,
         self.assertEqual(_handled, [(csi.context, {'arg': 'val'})])
 
         self.assertEqual(_documented,
-                        [((NS, NAME), ISchema, IUsedIn, _handler, 'INFO')])
+                         [((NS, NAME), ISchema, IUsedIn, _handler, 'INFO')])
 
 
 class Test_subdirective(unittest.TestCase):
@@ -1741,7 +1780,7 @@ class Test_expand_action(unittest.TestCase):
 
     def test_explicit_no_extra(self):
         def _callable():
-            pass
+            raise NotImplementedError
         self.assertEqual(self._callFUT(('a', 1, None),
                                        _callable, ('b', 2), {'c': None},
                                        ('p', 'q/r'), 'INFO', 42,
@@ -1757,7 +1796,7 @@ class Test_expand_action(unittest.TestCase):
 
     def test_explicit_w_extra(self):
         def _callable():
-            pass
+            raise NotImplementedError
         self.assertEqual(self._callFUT(('a', 1, None),
                                        _callable, ('b', 2), {'c': None},
                                        ('p', 'q/r'), 'INFO', 42,
@@ -1786,27 +1825,32 @@ class Test_resolveConflicts(unittest.TestCase):
 
     def test_expands_oldstyle_actions(self):
         def _callable():
-            pass
-        self.assertEqual(self._callFUT([(None, _callable)]),
-                                       [{'discriminator': None,
-                                         'callable': _callable,
-                                         'args': (),
-                                         'kw': {},
-                                         'includepath': (),
-                                         'info': None,
-                                         'order': 0,
-                                        }])
+            raise NotImplementedError
+        self.assertEqual(
+            self._callFUT([(None, _callable)]),
+            [
+                {
+                    'discriminator': None,
+                    'callable': _callable,
+                    'args': (),
+                    'kw': {},
+                    'includepath': (),
+                    'info': None,
+                    'order': 0,
+                }
+            ]
+        )
 
     def test_wo_discriminator_clash(self):
         from zope.configuration.config import expand_action
         def _a():
-            pass
+            raise NotImplementedError
         def _b():
-            pass
+            raise NotImplementedError
         def _c():
-            pass
+            raise NotImplementedError
         def _d():
-            pass
+            raise NotImplementedError
         actions = [
             expand_action(('a', 1), _a, order=3),
             expand_action(('b', 2), _b, order=1),
@@ -1819,9 +1863,9 @@ class Test_resolveConflicts(unittest.TestCase):
     def test_w_resolvable_discriminator_clash(self):
         from zope.configuration.config import expand_action
         def _a():
-            pass
+            raise NotImplementedError
         def _b():
-            pass
+            raise NotImplementedError
         actions = [
             expand_action(('a', 1), _a, includepath=('a',)),
             expand_action(('a', 1), _b, includepath=('a', 'b')),
@@ -1833,11 +1877,11 @@ class Test_resolveConflicts(unittest.TestCase):
         from zope.configuration.config import ConfigurationConflictError
         from zope.configuration.config import expand_action
         def _a():
-            pass
+            raise NotImplementedError
         def _b():
-            pass
+            raise NotImplementedError
         actions = [
-            expand_action(('a', 1), _a, includepath=('b','c'), info='X'),
+            expand_action(('a', 1), _a, includepath=('b', 'c'), info='X'),
             expand_action(('a', 1), _b, includepath=('a',), info='Y'),
         ]
         with self.assertRaises(ConfigurationConflictError) as exc:
@@ -1848,9 +1892,9 @@ class Test_resolveConflicts(unittest.TestCase):
         from zope.configuration.config import ConfigurationConflictError
         from zope.configuration.config import expand_action
         def _a():
-            pass
+            raise NotImplementedError
         def _b():
-            pass
+            raise NotImplementedError
         actions = [
             expand_action(('a', 1), _a, includepath=('a',), info='X'),
             expand_action(('a', 1), _b, includepath=('a',), info='Y'),
@@ -1863,9 +1907,9 @@ class Test_resolveConflicts(unittest.TestCase):
         from zope.configuration.config import ConfigurationConflictError
         from zope.configuration.config import expand_action
         def _a():
-            pass
+            raise NotImplementedError
         def _b():
-            pass
+            raise NotImplementedError
         actions = [
             expand_action(('a', 1), _a, includepath=('a',), info='conflict!'),
             expand_action(
@@ -1881,13 +1925,13 @@ class Test_resolveConflicts(unittest.TestCase):
     def test_wo_discriminators_final_sorting_order(self):
         from zope.configuration.config import expand_action
         def _a():
-            pass
+            raise NotImplementedError
         def _b():
-            pass
+            raise NotImplementedError
         def _c():
-            pass
+            raise NotImplementedError
         def _d():
-            pass
+            raise NotImplementedError
         actions = [
             expand_action(None, _a, order=3),
             expand_action(None, _b, order=1),
@@ -1903,24 +1947,3 @@ class FauxContext(object):
         self.actions = []
     def action(self, **kw):
         self.actions.append(kw)
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(ConfigurationContextTests),
-        unittest.makeSuite(ConfigurationAdapterRegistryTests),
-        unittest.makeSuite(ConfigurationMachineTests),
-        unittest.makeSuite(SimpleStackItemTests),
-        unittest.makeSuite(RootStackItemTests),
-        unittest.makeSuite(GroupingStackItemTests),
-        unittest.makeSuite(ComplexStackItemTests),
-        unittest.makeSuite(GroupingContextDecoratorTests),
-        unittest.makeSuite(DirectivesHandlerTests),
-        unittest.makeSuite(Test_defineSimpleDirective),
-        unittest.makeSuite(Test_defineGroupingDirective),
-        unittest.makeSuite(ComplexDirectiveDefinitionTests),
-        unittest.makeSuite(Test_subdirective),
-        unittest.makeSuite(Test_provides),
-        unittest.makeSuite(Test_toargs),
-        unittest.makeSuite(Test_expand_action),
-        unittest.makeSuite(Test_resolveConflicts),
-    ))
