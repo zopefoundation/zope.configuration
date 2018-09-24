@@ -6,7 +6,11 @@ Changes
 
 - Add support for Python 3.7.
 
-- Drop support for Python 3.3.
+- Drop support for Python 3.3 and remove internal compatibility
+  functions needed to support it. See `issue 20
+  <https://github.com/zopefoundation/zope.configuration/issues/20>`_
+  and `issue 26
+  <https://github.com/zopefoundation/zope.configuration/issues/26>`_.
 
 - Drop support for ``python setup.py test``.
 

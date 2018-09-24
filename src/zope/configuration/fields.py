@@ -30,9 +30,9 @@ from zope.schema.interfaces import IFromUnicode
 
 from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.interfaces import InvalidToken
-from zope.configuration._compat import u
 
-PYIDENTIFIER_REGEX = u('\\A[a-zA-Z_]+[a-zA-Z0-9_]*\\Z')
+
+PYIDENTIFIER_REGEX = u'\\A[a-zA-Z_]+[a-zA-Z0-9_]*\\Z'
 pyidentifierPattern = re.compile(PYIDENTIFIER_REGEX)
 
 

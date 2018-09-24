@@ -22,6 +22,7 @@ __docformat__ = 'restructuredtext'
 import errno
 from glob import glob
 import logging
+import io
 import os
 import sys
 from xml.sax import make_parser
@@ -42,7 +43,6 @@ from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.fields import GlobalObject
 from zope.configuration.zopeconfigure import IZopeConfigure
 from zope.configuration.zopeconfigure import ZopeConfigure
-from zope.configuration._compat import StringIO
 from zope.configuration._compat import reraise
 
 logger = logging.getLogger("config")
@@ -326,9 +326,11 @@ class IInclude(Interface):
 
     file = NativeStringLine(
         title=u"Configuration file name",
-        description=(u"The name of a configuration file to be included/"
-                     u"excluded, relative to the directive containing the "
-                     u"including configuration file."),
+        description=(
+            u"The name of a configuration file to be included/"
+            u"excluded, relative to the directive containing the "
+            u"including configuration file."
+        ),
         required=False,
     )
 
@@ -510,7 +512,7 @@ def string(s, context=None, name="<string>", execute=True):
         context = ConfigurationMachine()
         registerCommonDirectives(context)
 
-    f = StringIO(s)
+    f = io.BytesIO(s) if isinstance(s, bytes) else io.StringIO(s)
     f.name = name
     processxmlfile(f, context)
 

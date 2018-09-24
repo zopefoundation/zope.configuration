@@ -1703,9 +1703,8 @@ class Test_toargs(unittest.TestCase):
     def test_w_field_missing_but_default(self):
         from zope.interface import Interface
         from zope.schema import Text
-        from zope.configuration._compat import u
         class ISchema(Interface):
-            w_default = Text(default=u('default'))
+            w_default = Text(default=u'default')
         context = FauxContext()
         self.assertEqual(self._callFUT(context, ISchema, {}),
                          {'w_default': 'default'})

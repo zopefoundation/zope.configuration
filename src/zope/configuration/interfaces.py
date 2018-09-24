@@ -16,7 +16,7 @@
 from zope.interface import Interface
 from zope.schema import BytesLine
 from zope.schema.interfaces import ValidationError
-from zope.configuration._compat import u
+
 
 class InvalidToken(ValidationError):
     """Invaid token in list."""
@@ -31,14 +31,14 @@ class IConfigurationContext(Interface):
     """
 
     package = BytesLine(
-        title=u("The current package name"),
-        description=u("""\
+        title=(u"The current package name"),
+        description=(u"""\
           This is the name of the package containing the configuration
           file being executed. If the configuration file was not
           included by package, then this is None.
           """),
         required=False,
-        )
+    )
 
     def resolve(dottedname):
         """Resolve a dotted name to an object

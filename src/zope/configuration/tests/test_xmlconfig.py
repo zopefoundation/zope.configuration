@@ -15,19 +15,18 @@
 """
 import unittest
 
-from zope.configuration._compat import u
 
-NS = u('ns')
-FOO = u('foo')
-XXX = u('xxx')
-SPLAT = u('splat')
-SPLATV = u('splatv')
-A = u('a')
-AVALUE = u('avalue')
-B = u('b')
-BVALUE = u('bvalue')
+NS = u'ns'
+FOO = u'foo'
+XXX = u'xxx'
+SPLAT = u'splat'
+SPLATV = u'splatv'
+A = u'a'
+AVALUE = u'avalue'
+B = u'b'
+BVALUE = u'bvalue'
 
-
+# pylint:disable=protected-access
 
 class ZopeXMLConfigurationErrorTests(unittest.TestCase):
 
@@ -96,8 +95,8 @@ class ParserInfoTests(unittest.TestCase):
         pi = self._makeOne('/path/to/nonesuch.xml', 24, 32)
         pi.end(33, 21)
         self.assertEqual(str(pi),
-                        'File "/path/to/nonesuch.xml", line 24.32-33.21\n'
-                        '  Could not read source.')
+                         'File "/path/to/nonesuch.xml", line 24.32-33.21\n'
+                         '  Could not read source.')
 
     def test___str___w_good_file(self):
         pi = self._makeOne('tests//sample.zcml', 3, 2)
@@ -167,8 +166,8 @@ class ConfigurationHandlerTests(unittest.TestCase):
     def test_startElementNS_context_begin_raises_wo_testing(self):
         from zope.configuration.xmlconfig import ZopeXMLConfigurationError
         class ErrorContext(FauxContext):
-          def begin(self, *args):
-            raise AttributeError("xxx")
+            def begin(self, *args):
+                raise AttributeError("xxx")
         context = ErrorContext()
         locator = FauxLocator('tests//sample.zcml', 1, 1)
         handler = self._makeOne(context)
@@ -187,8 +186,8 @@ class ConfigurationHandlerTests(unittest.TestCase):
 
     def test_startElementNS_context_begin_raises_w_testing(self):
         class ErrorContext(FauxContext):
-          def begin(self, *args):
-            raise AttributeError("xxx")
+            def begin(self, *args):
+                raise AttributeError("xxx")
         context = ErrorContext()
         locator = FauxLocator('tests//sample.zcml', 1, 1)
         handler = self._makeOne(context, True)
@@ -233,8 +232,8 @@ class ConfigurationHandlerTests(unittest.TestCase):
     def test_endElementNS_context_end_raises_wo_testing(self):
         from zope.configuration.xmlconfig import ZopeXMLConfigurationError
         class ErrorContext(FauxContext):
-          def end(self):
-            raise AttributeError("xxx")
+            def end(self):
+                raise AttributeError("xxx")
         class Info(object):
             _line = _col = None
             def end(self, line, col):
@@ -254,8 +253,8 @@ class ConfigurationHandlerTests(unittest.TestCase):
 
     def test_endElementNS_context_end_raises_w_testing(self):
         class ErrorContext(FauxContext):
-          def end(self):
-            raise AttributeError("xxx")
+            def end(self):
+                raise AttributeError("xxx")
         class Info(object):
             _line = _col = None
             def end(self, line, col):
@@ -314,7 +313,7 @@ class ConfigurationHandlerTests(unittest.TestCase):
         context = FauxContext()
         handler = self._makeOne(context)
         with self.assertRaises(ValueError) as exc:
-                handler.evaluateCondition('installed')
+            handler.evaluateCondition('installed')
         self.assertEqual(str(exc.exception.args[0]),
                          "Package name missing: 'installed'")
 
@@ -346,7 +345,7 @@ class ConfigurationHandlerTests(unittest.TestCase):
         context = FauxContext()
         handler = self._makeOne(context)
         self.assertTrue(
-                handler.evaluateCondition('not-installed nonsuch.package'))
+            handler.evaluateCondition('not-installed nonsuch.package'))
 
     def test_evaluateCondition_w_unknown_verb(self):
         context = FauxContext()
@@ -380,10 +379,11 @@ class Test_processxmlfile(unittest.TestCase):
         return processxmlfile(*args, **kw)
 
     def test_w_empty_xml(self):
+        from io import StringIO
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration.xmlconfig import ZopeSAXParseException
-        from zope.configuration._compat import StringIO
+
         context = ConfigurationMachine()
         registerCommonDirectives(context)
         with self.assertRaises(ZopeSAXParseException) as exc:
@@ -395,21 +395,22 @@ class Test_processxmlfile(unittest.TestCase):
         # Integration test, really
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
-        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
-        file = open(path("samplepackage", "configure.zcml"))
+
         context = ConfigurationMachine()
         registerCommonDirectives(context)
-        self._callFUT(file, context)
+
+        with open(path("samplepackage", "configure.zcml")) as file:
+            self._callFUT(file, context)
         self.assertEqual(foo.data, [])
         context.execute_actions()
         data = foo.data.pop()
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(data.args, (('x', (b'blah')), ('y', 0)))
         self.assertEqual(clean_info_path(repr(data.info)),
-                'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
+                         'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
         self.assertEqual(clean_info_path(str(data.info)),
-                'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n'
-                + '    <test:foo x="blah" y="0" />')
+                         'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n'
+                         + '    <test:foo x="blah" y="0" />')
         self.assertEqual(data.package, None)
         self.assertEqual(data.basepath, None)
 
@@ -536,7 +537,6 @@ class Test_include(unittest.TestCase):
         from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
-        from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         context = ConfigurationMachine()
@@ -557,12 +557,12 @@ class Test_include(unittest.TestCase):
         self.assertEqual(action['callable'], foo.data.append)
         self.assertEqual(action['includepath'], (fqn2,))
         self.assertIsInstance(action['args'][0], foo.stuff)
-        self.assertEqual(action['args'][0].args, (('x', b('foo')), ('y', 2)))
+        self.assertEqual(action['args'][0].args, (('x', (b'foo')), ('y', 2)))
         action = context.actions[1]
         self.assertEqual(action['callable'], foo.data.append)
         self.assertEqual(action['includepath'], (fqn3,))
         self.assertIsInstance(action['args'][0], foo.stuff)
-        self.assertEqual(action['args'][0].args, (('x', b('foo')), ('y', 3)))
+        self.assertEqual(action['args'][0].args, (('x', (b'foo')), ('y', 3)))
         self.assertEqual(context.stack, before_stack)
         self.assertEqual(len(context._seen_files), 3)
         self.assertIn(fqn1, context._seen_files)
@@ -698,7 +698,6 @@ class Test_file(unittest.TestCase):
 
     def test_wo_execute_wo_context_wo_package(self):
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         file_name = path("samplepackage", "configure.zcml")
         logger = LoggerStub()
@@ -710,12 +709,11 @@ class Test_file(unittest.TestCase):
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action['discriminator'],
-                         (('x', b('blah')), ('y', 0)))
+                         (('x', (b'blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_wo_execute_wo_context_w_package(self):
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         file_name = path("samplepackage", "configure.zcml")
@@ -730,14 +728,13 @@ class Test_file(unittest.TestCase):
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action['discriminator'],
-                         (('x', b('blah')), ('y', 0)))
+                         (('x', (b'blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_wo_execute_w_context(self):
         from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
-        from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         context = ConfigurationMachine()
@@ -755,22 +752,21 @@ class Test_file(unittest.TestCase):
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action['discriminator'],
-                         (('x', b('blah')), ('y', 0)))
+                         (('x', (b'blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_w_execute(self):
         import os
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         file_name = path("samplepackage", "configure.zcml")
         logger = LoggerStub()
         with _Monkey(xmlconfig, logger=logger):
-            context = self._callFUT(file_name)
+            self._callFUT(file_name)
         self.assertEqual(len(logger.debugs), 1)
         self.assertEqual(logger.debugs[0], ('include %s', (file_name,), {}))
         data = foo.data.pop()
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(data.args, (('x', (b'blah')), ('y', 0)))
         self.assertTrue(
             data.info.file.endswith(
                 os.path.normpath('tests/samplepackage/configure.zcml')))
@@ -780,7 +776,7 @@ class Test_file(unittest.TestCase):
         self.assertEqual(data.info.ecolumn, 29)
         self.assertEqual(data.package, None)
         self.assertTrue(data.basepath.endswith(
-                        os.path.normpath('tests/samplepackage')))
+            os.path.normpath('tests/samplepackage')))
 
 
 class Test_string(unittest.TestCase):
@@ -790,7 +786,6 @@ class Test_string(unittest.TestCase):
         return string(*args, **kw)
 
     def test_wo_execute_wo_context(self):
-        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         file_name = path("samplepackage", "configure.zcml")
         with open(file_name) as f:
@@ -800,13 +795,12 @@ class Test_string(unittest.TestCase):
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action['discriminator'],
-                         (('x', b('blah')), ('y', 0)))
+                         (('x', (b'blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_wo_execute_w_context(self):
         from zope.configuration.config import ConfigurationMachine
         from zope.configuration.xmlconfig import registerCommonDirectives
-        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         context = ConfigurationMachine()
         registerCommonDirectives(context)
@@ -819,18 +813,17 @@ class Test_string(unittest.TestCase):
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action['discriminator'],
-                         (('x', b('blah')), ('y', 0)))
+                         (('x', (b'blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_w_execute(self):
-        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         file_name = path("samplepackage", "configure.zcml")
         with open(file_name) as f:
             xml = f.read()
-        context = self._callFUT(xml)
+        self._callFUT(xml)
         data = foo.data.pop()
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(data.args, (('x', (b'blah')), ('y', 0)))
         self.assertTrue(data.info.file, '<string>')
         self.assertEqual(data.info.line, 12)
         self.assertEqual(data.info.column, 2)
@@ -864,7 +857,6 @@ class XMLConfigTests(unittest.TestCase):
     def test_ctor_w_global_context_missing(self):
         import os
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         here = os.path.dirname(__file__)
         path = os.path.join(here, "samplepackage", "configure.zcml")
@@ -878,12 +870,11 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
         self.assertEqual(action['discriminator'],
-                         (('x', b('blah')), ('y', 0)))
+                         (('x', (b'blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_ctor(self):
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         fqn = _packageFile(samplepackage, 'configure.zcml')
@@ -896,12 +887,11 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
         self.assertEqual(action['discriminator'],
-                         (('x', b('blah')), ('y', 0)))
+                         (('x', (b'blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test_ctor_w_module(self):
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests.samplepackage import foo
         from zope.configuration.tests import samplepackage
         fqn = _packageFile(samplepackage, 'configure.zcml')
@@ -914,13 +904,12 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
         self.assertEqual(action['discriminator'],
-                         (('x', b('blah')), ('y', 0)))
+                         (('x', (b'blah')), ('y', 0)))
         self.assertEqual(action['callable'], foo.data.append)
 
     def test___call__(self):
         import os
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         fqn = _packageFile(samplepackage, 'configure.zcml')
@@ -933,7 +922,7 @@ class XMLConfigTests(unittest.TestCase):
         xc() # call to process the actions
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(data.args, (('x', (b'blah')), ('y', 0)))
         self.assertTrue(
             data.info.file.endswith(
                 os.path.normpath('tests/samplepackage/configure.zcml')))
@@ -965,24 +954,23 @@ class Test_xmlconfig(unittest.TestCase):
     def test_wo_testing_passed(self):
         import os
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         def _assertTestingFalse(func):
             def _wrapper(*args, **kw):
-                assert(not kw['testing'])
+                assert not kw['testing']
                 return func(*args, **kw)
             return _wrapper
         fqn = _packageFile(samplepackage, 'configure.zcml')
         context = xmlconfig._getContext()
         context.execute_actions = _assertTestingFalse(context.execute_actions)
         with _Monkey(xmlconfig,
-                        processxmlfile=_assertTestingFalse(
-                                                xmlconfig.processxmlfile)):
+                     processxmlfile=_assertTestingFalse(
+                         xmlconfig.processxmlfile)):
             self._callFUT(open(fqn), False)
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(data.args, (('x', (b'blah')), ('y', 0)))
         self.assertTrue(
             data.info.file.endswith(
                 os.path.normpath('tests/samplepackage/configure.zcml')))
@@ -994,24 +982,23 @@ class Test_xmlconfig(unittest.TestCase):
     def test_w_testing_passed(self):
         import os
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         def _assertTestingTrue(func):
             def _wrapper(*args, **kw):
-                assert(kw['testing'])
+                assert kw['testing']
                 return func(*args, **kw)
             return _wrapper
         fqn = _packageFile(samplepackage, 'configure.zcml')
         context = xmlconfig._getContext()
         context.execute_actions = _assertTestingTrue(context.execute_actions)
         with _Monkey(xmlconfig,
-                        processxmlfile=_assertTestingTrue(
-                                                xmlconfig.processxmlfile)):
+                     processxmlfile=_assertTestingTrue(
+                         xmlconfig.processxmlfile)):
             self._callFUT(open(fqn), True)
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(data.args, (('x', (b'blah')), ('y', 0)))
         self.assertTrue(
             data.info.file.endswith(
                 os.path.normpath('tests/samplepackage/configure.zcml')))
@@ -1042,24 +1029,23 @@ class Test_testxmlconfig(unittest.TestCase):
     def test_w_testing_passed(self):
         import os
         from zope.configuration import xmlconfig
-        from zope.configuration._compat import b
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
         def _assertTestingTrue(func):
             def _wrapper(*args, **kw):
-                assert(kw['testing'])
+                assert kw['testing']
                 return func(*args, **kw)
             return _wrapper
         fqn = _packageFile(samplepackage, 'configure.zcml')
         context = xmlconfig._getContext()
         context.execute_actions = _assertTestingTrue(context.execute_actions)
         with _Monkey(xmlconfig,
-                        processxmlfile=_assertTestingTrue(
-                                                xmlconfig.processxmlfile)):
+                     processxmlfile=_assertTestingTrue(
+                         xmlconfig.processxmlfile)):
             self._callFUT(open(fqn))
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
-        self.assertEqual(data.args, (('x', b('blah')), ('y', 0)))
+        self.assertEqual(data.args, (('x', (b'blah')), ('y', 0)))
         self.assertTrue(
             data.info.file.endswith(
                 os.path.normpath('tests/samplepackage/configure.zcml')))
@@ -1119,12 +1105,13 @@ def clean_path(s):
 
 def clean_actions(actions):
     return [
-      {'discriminator': action['discriminator'],
-       'info': clean_info_path(repr(action['info'])),
-       'includepath': [clean_path(p) for p in action['includepath']],
-       }
-      for action in actions
-      ]
+        {
+            'discriminator': action['discriminator'],
+            'info': clean_info_path(repr(action['info'])),
+            'includepath': [clean_path(p) for p in action['includepath']],
+        }
+        for action in actions
+    ]
 
 def clean_text_w_paths(error):
     r = []
@@ -1158,7 +1145,7 @@ class _Monkey(object):
             setattr(self.module, k, v)
 
     def __exit__(self, *exc_info):
-        for k, v in self.replacements.items():
+        for k in self.replacements:
             if k in self.orig:
                 setattr(self.module, k, self.orig[k])
             else: #pragma NO COVERSGE
