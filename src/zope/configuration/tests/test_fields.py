@@ -15,8 +15,15 @@
 """
 import unittest
 
+# pylint:disable=protected-access
 
 class _ConformsToIFromUnicode(object):
+
+    def _getTargetClass(self):
+        raise NotImplementedError
+
+    def _makeOne(self, *args, **kw):
+        raise NotImplementedError
 
     def test_class_conforms_to_IFromUnicode(self):
         from zope.interface.verify import verifyClass
@@ -93,6 +100,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
         from zope.schema import ValidationError
         from zope.configuration.config import ConfigurationError
         class Context(object):
+            _resolved = None
             def resolve(self, name):
                 self._resolved = name
                 raise ConfigurationError()
@@ -106,6 +114,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_fromUnicode_w_resolve_success(self):
         _target = object()
         class Context(object):
+            _resolved = None
             def resolve(self, name):
                 self._resolved = name
                 return _target
@@ -121,6 +130,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
         from zope.schema import ValidationError
         _target = object()
         class Context(object):
+            _resolved = None
             def resolve(self, name):
                 self._resolved = name
                 return _target
@@ -162,7 +172,6 @@ class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_fromUnicode_strips_ws(self):
         from zope.schema import Text
         tok = self._makeOne(value_type=Text())
-        context = object()
         self.assertEqual(tok.fromUnicode(u' one two three '),
                          [u'one', u'two', u'three'])
 
@@ -170,7 +179,6 @@ class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
         from zope.schema import Int
         from zope.configuration.interfaces import InvalidToken
         tok = self._makeOne(value_type=Int(min=0))
-        context = object()
         with self.assertRaises(InvalidToken):
             tok.fromUnicode(u' 1 -1 3 ')
 
@@ -191,6 +199,7 @@ class PathTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_fromUnicode_relative(self):
         class Context(object):
+            _pathed = None
             def path(self, value):
                 self._pathed = value
                 return '/hard/coded'
@@ -260,7 +269,7 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
             msgid = bound.fromUnicode(u'testing')
         self.assertEqual(len(log), 1)
         self.assertTrue(str(log[0].message).startswith(
-                            'You did not specify an i18n translation domain'))
+            'You did not specify an i18n translation domain'))
         self.assertEqual(msgid, 'testing')
         self.assertEqual(msgid.default, None)
         self.assertEqual(msgid.domain, 'untranslated')
