@@ -14,7 +14,6 @@
 """Configuration-specific schema fields
 """
 import os
-import re
 import sys
 import warnings
 
@@ -24,8 +23,8 @@ from zope.schema import DottedName
 from zope.schema import Field
 from zope.schema import InterfaceField
 from zope.schema import List
+from zope.schema import PythonIdentifier as schema_PythonIdentifier
 from zope.schema import Text
-from zope.schema import TextLine
 from zope.schema import ValidationError
 from zope.schema.interfaces import IFromUnicode
 from zope.schema.interfaces import InvalidValue
@@ -34,25 +33,10 @@ from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.interfaces import InvalidToken
 
 
-PYIDENTIFIER_REGEX = u'\\A[a-zA-Z_]+[a-zA-Z0-9_]*\\Z'
-pyidentifierPattern = re.compile(PYIDENTIFIER_REGEX)
-
-
-@implementer(IFromUnicode)
-class PythonIdentifier(TextLine):
+class PythonIdentifier(schema_PythonIdentifier):
     """
-    This field describes a python identifier, i.e. a variable name.
-
-    Empty strings are allowed.
+    This class is deprecated, prefer `zope.schema.PythonIdentifier`.
     """
-
-    def fromUnicode(self, value):
-        return value.strip()
-
-    def _validate(self, value):
-        super(PythonIdentifier, self)._validate(value)
-        if pyidentifierPattern.match(value) is None:
-            raise ValidationError(value).with_field_and_value(self, value)
 
 
 @implementer(IFromUnicode)

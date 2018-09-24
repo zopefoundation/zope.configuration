@@ -36,43 +36,6 @@ class _ConformsToIFromUnicode(object):
         verifyObject(IFromUnicode, self._makeOne())
 
 
-class PythonIdentifierTests(unittest.TestCase, _ConformsToIFromUnicode):
-
-    def _getTargetClass(self):
-        from zope.configuration.fields import PythonIdentifier
-        return PythonIdentifier
-
-    def _makeOne(self, *args, **kw):
-        return self._getTargetClass()(*args, **kw)
-
-    def test_fromUnicode_empty(self):
-        pi = self._makeOne()
-        self.assertEqual(pi.fromUnicode(''), '')
-
-    def test_fromUnicode_normal(self):
-        pi = self._makeOne()
-        self.assertEqual(pi.fromUnicode('normal'), 'normal')
-
-    def test_fromUnicode_strips_ws(self):
-        pi = self._makeOne()
-        self.assertEqual(pi.fromUnicode('   '), '')
-        self.assertEqual(pi.fromUnicode(' normal  '), 'normal')
-
-    def test__validate_miss(self):
-        from zope.schema import ValidationError
-        pi = self._makeOne()
-        with self.assertRaises(ValidationError) as exc:
-            pi._validate(u'not-an-identifier')
-
-        ex = exc.exception
-        self.assertIs(ex.field, pi)
-        self.assertEqual(ex.value, 'not-an-identifier')
-
-    def test__validate_hit(self):
-        pi = self._makeOne()
-        pi._validate(u'is_an_identifier')
-
-
 class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def _getTargetClass(self):
