@@ -49,21 +49,21 @@ class Test_resolve(unittest.TestCase):
 
     def test_class_in_module(self):
         from zope.configuration.tests.directives import Complex
-        self.assertTrue(
-            self._callFUT('zope.configuration.tests.directives.Complex')
-                    is Complex)
+        self.assertIs(
+            self._callFUT('zope.configuration.tests.directives.Complex'),
+            Complex)
 
     def test_class_w_same_name_as_module(self):
         from zope.configuration.tests.samplepackage.NamedForClass \
             import NamedForClass
-        self.assertTrue(
+        self.assertIs(
             self._callFUT(
-                'zope.configuration.tests.samplepackage.NamedForClass+')
-                    is NamedForClass)
-        self.assertTrue(
+                'zope.configuration.tests.samplepackage.NamedForClass+'),
+            NamedForClass)
+        self.assertIs(
             self._callFUT(
-                'zope.configuration.tests.samplepackage.NamedForClass.')
-                    is NamedForClass)
+                'zope.configuration.tests.samplepackage.NamedForClass.'),
+            NamedForClass)
 
 class Test_getNormalizedName(unittest.TestCase):
 
@@ -126,12 +126,3 @@ class Test_path(unittest.TestCase):
         self.assertEqual(
             self._callFUT('configure.zcml', 'zope.configuration.tests'),
             os.path.join(os.path.dirname(__file__), 'configure.zcml'))
-
-
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(Test_resolve),
-        unittest.makeSuite(Test_resolve),
-        unittest.makeSuite(Test_path),
-    ))

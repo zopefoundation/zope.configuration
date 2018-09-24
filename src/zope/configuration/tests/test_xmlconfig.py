@@ -1148,7 +1148,7 @@ class _Monkey(object):
         for k in self.replacements:
             if k in self.orig:
                 setattr(self.module, k, self.orig[k])
-            else: #pragma NO COVERSGE
+            else: # pragma: no cover
                 delattr(self.module, k)
 
 

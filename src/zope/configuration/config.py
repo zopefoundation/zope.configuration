@@ -376,7 +376,7 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                 info = action['info']
                 try:
                     callable(*args, **kw)
-                except (KeyboardInterrupt, SystemExit): #pragma NO COVER
+                except (KeyboardInterrupt, SystemExit): # pragma: no cover
                     raise
                 except:
                     if testing:
@@ -398,7 +398,7 @@ class ConfigurationExecutionError(ConfigurationError):
     def __init__(self, etype, evalue, info):
         self.etype, self.evalue, self.info = etype, evalue, info
 
-    def __str__(self): #pragma NO COVER
+    def __str__(self): # pragma: no cover
         return "%s: %s\n  in:\n  %s" % (self.etype, self.evalue, self.info)
 
 ##############################################################################
