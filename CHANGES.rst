@@ -35,8 +35,8 @@ Changes
 - Fix the schema fields to include the ``value`` and ``field`` values
   on exceptions they raise.
 
-- Deprecate ``zope.configuration.fields.PythonIdentifier``; it has
-  been moved to ``zope.schema``. It now also implements ``fromBytes``
+- Make ``zope.configuration.fields.PythonIdentifier`` subclass
+  ``PythonIdentifier`` from ``zope.schema``. It now implements ``fromBytes``
   always produces a native string, and validates the value in
   ``fromUnicode``. See `issue 28
   <https://github.com/zopefoundation/zope.configuration/issues/28>`_.
