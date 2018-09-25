@@ -582,7 +582,7 @@ four verbs that are supported:
 - installed
 - not-installed
 
-Note that logical "or" conditions can be achieved by using both the
+Note that logical "if/else" conditions can be achieved by using both the
 positive verb and its not-prefixed counterpart on sibling elements
 with the same arguments. Logical "and" conditions can be achieved by
 nesting elements. To group arbitrary directives under a condition,
@@ -621,7 +621,7 @@ The verbs ``installed`` and ``not-installed`` test whether a Python
 module can be imported successfully or not. They can be used to enable
 optional configuration if a package is present, or enable fallback
 functionality if it isn't. (This also demonstrates grouping directives
-under a new ``<configure>`` element, and establishing a logical "or".)
+under a new ``<configure>`` element, and establishing a logical "if/else".)
 
 .. code-block:: xml
 
