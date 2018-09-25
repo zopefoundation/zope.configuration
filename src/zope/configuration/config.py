@@ -333,6 +333,14 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
     includepath = ()
     info = ''
 
+    #: These exceptions are allowed to be raised from `execute_actions`
+    #: without being re-wrapped into a `ConfigurationExecutionError`.
+    #: Users of instances of this class may modify this before calling `execute_actions`
+    #: if they need to propagate specific exceptions.
+    #:
+    #: .. versionadded:: 4.2.0
+    pass_through_exceptions = (KeyboardInterrupt, SystemExit)
+
     def __init__(self):
         super(ConfigurationMachine, self).__init__()
         self.actions = []
@@ -367,6 +375,9 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
 
         This calls the action callables after resolving conflicts.
         """
+        pass_through_exceptions = self.pass_through_exceptions
+        if testing:
+            pass_through_exceptions = BaseException
         try:
             for action in resolveConflicts(self.actions):
                 callable = action['callable']
@@ -377,11 +388,9 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                 info = action['info']
                 try:
                     callable(*args, **kw)
-                except (KeyboardInterrupt, SystemExit): # pragma: no cover
+                except pass_through_exceptions:
                     raise
                 except:
-                    if testing:
-                        raise
                     t, v, tb = sys.exc_info()
                     try:
                         reraise(ConfigurationExecutionError(t, v, info),

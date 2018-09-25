@@ -766,9 +766,29 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         cm.action(None, _err)
         with self.assertRaises(ConfigurationExecutionError) as exc:
             cm.execute_actions()
-        self.assertTrue(exc.exception.etype is ValueError)
+        self.assertIs(exc.exception.etype, ValueError)
         self.assertEqual(str(exc.exception.evalue), "XXX")
         self.assertEqual(exc.exception.info, "INFO")
+
+    def _check_execute_actions_w_errors_wo_testing(self, ex_kind):
+        ex = ex_kind('XXX')
+        def _err(*args, **kw):
+            raise ex
+        cm = self._makeOne()
+        cm.info = 'INFO'
+        cm.action(None, _err)
+        with self.assertRaises(ex_kind) as exc:
+            cm.execute_actions()
+
+        self.assertIs(exc.exception, ex)
+
+    def test_execute_actions_w_errors_wo_testing_SystemExit(self):
+        # It gets passed through as-is
+        self._check_execute_actions_w_errors_wo_testing(SystemExit)
+
+    def test_execute_actions_w_errors_wo_testing_KeyboardInterrupt(self):
+        # It gets passed through as-is
+        self._check_execute_actions_w_errors_wo_testing(KeyboardInterrupt)
 
     def test_keyword_handling(self):
         # This is really an integraiton test.
