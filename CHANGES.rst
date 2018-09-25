@@ -16,6 +16,11 @@ Changes
 
 - Drop support for ``python setup.py test``.
 
+- Make ``zope.configuration.fields.Path`` and
+  ``zope.configuration.config.ConfigurationContext`` expand
+  environment variables and expand user home directories in paths. See
+  `issue <https://github.com/zopefoundation/zope.configuration/issues/3>`_.
+
 - Fix resolving names from a Python 2 package whose ``__init__.py`` has
   unicode elements in ``__all__``.
 

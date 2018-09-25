@@ -31,6 +31,7 @@ from zope.configuration.interfaces import IConfigurationContext
 from zope.configuration.interfaces import IGroupingContext
 from zope.configuration.fields import GlobalInterface
 from zope.configuration.fields import GlobalObject
+from zope.configuration.fields import PathProcessor
 from zope.configuration._compat import builtins
 from zope.configuration._compat import reraise
 from zope.configuration._compat import string_types
@@ -185,9 +186,9 @@ class ConfigurationContext(object):
     def path(self, filename):
         """ Compute package-relative paths.
         """
-        filename = os.path.normpath(filename)
+        filename, needs_processing = PathProcessor.expand(filename)
 
-        if os.path.isabs(filename):
+        if not needs_processing:
             return filename
 
         # Got a relative path, combine with base path.
