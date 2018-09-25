@@ -64,6 +64,12 @@ class IConfigurationContext(Interface):
         If the filename is relative to the package, then the returned
         name will include the package path, otherwise, the original
         file name is returned.
+
+        Environment variables in the path are expanded, and if the path
+        begins with the username marker (~), that is expanded as well.
+
+        .. versionchanged:: 4.2.0
+            Start expanding home directories and environment variables.
         """
 
     def checkDuplicate(filename):

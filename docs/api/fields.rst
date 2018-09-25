@@ -203,6 +203,16 @@
       >>> n.split(os.sep)
       ['', 'a', 'b']
 
+   Environment variables are expanded:
+
+   .. doctest::
+
+      >>> os.environ['path-test'] = '42'
+      >>> with_env = os.path.join(os.sep, u'a', u'${path-test}')
+      >>> n = field.fromUnicode(with_env)
+      >>> n.split(os.sep)
+      ['', 'a', '42']
+
    Now try a relative path:
 
    .. doctest::
@@ -211,6 +221,21 @@
       >>> n = field.fromUnicode(p)
       >>> n.split(os.sep)
       ['', 'faux', 'context', 'a', 'b']
+
+   The current user is expanded (these are implicitly relative paths):
+
+   .. doctest::
+
+      >>> old_home = os.environ.get('HOME')
+      >>> os.environ['HOME'] = os.path.join(os.sep, 'HOME')
+      >>> n = field.fromUnicode('~')
+      >>> n.split(os.sep)
+      ['', 'HOME']
+      >>> if old_home:
+      ...    os.environ['HOME'] = old_home
+      ... else:
+      ...    del os.environ['HOME']
+
 
 .. autoclass:: Bool
    :members:

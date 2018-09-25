@@ -120,19 +120,42 @@ class Tokens(List):
 
         return values
 
+class PathProcessor(object):
+    # Internal helper for manipulations on paths
+
+    @classmethod
+    def expand(cls, filename):
+        # Perform the expansions we want to have done. Returns a
+        # tuple: (path, needs_processing) If the second value is true,
+        # further processing should be done (the path isn't fully
+        # resolved); if false, the path should be used as is
+
+        filename = filename.strip()
+        # expanding a ~ at the front should generally result
+        # in an absolute path.
+        filename = os.path.expanduser(filename)
+        filename = os.path.expandvars(filename)
+        if os.path.isabs(filename):
+            return os.path.normpath(filename), False
+        return filename, True
+
 
 @implementer(IFromUnicode)
 class Path(Text):
     """A file path name, which may be input as a relative path
 
     Input paths are converted to absolute paths and normalized.
-    """
-    def fromUnicode(self, u):
-        u = u.strip()
-        if os.path.isabs(u):
-            return os.path.normpath(u)
 
-        return self.context.path(u)
+    .. versionchanged:: 4.2.0
+        Start expanding home directories and environment variables.
+    """
+
+    def fromUnicode(self, value):
+        filename, needs_processing = PathProcessor.expand(value)
+        if needs_processing:
+            filename = self.context.path(filename)
+
+        return filename
 
 
 @implementer(IFromUnicode)

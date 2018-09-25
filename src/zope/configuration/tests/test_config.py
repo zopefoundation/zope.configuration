@@ -163,6 +163,31 @@ class ConfigurationContextTests(unittest.TestCase):
         c.package = stub()
         self.assertTrue(os.path.isabs(c.path('y/z')))
 
+    def test_path_expand_filenames(self):
+        import os
+        c = self._makeOne()
+        os.environ['path-test'] = '42'
+        try:
+            path = c.path(os.path.join(os.sep, '${path-test}'))
+            self.assertEqual(path, os.path.join(os.sep, '42'))
+        finally:
+            del os.environ['path-test']
+
+    def test_path_expand_user(self):
+        import os
+        c = self._makeOne()
+        old_home = os.environ.get('HOME')
+        # HOME should be absolute
+        os.environ['HOME'] = os.path.join(os.sep, 'HOME')
+        try:
+            path = c.path('~')
+            self.assertEqual(path, os.path.join(os.sep, 'HOME'))
+        finally: # pragma: no cover
+            if old_home:
+                os.environ['HOME'] = old_home
+            else:
+                del os.environ['HOME']
+
     def test_checkDuplicate_miss(self):
         import os
         c = self._makeOne()
