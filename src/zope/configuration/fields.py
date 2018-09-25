@@ -14,45 +14,47 @@
 """Configuration-specific schema fields
 """
 import os
-import re
 import sys
 import warnings
 
 from zope.interface import implementer
 from zope.schema import Bool as schema_Bool
+from zope.schema import DottedName
 from zope.schema import Field
 from zope.schema import InterfaceField
 from zope.schema import List
+from zope.schema import PythonIdentifier as schema_PythonIdentifier
 from zope.schema import Text
-from zope.schema import TextLine
 from zope.schema import ValidationError
 from zope.schema.interfaces import IFromUnicode
+from zope.schema.interfaces import InvalidValue
 
 from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.interfaces import InvalidToken
 
 
-PYIDENTIFIER_REGEX = u'\\A[a-zA-Z_]+[a-zA-Z0-9_]*\\Z'
-pyidentifierPattern = re.compile(PYIDENTIFIER_REGEX)
-
-
-@implementer(IFromUnicode)
-class PythonIdentifier(TextLine):
-    """This field describes a python identifier, i.e. a variable name.
+class PythonIdentifier(schema_PythonIdentifier):
     """
-    def fromUnicode(self, u):
-        return u.strip()
+    This class is like `zope.schema.PythonIdentifier`, but does not allow empty strings.
+    """
 
     def _validate(self, value):
         super(PythonIdentifier, self)._validate(value)
-        if pyidentifierPattern.match(value) is None:
-            raise ValidationError(value)
+        if not value:
+            raise ValidationError(value).with_field_and_value(self, value)
 
 
 @implementer(IFromUnicode)
 class GlobalObject(Field):
-    """An object that can be accessed as a module global.
     """
+    An object that can be accessed as a module global.
+
+    The special value ``*`` indicates a value of `None`; this is
+    not validated against the *value_type*.
+    """
+
+    _DOT_VALIDATOR = DottedName()
+
     def __init__(self, value_type=None, **kw):
         self.value_type = value_type
         super(GlobalObject, self).__init__(**kw)
@@ -62,17 +64,26 @@ class GlobalObject(Field):
         if self.value_type is not None:
             self.value_type.validate(value)
 
-    def fromUnicode(self, u):
-        name = str(u.strip())
+    def fromUnicode(self, value):
+        name = str(value.strip())
 
         # special case, mostly for interfaces
         if name == '*':
             return None
 
         try:
+            # Leading dots are allowed here to indicate current
+            # package.
+            to_validate = name[1:] if name.startswith('.') else name
+            self._DOT_VALIDATOR.validate(to_validate)
+        except ValidationError as v:
+            v.with_field_and_value(self, name)
+            raise
+
+        try:
             value = self.context.resolve(name)
         except ConfigurationError as v:
-            raise ValidationError(v)
+            raise ValidationError(v).with_field_and_value(self, name)
 
         self.validate(value)
         return value
@@ -99,7 +110,7 @@ class Tokens(List):
                 try:
                     v = vt.fromUnicode(s)
                 except ValidationError as v:
-                    raise InvalidToken("%s in %s" % (v, u))
+                    raise InvalidToken("%s in %s" % (v, u)).with_field_and_value(self, s)
                 else:
                     values.append(v)
         else:
@@ -131,13 +142,15 @@ class Bool(schema_Bool):
     Values may be input (in upper or lower case) as any of:
        yes, no, y, n, true, false, t, or f.
     """
-    def fromUnicode(self, u):
-        u = u.lower()
-        if u in ('1', 'true', 'yes', 't', 'y'):
+    def fromUnicode(self, value):
+        value = value.lower()
+        if value in ('1', 'true', 'yes', 't', 'y'):
             return True
-        if u in ('0', 'false', 'no', 'f', 'n'):
+        if value in ('0', 'false', 'no', 'f', 'n'):
             return False
-        raise ValidationError
+        # Unlike the superclass, anything else is invalid.
+        raise InvalidValue().with_field_and_value(self, value)
+
 
 
 @implementer(IFromUnicode)

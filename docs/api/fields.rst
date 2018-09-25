@@ -33,17 +33,17 @@
    .. doctest::
 
       >>> for value in (u'foo', u'foo3', u'foo_', u'_foo3', u'foo_3', u'foo3_'):
-      ...     field._validate(value)
+      ...     _ = field.fromUnicode(value)
       >>> from zope.schema import ValidationError
       >>> for value in (u'3foo', u'foo:', u'\\', u''):
       ...     try:
-      ...         field._validate(value)
+      ...         field.fromUnicode(value)
       ...     except ValidationError:
-      ...         print('Validation Error')
-      Validation Error
-      Validation Error
-      Validation Error
-      Validation Error
+      ...         print('Validation Error ' + repr(value))
+      Validation Error '3foo'
+      Validation Error 'foo:'
+      Validation Error '\\'
+      Validation Error ''
 
 .. autoclass:: GlobalObject
    :members:

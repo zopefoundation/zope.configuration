@@ -27,8 +27,9 @@ def read(*rnames):
 TESTS_REQUIRE = [
     'manuel',
     # We test the specific exceptions raised, which
-    # chang from version to version.
-    'zope.schema >= 4.8.0',
+    # change from version to version, and we need the behaviour
+    # in DottedName that allows underscores.
+    'zope.schema >= 4.9.0',
     'zope.testing',
     'zope.testrunner',
 ]
