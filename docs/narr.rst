@@ -595,7 +595,7 @@ nest them under a new ``<configure>`` element.
 Features
 --------
 
-The verbs ``have`` and ``not-have`` test for the presence or absense
+The verbs ``have`` and ``not-have`` test for the presence or absence
 of features in the configuration context. The argument is a single
 feature name. Features can be established in Python code using
 :meth:`~zope.configuration.config.ConfigurationContext.provideFeature`,
