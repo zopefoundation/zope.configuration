@@ -1,6 +1,6 @@
-==========================
-Zope configuration system
-==========================
+===========================
+ Zope configuration system
+===========================
 
 The zope configuration system provides an extensible system for
 supporting variouse kinds of configurations.
@@ -41,7 +41,7 @@ the directive.  There are four kinds of directives:
   are typically functions that take a context and zero or more
   keyword arguments and return a sequence of configuration actions.
 
-  To learn how to create simple directives, see `tests/simple.py`.
+  To learn how to create simple directives, see ``tests/simple.py``.
 
 
 - Grouping directives collect information to be used by nested
@@ -49,8 +49,8 @@ the directive.  There are four kinds of directives:
   to some interface that extends IConfigurationContext.
 
   To learn how to create grouping directives, look at the
-  documentation in zopeconfigure.py, which provides the implementation
-  of the zope `configure` directive.
+  documentation for :mod:`zope.configuration.zopeconfigure`, which
+  provides the implementation of the zope ``configure`` directive.
 
   Other directives can be nested in grouping directives.
 
@@ -78,7 +78,7 @@ the directive.  There are four kinds of directives:
    Flesh out narrative docs.
 
 Using the configuration machinery programatically
-==================================================
+=================================================
 
 An extended example:
 
@@ -339,7 +339,7 @@ inside a package directive:
 
 
 Overriding Included Configuration
-==================================
+=================================
 
 When we have conflicting directives, we can resolve them if one of
 the conflicting directives was from a file that included all of
@@ -571,16 +571,84 @@ There is a ``condition`` attribute in the
 "http://namespaces.zope.org/zcml" namespace which is honored on all
 elements in ZCML.  The value of the attribute is an expression
 which is used to determine if that element and its descendents are
-used.  If the condition is true, processing continues normally,
+used.  If the condition evaluates to true, processing continues normally;
 otherwise that element and its descendents are ignored.
 
-Currently the expression is always of the form "have featurename", and it
-checks for the presence of a ``<meta:provides feature="featurename" />``.
+The expression is always of the form "*verb* *arguments*". There are
+four verbs that are supported:
+
+- have
+- not-have
+- installed
+- not-installed
+
+Note that logical "or" conditions can be achieved by using both the
+positive verb and its not-prefixed counterpart on sibling elements
+with the same arguments. Logical "and" conditions can be achieved by
+nesting elements. To group arbitrary directives under a condition,
+nest them under a new ``<configure>`` element.
+
+.. seealso:: :meth:`zope.configuration.xmlconfig.ConfigurationHandler.evaluateCondition`
+
+   For documentation and examples of the XML implementation of conditions.
+
+Features
+--------
+
+The verbs ``have`` and ``not-have`` test for the presence or absense
+of features in the configuration context. The argument is a single
+feature name. Features can be established in Python code using
+:meth:`~zope.configuration.config.ConfigurationContext.provideFeature`,
+or they can be set during ZCML processing with the ``meta:provides``
+directive (e.g., ``<meta:provides feature="featurename" />``.)
+
+A popular use of features is to enable certain configuration only
+during development with a feature called ``devmode``. (This also
+demonstrates applying a condition to a single directive.)
+
+.. code-block:: xml
+
+   <configure
+      xmlns="http://namespaces.zope.org/zope"
+      xmlns:zcml="http://namespaces.zope.org/zcml" >
+      <include package="." file="devconfig.zcml" zcml:condition="have devmode" />
+   </configure>
+
+Module Availability
+-------------------
+
+The verbs ``installed`` and ``not-installed`` test whether a Python
+module can be imported successfully or not. They can be used to enable
+optional configuration if a package is present, or enable fallback
+functionality if it isn't. (This also demonstrates grouping directives
+under a new ``<configure>`` element, and establishing a logical "or".)
+
+.. code-block:: xml
+
+   <configure
+      xmlns="http://namespaces.zope.org/zope"
+      xmlns:zcml="http://namespaces.zope.org/zcml" >
+
+      <configure zcml:condition="installed some.package">
+          <!-- Use it -->
+          <include package="some.package" />
+      </configure>
+      <configure zcml:condition="not-installed some-package">
+          <!-- Enable our fallback code -->
+          <adapter for=".ISomeInterface"
+                   provides=".ISomeFunction"
+                   factory=".MockFunction" />
+      </configure>
+   </configure>
+
+
+Example
+-------
 
 Our demonstration uses a trivial registry; each registration consists
-of a simple id inserted in the global `registry` in this module.  We
+of a simple id inserted in the global ``registry`` in this module.  We
 can checked that a registration was made by checking whether the id is
-present in `registry`.
+present in ``registry``.
 
 .. doctest::
 
@@ -589,6 +657,9 @@ present in `registry`.
    []
 
 We start by loading the example ZCML file, *conditions.zcml*:
+
+.. literalinclude:: ../src/zope/configuration/tests/conditions.zcml
+   :language: xml
 
 .. doctest::
 
@@ -944,7 +1015,7 @@ done either to:
   with a single set of directive parameters.
 
 Grouping directives are used to handle both of these cases.  See the
-documentation in :mod:`zope.configure.zopeconfigure`. This file describes the
+documentation in :mod:`zope.configuration.zopeconfigure`. This file describes the
 implementation of the zope ``configure`` directive, which groups
 directives that use a common package or internationalization domain.
 You should also have read the section on "Creating simple directives."

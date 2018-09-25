@@ -33,14 +33,14 @@ To define a grouping directive, we need to do three things:
 
 The parameter schema is given by IZopeConfigure. It specifies a
 package parameter and an i18n_domain parameter.  The package parameter
-is specified as a ``GlobalObject``. This means it must be given as a
+is specified as a `~.GlobalObject`. This means it must be given as a
 dotted name that can be resolved through import.  The i18n domain is
 just a plain (not unicode) string.
 
 The handler class has a constructor that takes a context to be adapted
 and zero or more arguments (depending on the paramter schema).  The
 handler class must implement
-``zope.configuration.interfaces.IGroupingContext``, which defines
+`zope.configuration.interfaces.IGroupingContext`, which defines
 hooks ``before`` and ``after``, that are called with no arguments
 before and after nested directives are processed.  If a grouping
 directive handler creates any actions, or does any computation, this
@@ -48,13 +48,13 @@ is normally done in either the ``before`` or ``after`` hooks.
 Grouping handlers are normally decorators.
 
 The base class,
-``zope.configuration.config.GroupingContextDecorator``, is normally
+`zope.configuration.config.GroupingContextDecorator`, is normally
 used to define grouping directive handlers. It provides:
 
-- An implementation of IConfigurationContext, which grouping directive
+- An implementation of `~.IConfigurationContext`, which grouping directive
   handlers should normally implement,
 
-- A default implementation of ``IGroupingContext`` that provides empty
+- A default implementation of `~.IGroupingContext` that provides empty
   hooks.
 
 - Decorator support that uses a ``__getattr__`` method to delegate
@@ -63,32 +63,34 @@ used to define grouping directive handlers. It provides:
 - A constructor that sets the ``context`` attribute to the adapted
   context and assigns keyword arguments to attributes.
 
-The ``ZopeConfigure`` provides handling for the ``configure``
-directive. It subclasses GroupingContextDecorator, and overrides the
+The class `ZopeConfigure` provides handling for the ``configure``
+directive. It subclasses `~.GroupingContextDecorator`, and overrides the
 constructor to set the ``basepath`` attribute if a ``package`` argument
 is provided. Note that it delegates the job of assigning paramters to
-attribute to the ``GroupingContextDecorator`` constructor.
+attribute to the `~.GroupingContextDecorator` constructor.
 
 The last step is to register the directive using the meta
 configuration directive.  If we wanted to register the Zope
 ``configure`` directive for the ``zope`` namespace, we'd use a
-meta-configuration directive like::
+meta-configuration directive like:
 
-  <meta:groupingDirective
-     namespace="http://namespaces.zope.org/zope"
-     name="configure"
-     schema="zope.configuration.zopeconfigure.IZopeConfigure"
-     handler="zope.configuration.zopeconfigure.ZopeConfigure"
-     >
-     Zope configure
+.. code-block:: xml
 
-     The ``configure`` node is normally used as the root node for a
-     configuration file.  It can also be used to specify a package or
-     internationalization domain for a group of directives within a
-     file by grouping those directives.
-  </meta:groupingDirective>
+   <meta:groupingDirective
+      namespace="http://namespaces.zope.org/zope"
+      name="configure"
+      schema="zope.configuration.zopeconfigure.IZopeConfigure"
+      handler="zope.configuration.zopeconfigure.ZopeConfigure"
+      >
+      Zope configure
 
-We use the groupingDirective meta-directive to register a grouping
+      The ``configure`` node is normally used as the root node for a
+      configuration file.  It can also be used to specify a package or
+      internationalization domain for a group of directives within a
+      file by grouping those directives.
+   </meta:groupingDirective>
+
+We use the ``groupingDirective`` meta-directive to register a grouping
 directive. The parameters are self explanatory.  The textual contents
 of the directive provide documentation text, excluding parameter
 documentation, which is provided by the schema.
