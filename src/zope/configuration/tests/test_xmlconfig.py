@@ -649,7 +649,7 @@ class Test_includeOverrides(unittest.TestCase):
         # dummy action, path from "previous" include
         context.includepath = (fqp,)
         def _callable():
-            raise NotImplementedError
+            raise AssertionError("should not be called")
         context.actions.append({'discriminator': None,
                                 'callable': _callable,
                                })
