@@ -27,7 +27,7 @@ class F(object):
     def __repr__(self):
         return 'f'
     def __call__(self, *a, **k):
-        pass
+        raise NotImplementedError
 
 f = F()
 
@@ -72,10 +72,7 @@ class Complex(object):
         context.action("Complex.__init__")
 
     def factory(self, context, factory):
-        return [(('Complex.factory', 1,2), factory, (self.a, ))]
-
-    def factory2(self, context, factory):
-        return [(('Complex.factory', 1,2), factory, (self.a, ))]
+        return [(('Complex.factory', 1, 2), factory, (self.a, ))]
 
     def __call__(self):
         return [(('Complex', 1,2), f, (self.b, self.c))]
@@ -88,6 +85,3 @@ class Ik(Interface):
 
 def k(context, for_, class_, x):
     context.action(('k', for_), f, (for_, class_, x))
-
-def kkw(context, for_, class_, x, **kw):
-    context.action(('k', for_), f, (for_, class_, x, kw))

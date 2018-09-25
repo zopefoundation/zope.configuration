@@ -16,3 +16,4 @@ src/coverage.xml
 bin
 develop-eggs
 eggs
+htmlcov/

@@ -66,11 +66,11 @@ class Test_makeDocStructures(unittest.TestCase):
         NS = 'http://namespace.example.com/main'
         NS2 = 'http://namespace.example.com/other'
         def _one():
-            pass
+            raise AssertionError("should not be called")
         def _two():
-            pass
+            raise AssertionError("should not be called")
         def _three():
-            pass
+            raise AssertionError("should not be called")
         context = self._makeContext()
         context._docRegistry.append(
                     ((NS, 'one'), ISchema, IUsedIn, _one, 'ONE', None))
@@ -95,11 +95,11 @@ class Test_makeDocStructures(unittest.TestCase):
         NS = 'http://namespace.example.com/main'
         NS2 = 'http://namespace.example.com/other'
         def _one():
-            pass
+            raise AssertionError("should not be called")
         def _two():
-            pass
+            raise AssertionError("should not be called")
         def _three():
-            pass
+            raise AssertionError("should not be called")
         class Parent(object):
             namespace = PNS
             name = 'parent'

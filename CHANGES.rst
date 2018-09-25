@@ -4,6 +4,8 @@ Changes
 4.2.0 (unreleased)
 ------------------
 
+- Reach 100% automated test coverage.
+
 - Add support for Python 3.7.
 
 - Drop support for Python 3.3 and remove internal compatibility
