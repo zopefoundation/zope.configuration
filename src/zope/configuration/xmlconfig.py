@@ -162,11 +162,7 @@ class ConfigurationHandler(ContentHandler):
 
     def __init__(self, context, testing=False):
         self.context = context
-        # We use this in an `except:` clause. For backwards
-        # compatibility, ever though this attribute isn't documented,
-        # we keep it in an attribute named 'testing' which can be interpreted
-        # as a boolean
-        self.testing = BaseException if testing else ()
+        self.testing = testing
         self.ignore_depth = 0
 
     def setDocumentLocator(self, locator):
@@ -205,9 +201,9 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.begin(name, data, info)
-        except self.testing:
-            raise
         except Exception:
+            if self.testing:
+                raise
             reraise(ZopeXMLConfigurationError(info,
                                               sys.exc_info()[0],
                                               sys.exc_info()[1]),
@@ -271,9 +267,9 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.end()
-        except self.testing:
-            raise
         except Exception:
+            if self.testing:
+                raise
             reraise(ZopeXMLConfigurationError(info,
                                               sys.exc_info()[0],
                                               sys.exc_info()[1]),
