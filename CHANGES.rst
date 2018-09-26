@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.2.0 (unreleased)
+4.2.0 (2018-09-26)
 ------------------
 
 - Reach 100% automated test coverage.
