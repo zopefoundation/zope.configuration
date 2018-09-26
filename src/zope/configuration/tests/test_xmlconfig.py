@@ -156,42 +156,62 @@ class ConfigurationHandlerTests(unittest.TestCase):
                                })
         self.assertEqual(handler.ignore_depth, 2)
 
+    def _check_elementNS_context_raises(self, raises, catches,
+                                        testing=False,
+                                        meth='endElementNS',
+                                        meth_args=((NS, FOO), FOO)):
+        class ErrorContext(FauxContext):
+            def end(self, *args):
+                raise raises("xxx")
+            begin = end
+        class Info(object):
+            _line = _col = None
+            def end(self, line, col):
+                self._line, self._col = line, col
+        context = ErrorContext()
+        info = Info()
+        context.setInfo(info)
+        locator = FauxLocator('tests//sample.zcml', 1, 1)
+        handler = self._makeOne(context, testing)
+        handler.setDocumentLocator(locator)
+        locator.line, locator.column = 7, 16
+        meth = getattr(handler, meth)
+        with self.assertRaises(catches) as exc:
+            meth(*meth_args)
+        return exc.exception, info
+
+    def _check_startElementNS_context_begin_raises(self, raises, catches, testing=False):
+        return self._check_elementNS_context_raises(
+            raises, catches, testing,
+            meth='startElementNS',
+            meth_args=((NS, FOO),
+                       FOO,
+                       {(XXX, SPLAT): SPLATV,
+                        (None, A): AVALUE,
+                        (None, B): BVALUE,
+                       })
+        )
+
     def test_startElementNS_context_begin_raises_wo_testing(self):
         from zope.configuration.xmlconfig import ZopeXMLConfigurationError
-        class ErrorContext(FauxContext):
-            def begin(self, *args):
-                raise AttributeError("xxx")
-        context = ErrorContext()
-        locator = FauxLocator('tests//sample.zcml', 1, 1)
-        handler = self._makeOne(context)
-        handler.setDocumentLocator(locator)
-        with self.assertRaises(ZopeXMLConfigurationError) as exc:
-            handler.startElementNS(
-                (NS, FOO),
-                FOO,
-                {(XXX, SPLAT): SPLATV,
-                 (None, A): AVALUE,
-                 (None, B): BVALUE,
-                })
-        self.assertEqual(exc.exception.info.file, 'tests//sample.zcml')
-        self.assertEqual(exc.exception.info.line, 1)
-        self.assertEqual(exc.exception.info.column, 1)
+        raised, _ = self._check_startElementNS_context_begin_raises(AttributeError,
+                                                                    ZopeXMLConfigurationError)
+        info = raised.info
+        self.assertEqual(info.file, 'tests//sample.zcml')
+        self.assertEqual(info.line, 7)
+        self.assertEqual(info.column, 16)
 
     def test_startElementNS_context_begin_raises_w_testing(self):
-        class ErrorContext(FauxContext):
-            def begin(self, *args):
-                raise AttributeError("xxx")
-        context = ErrorContext()
-        locator = FauxLocator('tests//sample.zcml', 1, 1)
-        handler = self._makeOne(context, True)
-        handler.setDocumentLocator(locator)
-        with self.assertRaises(AttributeError):
-            handler.startElementNS(
-                (NS, FOO), FOO,
-                {(XXX, SPLAT): SPLATV,
-                 (None, A): AVALUE,
-                 (None, B): BVALUE,
-                })
+        self._check_startElementNS_context_begin_raises(AttributeError,
+                                                        AttributeError,
+                                                        True)
+
+    def test_startElementNS_context_begin_raises_BaseException(self):
+        class Bex(BaseException):
+            pass
+        self._check_startElementNS_context_begin_raises(Bex,
+                                                        Bex)
+
 
     def test_startElementNS_normal(self):
         # Integration test of startElementNS / endElementNS pair.
@@ -222,47 +242,31 @@ class ConfigurationHandlerTests(unittest.TestCase):
         handler.endElementNS((NS, FOO), FOO)
         self.assertEqual(handler.ignore_depth, 0)
 
+    def _check_endElementNS_context_end_raises(self, raises, catches, testing=False):
+        return self._check_elementNS_context_raises(raises, catches, testing)
+
     def test_endElementNS_context_end_raises_wo_testing(self):
         from zope.configuration.xmlconfig import ZopeXMLConfigurationError
-        class ErrorContext(FauxContext):
-            def end(self):
-                raise AttributeError("xxx")
-        class Info(object):
-            _line = _col = None
-            def end(self, line, col):
-                self._line, self._col = line, col
-        context = ErrorContext()
-        info = Info()
-        context.setInfo(info)
-        locator = FauxLocator('tests//sample.zcml', 1, 1)
-        handler = self._makeOne(context)
-        handler.setDocumentLocator(locator)
-        locator.line, locator.column = 7, 16
-        with self.assertRaises(ZopeXMLConfigurationError) as exc:
-            handler.endElementNS((NS, FOO), FOO)
-        self.assertTrue(exc.exception.info is context.info)
-        self.assertEqual(exc.exception.info._line, 7)
-        self.assertEqual(exc.exception.info._col, 16)
+
+        raised, info = self._check_endElementNS_context_end_raises(AttributeError,
+                                                                   ZopeXMLConfigurationError)
+
+        self.assertIs(raised.info, info)
+        self.assertEqual(raised.info._line, 7)
+        self.assertEqual(raised.info._col, 16)
 
     def test_endElementNS_context_end_raises_w_testing(self):
-        class ErrorContext(FauxContext):
-            def end(self):
-                raise AttributeError("xxx")
-        class Info(object):
-            _line = _col = None
-            def end(self, line, col):
-                self._line, self._col = line, col
-        context = ErrorContext()
-        info = Info()
-        context.setInfo(info)
-        locator = FauxLocator('tests//sample.zcml', 1, 1)
-        handler = self._makeOne(context, True)
-        handler.setDocumentLocator(locator)
-        locator.line, locator.column = 7, 16
-        with self.assertRaises(AttributeError):
-            handler.endElementNS((NS, FOO), FOO)
-        self.assertEqual(context.info._line, 7)
-        self.assertEqual(context.info._col, 16)
+        _, info = self._check_endElementNS_context_end_raises(AttributeError,
+                                                              AttributeError,
+                                                              True)
+        self.assertEqual(info._line, 7)
+        self.assertEqual(info._col, 16)
+
+    def test_endElementNS_context_end_raises_BaseException(self):
+        class Bex(BaseException):
+            pass
+        self._check_endElementNS_context_end_raises(Bex,
+                                                    Bex)
 
     def test_evaluateCondition_w_have_no_args(self):
         context = FauxContext()

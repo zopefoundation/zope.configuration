@@ -201,9 +201,7 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.begin(name, data, info)
-        except (KeyboardInterrupt, SystemExit): # pragma: no cover
-            raise
-        except:
+        except Exception:
             if self.testing:
                 raise
             reraise(ZopeXMLConfigurationError(info,
@@ -269,9 +267,7 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.end()
-        except (KeyboardInterrupt, SystemExit): # pragma: no cover
-            raise
-        except:
+        except Exception:
             if self.testing:
                 raise
             reraise(ZopeXMLConfigurationError(info,

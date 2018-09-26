@@ -46,6 +46,18 @@ Changes
   ``fromUnicode``. See `issue 28
   <https://github.com/zopefoundation/zope.configuration/issues/28>`_.
 
+- Add ``ConfigurationMachine.pass_through_exceptions`` to allow
+  customizing the exceptions that
+  ``ConfigurationMachine.execute_actions`` wraps in a
+  ``ConfigurationExecutionError``. See `issue 10
+  <https://github.com/zopefoundation/zope.configuration/issues/10>`_.
+
+- Stop catching ``BaseException`` and wrapping it in either
+  ``ConfigurationExecutionError`` or ``ZopeXMLConfigurationError``.
+  ``SystemExit`` and ``KeyboardInterrupt`` were always allowed to
+  propagate; now ``GeneratorExit`` and custom subclasses of
+  ``BaseException`` are also allowed te propagate.
+
 4.1.0 (2017-04-26)
 ------------------
 
