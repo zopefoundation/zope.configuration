@@ -19,7 +19,7 @@ Changes
 - Make ``zope.configuration.fields.Path`` and
   ``zope.configuration.config.ConfigurationContext`` expand
   environment variables and expand user home directories in paths. See
-  `issue <https://github.com/zopefoundation/zope.configuration/issues/3>`_.
+  `issue 3 <https://github.com/zopefoundation/zope.configuration/issues/3>`_.
 
 - Fix resolving names from a Python 2 package whose ``__init__.py`` has
   unicode elements in ``__all__``.
@@ -41,7 +41,7 @@ Changes
   on exceptions they raise.
 
 - Make ``zope.configuration.fields.PythonIdentifier`` subclass
-  ``PythonIdentifier`` from ``zope.schema``. It now implements ``fromBytes``
+  ``PythonIdentifier`` from ``zope.schema``. It now implements ``fromBytes``,
   always produces a native string, and validates the value in
   ``fromUnicode``. See `issue 28
   <https://github.com/zopefoundation/zope.configuration/issues/28>`_.
