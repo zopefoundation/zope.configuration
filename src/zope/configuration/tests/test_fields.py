@@ -92,8 +92,22 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
         context = Context()
         bound = go.bind(context)
         found = bound.fromUnicode('tried')
-        self.assertTrue(found is _target)
+        self.assertIs(found, _target)
         self.assertEqual(context._resolved, 'tried')
+
+    def test_fromUnicode_w_resolve_dot(self):
+        _target = object()
+        class Context(object):
+            _resolved = None
+            def resolve(self, name):
+                self._resolved = name
+                return _target
+        go = self._makeOne()
+        context = Context()
+        bound = go.bind(context)
+        found = bound.fromUnicode('.')
+        self.assertIs(found, _target)
+        self.assertEqual(context._resolved, '.')
 
     def test_fromUnicode_w_resolve_but_validation_fails(self):
         from zope.schema import Text
