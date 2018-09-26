@@ -35,7 +35,11 @@ from zope.configuration.interfaces import InvalidToken
 
 class PythonIdentifier(schema_PythonIdentifier):
     """
-    This class is like `zope.schema.PythonIdentifier`, but does not allow empty strings.
+    This class is like `zope.schema.PythonIdentifier`.
+
+    .. versionchanged:: 4.2.0
+       Extend `zope.schema.PythonIdentifier`, which implies that `fromUnicode`
+       validates the strings.
     """
 
     def _validate(self, value):
@@ -73,9 +77,12 @@ class GlobalObject(Field):
 
         try:
             # Leading dots are allowed here to indicate current
-            # package.
+            # package, but not accepted by DottedName. Take care,
+            # though, because a single dot is valid to resolve, but
+            # not valid to pass to DottedName (as an empty string)
             to_validate = name[1:] if name.startswith('.') else name
-            self._DOT_VALIDATOR.validate(to_validate)
+            if to_validate:
+                self._DOT_VALIDATOR.validate(to_validate)
         except ValidationError as v:
             v.with_field_and_value(self, name)
             raise

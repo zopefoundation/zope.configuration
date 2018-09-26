@@ -4,7 +4,9 @@ Changes
 4.2.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix ``GlobalObject`` (and ``GlobalInterface``) no longer allowing
+  just a single '.'. See `issue 35
+  <https://github.com/zopefoundation/zope.configuration/issues/35>`_.
 
 
 4.2.0 (2018-09-26)
