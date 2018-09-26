@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.2.1 (unreleased)
+4.2.1 (2018-09-26)
 ------------------
 
 - Fix ``GlobalObject`` (and ``GlobalInterface``) no longer allowing
