@@ -17,6 +17,12 @@
 import os
 from types import ModuleType
 
+__all__ = [
+    'resolve',
+    'getNormalizedName',
+    'path',
+]
+
 def resolve(name, package='zopeproducts', _silly=('__doc__',), _globals={}):
     name = name.strip()
 

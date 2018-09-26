@@ -108,6 +108,10 @@ from zope.schema import BytesLine
 from zope.configuration.config import GroupingContextDecorator
 from zope.configuration.fields import GlobalObject
 
+__all__ = [
+    'IZopeConfigure',
+    'ZopeConfigure',
+]
 
 class IZopeConfigure(Interface):
     """The ``zope:configure`` Directive

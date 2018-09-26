@@ -37,7 +37,36 @@ from zope.configuration._compat import reraise
 from zope.configuration._compat import string_types
 from zope.configuration._compat import text_type
 
-
+__all__ = [
+    'ConfigurationContext',
+    'ConfigurationAdapterRegistry',
+    'ConfigurationMachine',
+    'ConfigurationExecutionError',
+    'IStackItem',
+    'SimpleStackItem',
+    'RootStackItem',
+    'GroupingStackItem',
+    'ComplexStackItem',
+    'GroupingContextDecorator',
+    'DirectiveSchema',
+    'IDirectivesInfo',
+    'IDirectivesContext',
+    'DirectivesHandler',
+    'IDirectiveInfo',
+    'IFullInfo',
+    'IStandaloneDirectiveInfo',
+    'defineSimpleDirective',
+    'defineGroupingDirective',
+    'IComplexDirectiveContext',
+    'ComplexDirectiveDefinition',
+    'subdirective',
+    'IProvidesDirectiveInfo',
+    'provides',
+    'toargs',
+    'expand_action',
+    'resolveConflicts',
+    'ConfigurationConflictError',
+]
 
 zopens = 'http://namespaces.zope.org/zope'
 metans = 'http://namespaces.zope.org/meta'

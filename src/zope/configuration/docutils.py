@@ -17,6 +17,11 @@ __docformat__ = 'restructuredtext'
 
 import re
 
+__all__ = [
+    'wrap',
+    'makeDocStructures',
+]
+
 para_sep = re.compile('\n{2,}')
 whitespace = re.compile('[ \t\n\r]+')
 
@@ -27,7 +32,7 @@ def wrap(text, width=78, indent=0):
 
     new_paras = []
     for par in paras:
-        words= filter(None, whitespace.split(par))
+        words = filter(None, whitespace.split(par))
 
         lines = []
         line = []

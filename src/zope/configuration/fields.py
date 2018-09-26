@@ -32,6 +32,16 @@ from zope.schema.interfaces import InvalidValue
 from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.interfaces import InvalidToken
 
+__all__ = [
+    'PythonIdentifier',
+    'GlobalObject',
+    'GlobalInterface',
+    'Tokens',
+    'Path',
+    'Bool',
+    'MessageID',
+]
+
 
 class PythonIdentifier(schema_PythonIdentifier):
     """
