@@ -770,11 +770,11 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         self.assertEqual(str(exc.exception.evalue), "XXX")
         self.assertEqual(exc.exception.info, "INFO")
 
-    def _check_execute_actions_w_errors_wo_testing(self, ex_kind):
+    def _check_execute_actions_w_errors_wo_testing(self, ex_kind, cm=None):
         ex = ex_kind('XXX')
         def _err(*args, **kw):
             raise ex
-        cm = self._makeOne()
+        cm = cm if cm is not None else self._makeOne()
         cm.info = 'INFO'
         cm.action(None, _err)
         with self.assertRaises(ex_kind) as exc:
@@ -789,6 +789,20 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
     def test_execute_actions_w_errors_wo_testing_KeyboardInterrupt(self):
         # It gets passed through as-is
         self._check_execute_actions_w_errors_wo_testing(KeyboardInterrupt)
+
+    def test_execute_actions_w_errors_wo_testing_BaseException(self):
+        # It gets passed through as-is
+        class Bex(BaseException):
+            pass
+        self._check_execute_actions_w_errors_wo_testing(Bex)
+
+    def test_execute_actions_w_errors_custom(self):
+        # It gets passed through as-is, if we ask it to
+        class Ex(Exception):
+            pass
+        cm = self._makeOne()
+        cm.pass_through_exceptions += (Ex,)
+        self._check_execute_actions_w_errors_wo_testing(Ex, cm)
 
     def test_keyword_handling(self):
         # This is really an integraiton test.
