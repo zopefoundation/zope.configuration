@@ -4,7 +4,9 @@ Changes
 4.2.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix ``GlobalObject`` (and ``GlobalInterface``) no longer allowing
+  multiple leading dots. See `issue 41
+  <https://github.com/zopefoundation/zope.configuration/issues/41>`_.
 
 
 4.2.1 (2018-09-26)

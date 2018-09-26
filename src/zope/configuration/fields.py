@@ -80,7 +80,7 @@ class GlobalObject(Field):
             # package, but not accepted by DottedName. Take care,
             # though, because a single dot is valid to resolve, but
             # not valid to pass to DottedName (as an empty string)
-            to_validate = name[1:] if name.startswith('.') else name
+            to_validate = name.lstrip('.')
             if to_validate:
                 self._DOT_VALIDATOR.validate(to_validate)
         except ValidationError as v:
