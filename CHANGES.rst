@@ -8,6 +8,10 @@ Changes
   multiple leading dots. See `issue 41
   <https://github.com/zopefoundation/zope.configuration/issues/41>`_.
 
+- Add ``__all__`` to all modules listing the documented members of
+  the module. Note that this is currently a broad list and may be
+  reduced in the future.
+
 
 4.2.1 (2018-09-26)
 ------------------

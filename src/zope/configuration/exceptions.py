@@ -14,6 +14,10 @@
 """Standard configuration errors
 """
 
+__all__ = [
+    'ConfigurationError',
+]
+
 class ConfigurationError(Exception):
     """There was an error in a configuration
     """

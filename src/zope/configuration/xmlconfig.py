@@ -45,6 +45,25 @@ from zope.configuration.zopeconfigure import IZopeConfigure
 from zope.configuration.zopeconfigure import ZopeConfigure
 from zope.configuration._compat import reraise
 
+__all__ = [
+    'ZopeXMLConfigurationError',
+    'ZopeSAXParseException',
+    'ParserInfo',
+    'ConfigurationHandler',
+    'processxmlfile',
+    'openInOrPlain',
+    'IInclude',
+    'include',
+    'exclude',
+    'includeOverrides',
+    'registerCommonDirectives',
+    'file',
+    'string',
+    'XMLConfig',
+    'xmlconfig',
+    'testxmlconfig',
+]
+
 logger = logging.getLogger("config")
 
 ZCML_NAMESPACE = "http://namespaces.zope.org/zcml"
