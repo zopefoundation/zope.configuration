@@ -29,6 +29,7 @@ BVALUE = u'bvalue'
 # pylint:disable=protected-access
 
 class ZopeXMLConfigurationErrorTests(unittest.TestCase):
+    maxDiff = None
 
     def _getTargetClass(self):
         from zope.configuration.xmlconfig import ZopeXMLConfigurationError
@@ -38,11 +39,16 @@ class ZopeXMLConfigurationErrorTests(unittest.TestCase):
         return self._getTargetClass()(*args, **kw)
 
     def test___str___uses_repr_of_info(self):
-        zxce = self._makeOne('info', Exception, 'value')
-        self.assertEqual(str(zxce), "'info'\n    Exception: value")
+        zxce = self._makeOne('info', Exception('value'))
+        self.assertEqual(
+            str(zxce),
+            "'info'\n    Exception: value"
+        )
+
 
 
 class ZopeSAXParseExceptionTests(unittest.TestCase):
+    maxDiff = None
 
     def _getTargetClass(self):
         from zope.configuration.xmlconfig import ZopeSAXParseException
@@ -53,11 +59,15 @@ class ZopeSAXParseExceptionTests(unittest.TestCase):
 
     def test___str___not_a_sax_error(self):
         zxce = self._makeOne(Exception('Not a SAX error'))
-        self.assertEqual(str(zxce), "Not a SAX error")
+        self.assertEqual(
+            str(zxce),
+            "Not a SAX error\n    Exception: Not a SAX error")
 
     def test___str___w_a_sax_error(self):
         zxce = self._makeOne(Exception('filename.xml:24:32:WAAA'))
-        self.assertEqual(str(zxce), 'File "filename.xml", line 24.32, WAAA')
+        self.assertEqual(
+            str(zxce),
+            'File "filename.xml", line 24.32, WAAA\n    Exception: filename.xml:24:32:WAAA')
 
 
 class ParserInfoTests(unittest.TestCase):

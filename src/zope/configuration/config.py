@@ -27,6 +27,7 @@ from zope.schema import URI
 from zope.schema import ValidationError
 
 from zope.configuration.exceptions import ConfigurationError
+from zope.configuration.exceptions import ConfigurationWrapperError
 from zope.configuration.interfaces import IConfigurationContext
 from zope.configuration.interfaces import IGroupingContext
 from zope.configuration.fields import GlobalInterface
@@ -41,7 +42,6 @@ __all__ = [
     'ConfigurationContext',
     'ConfigurationAdapterRegistry',
     'ConfigurationMachine',
-    'ConfigurationExecutionError',
     'IStackItem',
     'SimpleStackItem',
     'RootStackItem',
@@ -739,17 +739,12 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
             ...   (2, f, (2,)),
             ...   (3, bad, (), {}, (), 'oops')
             ...   ]
-            >>> try:
-            ...    v = context.execute_actions()
-            ... except ConfigurationExecutionError as e:
-            ...    v = e
-            >>> lines = str(v).splitlines()
-            >>> 'AttributeError' in lines[0]
-            True
-            >>> lines[0].endswith("'function' object has no attribute 'xxx'")
-            True
-            >>> lines[1:]
-            ['  in:', '  oops']
+
+            >>> context.execute_actions()
+            Traceback (most recent call last):
+            ...
+            zope.configuration.config.ConfigurationExecutionError: oops
+                AttributeError: 'function' object has no attribute 'xxx'
 
         Note that actions executed before the error still have an effect:
 
@@ -769,29 +764,31 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                 info = action['info']
                 try:
                     callable(*args, **kw)
-                except pass_through_exceptions:
-                    raise
-                except Exception:
-                    t, v, tb = sys.exc_info()
+                except BaseException as ex:
                     try:
-                        reraise(ConfigurationExecutionError(t, v, info),
-                                None, tb)
+                        if isinstance(ex, ConfigurationError):
+                            ex.append_details(info)
+                            raise
+                        if isinstance(ex, pass_through_exceptions):
+                            raise
+                        if not isinstance(ex, Exception):
+                            # BaseException
+                            raise
+
+                        # Wrap it up and raise.
+                        reraise(ConfigurationExecutionError(info, ex),
+                                None, sys.exc_info()[2])
                     finally:
-                        del t, v, tb
+                        del ex
 
         finally:
             if clear:
                 del self.actions[:]
 
-class ConfigurationExecutionError(ConfigurationError):
+class ConfigurationExecutionError(ConfigurationWrapperError):
     """
     An error occurred during execution of a configuration action
     """
-    def __init__(self, etype, evalue, info):
-        self.etype, self.evalue, self.info = etype, evalue, info
-
-    def __str__(self): # pragma: no cover
-        return "%s: %s\n  in:\n  %s" % (self.etype, self.evalue, self.info)
 
 ##############################################################################
 # Stack items
@@ -1671,7 +1668,7 @@ def toargs(context, schema, data):
             try:
                 args[str(name)] = field.fromUnicode(s)
             except ValidationError as v:
-                reraise(ConfigurationError("Invalid value for", n, str(v)),
+                reraise(ConfigurationError("Invalid value for %r: %r" % (n, v)).append_details(v),
                         None, sys.exc_info()[2])
         elif field.required:
             # if the default is valid, we can use that:

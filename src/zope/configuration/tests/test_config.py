@@ -1810,7 +1810,7 @@ class Test_toargs(unittest.TestCase):
         with self.assertRaises(ConfigurationError) as exc:
             self._callFUT(context, ISchema, {'count': '-1'})
         self.assertEqual(exc.exception.args,
-                         ('Invalid value for', 'count', '(-1, 0)'))
+                         ("Invalid value for 'count': TooSmall(-1, 0)",))
 
 
 class Test_expand_action(unittest.TestCase):
