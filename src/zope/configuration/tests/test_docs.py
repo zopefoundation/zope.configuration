@@ -20,6 +20,7 @@ from __future__ import division
 from __future__ import print_function
 
 import re
+import sys
 import os.path
 import unittest
 import doctest
@@ -41,6 +42,11 @@ checker = renormalizing.RENormalizing([
     (re.compile('b(".*?")'), r"\1"),
 ])
 
+optionflags = (
+    doctest.NORMALIZE_WHITESPACE
+    | doctest.ELLIPSIS
+    | doctest.IGNORE_EXCEPTION_DETAIL
+)
 
 def test_suite():
     here = os.path.dirname(os.path.abspath(__file__))
@@ -64,15 +70,22 @@ def test_suite():
         'xmlconfig.rst',
     )
 
+    # Plain doctest suites
+    api_to_test = (
+        'config',
+        'docutils',
+        'fields',
+        'interfaces',
+        'name',
+        'xmlconfig',
+        'zopeconfigure',
+    )
+
     paths = [os.path.join(docs, f) for f in doc_files_to_test]
     paths += [os.path.join(api_docs, f) for f in api_files_to_test]
 
     m = manuel.ignore.Manuel()
-    m += manuel.doctest.Manuel(checker=checker, optionflags=(
-        doctest.NORMALIZE_WHITESPACE
-        | doctest.ELLIPSIS
-        | doctest.IGNORE_EXCEPTION_DETAIL
-    ))
+    m += manuel.doctest.Manuel(checker=checker, optionflags=optionflags)
     m += manuel.codeblock.Manuel()
     m += manuel.capture.Manuel()
 
@@ -83,5 +96,16 @@ def test_suite():
             *paths
         )
     )
+
+    for mod_name in api_to_test:
+        mod_name = 'zope.configuration.' + mod_name
+        __import__(mod_name)
+        suite.addTest(
+            doctest.DocTestSuite(
+                sys.modules[mod_name],
+                checker=checker,
+                optionflags=optionflags
+            )
+        )
 
     return suite
