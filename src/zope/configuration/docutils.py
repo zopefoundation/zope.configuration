@@ -26,7 +26,24 @@ para_sep = re.compile('\n{2,}')
 whitespace = re.compile('[ \t\n\r]+')
 
 def wrap(text, width=78, indent=0):
-    """Makes sure that we keep a line length of a certain width.
+    """
+    Makes sure that we keep a line length of a certain width.
+
+    Examples:
+
+      >>> from zope.configuration.docutils import wrap
+      >>> print(wrap('foo bar')[:-2])
+      foo bar
+      >>> print(wrap('foo bar', indent=2)[:-2])
+        foo bar
+      >>> print(wrap('foo bar, more foo bar', 10)[:-2])
+      foo bar,
+      more foo
+      bar
+      >>> print(wrap('foo bar, more foo bar', 10, 2)[:-2])
+        foo bar,
+        more foo
+        bar
     """
     paras = para_sep.split(text.strip())
 
@@ -54,15 +71,18 @@ def wrap(text, width=78, indent=0):
 
 
 def makeDocStructures(context):
-    """Creates two structures that provide a friendly format for
+    """
+    makeDocStructures(context) -> namespaces, subdirs
+
+    Creates two structures that provide a friendly format for
     documentation.
 
-    'namespaces' is a dictionary that maps namespaces to a directives
-    dictionary with the key being the name of the directive and the value is a
-    tuple: (schema, handler, info).
+    *namespaces* is a dictionary that maps namespaces to a directives
+    dictionary with the key being the name of the directive and the
+    value is a tuple: (schema, handler, info).
 
-    'subdirs' maps a (namespace, name) pair to a list of subdirectives that
-    have the form (namespace, name, schema, info).
+    *subdirs* maps a (namespace, name) pair to a list of subdirectives
+    that have the form (namespace, name, schema, info).
     """
     namespaces = {}
     subdirs = {}
