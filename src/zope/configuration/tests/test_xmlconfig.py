@@ -58,16 +58,16 @@ class ZopeSAXParseExceptionTests(unittest.TestCase):
         return self._getTargetClass()(*args, **kw)
 
     def test___str___not_a_sax_error(self):
-        zxce = self._makeOne(Exception('Not a SAX error'))
+        zxce = self._makeOne("info", Exception('Not a SAX error'))
         self.assertEqual(
             str(zxce),
-            "Not a SAX error\n    Exception: Not a SAX error")
+            "info\n    Exception: Not a SAX error")
 
     def test___str___w_a_sax_error(self):
-        zxce = self._makeOne(Exception('filename.xml:24:32:WAAA'))
+        zxce = self._makeOne("info", Exception('filename.xml:24:32:WAAA'))
         self.assertEqual(
             str(zxce),
-            'File "filename.xml", line 24.32, WAAA\n    Exception: filename.xml:24:32:WAAA')
+            'info\n    Exception: filename.xml:24:32:WAAA')
 
 
 class ParserInfoTests(unittest.TestCase):
@@ -395,7 +395,7 @@ class Test_processxmlfile(unittest.TestCase):
         registerCommonDirectives(context)
         with self.assertRaises(ZopeSAXParseException) as exc:
             self._callFUT(StringIO(), context)
-        self.assertEqual(str(exc.exception._v),
+        self.assertEqual(str(exc.exception.evalue),
                          '<string>:1:0: no element found')
 
     def test_w_valid_xml_fp(self):

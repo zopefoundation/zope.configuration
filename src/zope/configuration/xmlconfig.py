@@ -90,29 +90,17 @@ class ZopeXMLConfigurationError(ConfigurationWrapperError):
 
 class ZopeSAXParseException(ConfigurationWrapperError):
     """
-    Sax Parser errors, reformatted in an emacs friendly way.
+    Sax Parser errors as a ConfigurationError.
 
     Example
 
         >>> from zope.configuration.xmlconfig import ZopeSAXParseException
-        >>> v = ZopeSAXParseException(Exception("foo.xml:12:3:Not well formed"))
+        >>> v = ZopeSAXParseException("info", Exception("foo.xml:12:3:Not well formed"))
         >>> print(v)
-        File "foo.xml", line 12.3, Not well formed
+        info
             Exception: foo.xml:12:3:Not well formed
     """
 
-    def __init__(self, exception):
-        s = tuple(str(exception).split(':'))
-        if len(s) == 4:
-            info = 'File "%s", line %s.%s, %s' % s
-        else:
-            info = str(exception)
-        super(ZopeSAXParseException, self).__init__(info, exception)
-
-    @property
-    def _v(self):
-        # BWC for testing only
-        return self.evalue
 
 class ParserInfo(object):
     r"""
@@ -418,7 +406,7 @@ def processxmlfile(file, context, testing=False):
     try:
         parser.parse(src)
     except SAXParseException:
-        reraise(ZopeSAXParseException(sys.exc_info()[1]),
+        reraise(ZopeSAXParseException(src, sys.exc_info()[1]),
                 None, sys.exc_info()[2])
 
 
