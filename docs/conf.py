@@ -257,6 +257,7 @@ intersphinx_mapping = {
     'https://zopeschema.readthedocs.io/en/latest': None,
 }
 
-autodoc_default_flags = ['members', 'show-inheritance']
-autoclass_content = 'both'
-autodoc_member_order = 'bysource'
+autodoc_default_flags = [
+    'members',
+    'show-inheritance',
+]

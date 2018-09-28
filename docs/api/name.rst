@@ -1,10 +1,5 @@
-:mod:`zope.configuration.name`
-==============================
+=========================
+ zope.configuration.name
+=========================
 
-.. module:: zope.configuration.name
-
-.. autofunction:: resolve
-
-.. autofunction:: getNormalizedName
-
-.. autofunction:: path
+.. automodule:: zope.configuration.name

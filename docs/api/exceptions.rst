@@ -1,6 +1,5 @@
-:mod:`zope.configuration.exceptions`
-====================================
+===============================
+ zope.configuration.exceptions
+===============================
 
-.. module:: zope.configuration.exceptions
-
-.. autoclass:: ConfigurationError
+.. automodule:: zope.configuration.exceptions

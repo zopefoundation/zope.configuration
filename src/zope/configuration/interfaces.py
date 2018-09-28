@@ -98,16 +98,25 @@ class IConfigurationContext(Interface):
         """Record a configuration action
 
         The job of most directives is to compute actions for later
-        processing.  The action method is used to record those
-        actions.  The discriminator is used to to find actions that
-        conflict. Actions conflict if they have the same
-        discriminator. The exception to this is the special case of
-        the discriminator with the value None. An actions with a
-        discriminator of None never conflicts with other actions. This
-        is possible to add an order argument to crudely control the
-        order of execution.  'info' is optional source line information,
-        'includepath' is None (the default) or a tuple of include paths for
-        this action.
+        processing. The action method is used to record those actions.
+
+        :param callable: The object to call to implement the action.
+        :param tuple args: Arguments to pass to *callable*
+        :param dict kw: Keyword arguments to pass to *callable*
+
+        :param object discriminator: Used to to find actions that conflict.
+            Actions conflict if they have equal discriminators. The
+            exception to this is the special case of the discriminator
+            with the value `None`. An action with a discriminator of `None`
+            never conflicts with other actions.
+
+        :keyword int order: This is possible to add an order argument to crudely control
+            the order of execution.
+
+        :keyword str info: Optional source line information
+
+        :keyword includepath: is None (the default) or a tuple of
+            include paths for this action.
         """
 
     def provideFeature(name):

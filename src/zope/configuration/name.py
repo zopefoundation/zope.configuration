@@ -11,7 +11,11 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Provide configuration object name resolution
+"""
+Provide configuration object name resolution.
+
+.. note:: This module is no longer used by `zope.configuration` and
+   may be deprecated soon. Its functions are not documented.
 """
 
 import os

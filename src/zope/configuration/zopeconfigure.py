@@ -123,7 +123,7 @@ class IZopeConfigure(Interface):
     information collected is used by subdirectives.
 
     It may seem that this directive can only be used once per file, but it can
-    be applied whereever it is convenient.
+    be applied wherever it is convenient.
     """
 
     package = GlobalObject(
@@ -149,7 +149,9 @@ class IZopeConfigure(Interface):
 
 
 class ZopeConfigure(GroupingContextDecorator):
-    __doc__ = __doc__
+    """
+    The implementation of `IZopeConfigure`.
+    """
 
     def __init__(self, context, **kw):
         super(ZopeConfigure, self).__init__(context, **kw)
