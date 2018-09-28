@@ -99,10 +99,9 @@ def test_suite():
 
     for mod_name in api_to_test:
         mod_name = 'zope.configuration.' + mod_name
-        __import__(mod_name)
         suite.addTest(
             doctest.DocTestSuite(
-                sys.modules[mod_name],
+                mod_name,
                 checker=checker,
                 optionflags=optionflags
             )

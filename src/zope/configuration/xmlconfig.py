@@ -117,7 +117,7 @@ class ZopeSAXParseException(ConfigurationError):
             return str(v)
 
 class ParserInfo(object):
-    """
+    r"""
     Information about a directive based on parser data
 
     This includes the directive location, as well as text data
@@ -133,10 +133,10 @@ class ParserInfo(object):
         >>> print(info)
         File "tests//sample.zcml", line 1.0
 
-        >>> info.characters("blah\\n")
+        >>> info.characters("blah\n")
         >>> info.characters("blah")
         >>> info.text
-        'blah\\nblah'
+        'blah\nblah'
 
         >>> info.end(7, 0)
         >>> info
@@ -221,7 +221,7 @@ class ParserInfo(object):
 
 class ConfigurationHandler(ContentHandler):
     """
-    Interface to the xml parser
+    Interface to the XML parser
 
     Translate parser events into calls into the configuration system.
     """

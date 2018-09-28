@@ -360,7 +360,7 @@ class ConfigurationContext(object):
              >>> d = os.path.dirname(zope.configuration.__file__)
              >>> c.processFile('bar.zcml')
              True
-             >>> c.processFile('bar.zcml')
+             >>> c.processFile(os.path.join(d, 'bar.zcml'))
              False
         """
         path = self.path(filename)
@@ -397,7 +397,7 @@ class ConfigurationContext(object):
              >>> from zope.configuration.tests.directives import f
              >>> c.action(1, f, (1, ), {'x': 1})
              >>> from pprint import PrettyPrinter
-             >>> pprint=PrettyPrinter(width=60).pprint
+             >>> pprint = PrettyPrinter(width=60).pprint
              >>> pprint(c.actions)
              [{'args': (1,),
                'callable': f,
@@ -550,7 +550,7 @@ class ConfigurationAdapterRegistry(object):
         >>> from zope.configuration.config import ConfigurationMachine
         >>> r = ConfigurationAdapterRegistry()
         >>> c = ConfigurationMachine()
-        >>> r.factory(c, ('http://www.zope.com','xxx'))
+        >>> r.factory(c, ('http://www.zope.com', 'xxx'))
         Traceback (most recent call last):
         ...
         ConfigurationError: ('Unknown directive', 'http://www.zope.com', 'xxx')
@@ -558,14 +558,14 @@ class ConfigurationAdapterRegistry(object):
         ...     pass
 
         >>> r.register(IConfigurationContext, ('http://www.zope.com', 'xxx'), f)
-        >>> r.factory(c, ('http://www.zope.com','xxx')) is f
+        >>> r.factory(c, ('http://www.zope.com', 'xxx')) is f
         True
-        >>> r.factory(c, ('http://www.zope.com','yyy')) is f
+        >>> r.factory(c, ('http://www.zope.com', 'yyy')) is f
         Traceback (most recent call last):
         ...
         ConfigurationError: ('Unknown directive', 'http://www.zope.com', 'yyy')
         >>> r.register(IConfigurationContext, 'yyy', f)
-        >>> r.factory(c, ('http://www.zope.com','yyy')) is f
+        >>> r.factory(c, ('http://www.zope.com', 'yyy')) is f
         True
 
     Test the documentation feature:
@@ -714,7 +714,7 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
 
             >>> from zope.configuration.config import ConfigurationMachine
             >>> output = []
-            >>> def f(*a, **k): #* syntax highlighting
+            >>> def f(*a, **k):
             ...    output.append(('f', a, k))
             >>> context = ConfigurationMachine()
             >>> context.actions = [
@@ -1580,7 +1580,7 @@ def toargs(context, schema, data):
 
         >>> context = ConfigurationMachine()
         >>> from pprint import PrettyPrinter
-        >>> pprint=PrettyPrinter(width=50).pprint
+        >>> pprint = PrettyPrinter(width=50).pprint
 
         >>> pprint(toargs(context, schema,
         ...        {'in': u'1', 'f': u'1.2', 'n': u'bob', 'x': u'x.y.z',

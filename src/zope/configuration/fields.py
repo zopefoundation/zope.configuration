@@ -44,7 +44,7 @@ __all__ = [
 
 
 class PythonIdentifier(schema_PythonIdentifier):
-    """
+    r"""
     This class is like `zope.schema.PythonIdentifier`.
 
 
@@ -70,14 +70,14 @@ class PythonIdentifier(schema_PythonIdentifier):
       >>> for value in (u'foo', u'foo3', u'foo_', u'_foo3', u'foo_3', u'foo3_'):
       ...     _ = field.fromUnicode(value)
       >>> from zope.schema import ValidationError
-      >>> for value in (u'3foo', u'foo:', u'\\\\', u''):
+      >>> for value in (u'3foo', u'foo:', u'\\', u''):
       ...     try:
       ...         field.fromUnicode(value)
       ...     except ValidationError:
       ...         print('Validation Error ' + repr(value))
       Validation Error '3foo'
       Validation Error 'foo:'
-      Validation Error '\\\\'
+      Validation Error '\\'
       Validation Error ''
 
     .. versionchanged:: 4.2.0
@@ -112,7 +112,7 @@ class GlobalObject(Field):
             self.value_type.validate(value)
 
     def fromUnicode(self, value):
-        """
+        r"""
         Find and return the module global at the path *value*.
 
           >>> d = {'x': 1, 'y': 42, 'z': 'zope'}
@@ -127,7 +127,7 @@ class GlobalObject(Field):
           >>> gg = g.bind(fake)
           >>> gg.fromUnicode("x")
           1
-          >>> gg.fromUnicode("   x  \\n  ")
+          >>> gg.fromUnicode("   x  \n  ")
           1
           >>> gg.fromUnicode("y")
           42
@@ -222,7 +222,7 @@ class Tokens(List):
     """
 
     def fromUnicode(self, value):
-        """
+        r"""
         Split the input string and convert it to *value_type*.
 
         Consider GlobalObject tokens:
@@ -239,7 +239,7 @@ class Tokens(List):
           >>> from zope.configuration.fields import GlobalObject
           >>> g = Tokens(value_type=GlobalObject())
           >>> gg = g.bind(fake)
-          >>> gg.fromUnicode("  \\n  x y z  \\n")
+          >>> gg.fromUnicode("  \n  x y z  \n")
           [1, 42, 'zope']
 
           >>> from zope.schema import Int
@@ -306,7 +306,7 @@ class Path(Text):
     """
 
     def fromUnicode(self, value):
-        """
+        r"""
         Convert the input path to a normalized, absolute path.
 
         Let's look at an example:
@@ -314,7 +314,7 @@ class Path(Text):
         First, we need a "context" for the field that has a path
         function for converting relative path to an absolute path.
 
-        We'll be careful to do this in an os-independent fashion.
+        We'll be careful to do this in an operating system independent fashion.
 
           >>> from zope.configuration.fields import Path
           >>> class FauxContext(object):
@@ -333,7 +333,7 @@ class Path(Text):
 
         This should also work with extra spaces around the path:
 
-          >>> p = "   \\n   %s   \\n\\n   " % p
+          >>> p = "   \n   %s   \n\n   " % p
           >>> n = field.fromUnicode(p)
           >>> n.split(os.sep)
           ['', 'a', 'b']
@@ -393,7 +393,7 @@ class Bool(schema_Bool):
        Do not confuse this with :class:`zope.schema.Bool`.
        That class will only parse ``"True"`` and ``"true"`` as
        `True` values. Any other value will silently be accepted as
-       `False`. This class  raises a validation error for unrecognized
+       `False`. This class raises a validation error for unrecognized
        input.
 
     """
@@ -404,19 +404,19 @@ class Bool(schema_Bool):
 
         Example:
 
-          >>> from zope.configuration.fields import Bool
-          >>> Bool().fromUnicode(u"yes")
-          True
-          >>> Bool().fromUnicode(u"y")
-          True
-          >>> Bool().fromUnicode(u"true")
-          True
-          >>> Bool().fromUnicode(u"no")
-          False
-          >>> Bool().fromUnicode(u"surprise")
-          Traceback (most recent call last):
-          ...
-          zope.schema._bootstrapinterfaces.InvalidValue
+            >>> from zope.configuration.fields import Bool
+            >>> Bool().fromUnicode(u"yes")
+            True
+            >>> Bool().fromUnicode(u"y")
+            True
+            >>> Bool().fromUnicode(u"true")
+            True
+            >>> Bool().fromUnicode(u"no")
+            False
+            >>> Bool().fromUnicode(u"surprise")
+            Traceback (most recent call last):
+            ...
+            zope.schema._bootstrapinterfaces.InvalidValue
         """
         value = value.lower()
         if value in ('1', 'true', 'yes', 't', 'y'):
@@ -459,7 +459,7 @@ class MessageID(Text):
         has been issued
 
           >>> warned = None
-          >>> def fakewarn(*args, **kw): #* syntax highlighting
+          >>> def fakewarn(*args, **kw):
           ...     global warned
           ...     warned = args
 
@@ -529,7 +529,7 @@ class MessageID(Text):
             domain = 'untranslated'
             warnings.warn(
                 "You did not specify an i18n translation domain for the "\
-                "'%s' field in %s" % (self.getName(), context.info.file )
+                "'%s' field in %s" % (self.getName(), context.info.file)
                 )
         if not isinstance(domain, str):
             # IZopeConfigure specifies i18n_domain as a BytesLine, but that's
