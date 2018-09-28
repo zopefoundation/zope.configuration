@@ -1823,13 +1823,14 @@ class Test_toargs(unittest.TestCase):
         self.assertEqual(exc.exception.args,
                          ("Invalid value for 'count'",))
 
-        exception_str = str(exc.exception)
-        self.assertTrue(exception_str.startswith(
-            "Invalid value for 'count'\n"
-        ), exception_str)
-        self.assertTrue(exception_str.endswith(
-            "TooSmall: (-1, 0)"
-        ), exception_str)
+        for meth in str, repr:
+            exception_str = meth(exc.exception)
+            self.assertIn(
+                "Invalid value for",
+                exception_str)
+            self.assertIn(
+                "TooSmall: (-1, 0)",
+                exception_str)
 
 class Test_expand_action(unittest.TestCase):
 
