@@ -242,10 +242,9 @@ class ConfigurationHandler(ContentHandler):
         if isinstance(ex, ConfigurationError):
             ex.append_details(repr(info))
             raise
-        else:
-            exc = ZopeXMLConfigurationError(info, ex)
-            reraise(exc,
-                    None, sys.exc_info()[2])
+
+        exc = ZopeXMLConfigurationError(info, ex)
+        reraise(exc, None, sys.exc_info()[2])
 
     def startElementNS(self, name, qname, attrs):
         if self.ignore_depth:

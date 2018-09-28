@@ -764,23 +764,15 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                 info = action['info']
                 try:
                     callable(*args, **kw)
-                except BaseException as ex:
-                    try:
-                        if isinstance(ex, ConfigurationError):
-                            ex.append_details(info)
-                            raise
-                        if isinstance(ex, pass_through_exceptions):
-                            raise
-                        if not isinstance(ex, Exception):
-                            # BaseException
-                            raise
-
-                        # Wrap it up and raise.
-                        reraise(ConfigurationExecutionError(info, ex),
-                                None, sys.exc_info()[2])
-                    finally:
-                        del ex
-
+                except ConfigurationError as ex:
+                    ex.append_details(info)
+                    raise
+                except pass_through_exceptions:
+                    raise
+                except Exception:
+                    # Wrap it up and raise.
+                    reraise(ConfigurationExecutionError(info, sys.exc_info()[1]),
+                            None, sys.exc_info()[2])
         finally:
             if clear:
                 del self.actions[:]
