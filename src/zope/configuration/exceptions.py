@@ -26,9 +26,11 @@ class ConfigurationError(Exception):
 
     # A list of strings or things that can be converted to strings,
     # added by append_details as we walk back up the call/include stack.
+    # We will print them in reverse order so that the most recent detail is
+    # last.
     _details = ()
 
-    def append_details(self, info):
+    def add_details(self, info):
         if isinstance(info, BaseException):
             info = traceback.format_exception_only(type(info), info)
             # Trim trailing newline
@@ -38,17 +40,19 @@ class ConfigurationError(Exception):
             self._details += (info,)
         return self
 
+    def _with_details(self, opening, detail_formatter):
+        lines = ['    ' + detail_formatter(detail) for detail in self._details]
+        lines.append(opening)
+        lines.reverse()
+        return '\n'.join(lines)
+
     def __str__(self):
         s = super(ConfigurationError, self).__str__()
-        for i in self._details:
-            s += '\n    ' + str(i)
-        return s
+        return self._with_details(s, str)
 
     def __repr__(self):
         s = super(ConfigurationError, self).__repr__()
-        for i in self._details:
-            s += '\n    ' + repr(i)
-        return s
+        return self._with_details(s, repr)
 
 
 class ConfigurationWrapperError(ConfigurationError):
@@ -57,7 +61,7 @@ class ConfigurationWrapperError(ConfigurationError):
 
     def __init__(self, info, exception):
         super(ConfigurationWrapperError, self).__init__(repr(info) if self.USE_INFO_REPR else info)
-        self.append_details(exception)
+        self.add_details(exception)
 
         # This stuff is undocumented and not used but we store
         # for backwards compatibility

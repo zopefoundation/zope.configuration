@@ -228,7 +228,7 @@ class ConfigurationHandler(ContentHandler):
         if self.testing:
             raise
         if isinstance(ex, ConfigurationError):
-            ex.append_details(repr(info))
+            ex.add_details(repr(info))
             raise
 
         exc = ZopeXMLConfigurationError(info, ex)
@@ -406,7 +406,7 @@ def processxmlfile(file, context, testing=False):
     try:
         parser.parse(src)
     except SAXParseException:
-        reraise(ZopeSAXParseException(src, sys.exc_info()[1]),
+        reraise(ZopeSAXParseException(file, sys.exc_info()[1]),
                 None, sys.exc_info()[2])
 
 

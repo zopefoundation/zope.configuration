@@ -727,7 +727,7 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
             [('f', (1,), {}), ('f', (2,), {})]
 
         If the action raises an error, we convert it to a
-        ConfigurationExecutionError.
+        `ConfigurationExecutionError`.
 
             >>> from zope.configuration.config import ConfigurationExecutionError
             >>> output = []
@@ -750,6 +750,24 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
 
             >>> output
             [('f', (1,), {}), ('f', (2,), {})]
+
+        If the exception was already a `ConfigurationError`, it is raised
+        as-is with the action's ``info`` added.
+
+            >>> def bad():
+            ...     raise ConfigurationError("I'm bad")
+            >>> context.actions = [
+            ...   (1, f, (1,)),
+            ...   (1, f, (11,), {}, ('x', )),
+            ...   (2, f, (2,)),
+            ...   (3, bad, (), {}, (), 'oops')
+            ...   ]
+            >>> context.execute_actions()
+            Traceback (most recent call last):
+            ...
+            zope.configuration.exceptions.ConfigurationError: I'm bad
+                oops
+
         """
         pass_through_exceptions = self.pass_through_exceptions
         if testing:
@@ -765,7 +783,7 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                 try:
                     callable(*args, **kw)
                 except ConfigurationError as ex:
-                    ex.append_details(info)
+                    ex.add_details(info)
                     raise
                 except pass_through_exceptions:
                     raise
@@ -1660,7 +1678,7 @@ def toargs(context, schema, data):
             try:
                 args[str(name)] = field.fromUnicode(s)
             except ValidationError as v:
-                reraise(ConfigurationError("Invalid value for %r: %r" % (n, v)).append_details(v),
+                reraise(ConfigurationError("Invalid value for %r: %r" % (n, v)).add_details(v),
                         None, sys.exc_info()[2])
         elif field.required:
             # if the default is valid, we can use that:
