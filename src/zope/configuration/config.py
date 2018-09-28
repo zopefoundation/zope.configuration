@@ -74,10 +74,14 @@ testns = 'http://namespaces.zope.org/test'
 
 
 class ConfigurationContext(object):
-    """Mix-in that implements IConfigurationContext
+    """
+    Mix-in for implementing.
+    :class:`zope.configuration.interfaces.IConfigurationContext`.
 
-    Subclasses provide a ``package`` attribute and a ``basepath``
-    attribute.  If the base path is not None, relative paths are
+    Note that this class itself does not actually declare that it
+    implements that interface; the subclass must do that. In addition,
+    subclasses must provide a ``package`` attribute and a ``basepath``
+    attribute. If the base path is not None, relative paths are
     converted to absolute paths using the the base path. If the
     package is not none, relative imports are performed relative to
     the package.
@@ -91,33 +95,37 @@ class ConfigurationContext(object):
     attribute.
 
     The include path is appended to each action and is used when
-    resolving conflicts among actions.  Normally, only the a
+    resolving conflicts among actions. Normally, only the a
     ConfigurationMachine provides the actions attribute. Decorators
     simply use the actions of the context they decorate. The
-    ``includepath`` attribute is a tuple of names.  Each name is
+    ``includepath`` attribute is a tuple of names. Each name is
     typically the name of an included configuration file.
 
     The ``info`` attribute contains descriptive information helpful
-    when reporting errors.  If not set, it defaults to an empty string.
+    when reporting errors. If not set, it defaults to an empty string.
 
-    The actions attribute is a sequence of dictionaries where each dictionary
-    has the following keys:
+    The actions attribute is a sequence of dictionaries where each
+    dictionary has the following keys:
 
-      - ``discriminator``, a value that identifies the action. Two actions
-        that have the same (non None) discriminator conflict.
+        - ``discriminator``, a value that identifies the action. Two
+          actions that have the same (non None) discriminator
+          conflict.
 
-      - ``callable``, an object that is called to execute the action,
+        - ``callable``, an object that is called to execute the
+          action,
 
-      - ``args``, positional arguments for the action
+        - ``args``, positional arguments for the action
 
-      - ``kw``, keyword arguments for the action
+        - ``kw``, keyword arguments for the action
 
-      - ``includepath``, a tuple of include file names (defaults to ())
+        - ``includepath``, a tuple of include file names (defaults to
+          ())
 
-      - ``info``, an object that has descriptive information about
-        the action (defaults to '')
-
+        - ``info``, an object that has descriptive information about
+          the action (defaults to '')
     """
+
+    # pylint:disable=no-member
 
     def __init__(self):
         super(ConfigurationContext, self).__init__()
@@ -666,8 +674,8 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
     info = ''
 
     #: These `Exception` subclasses are allowed to be raised from `execute_actions`
-    #: without being re-wrapped into a `ConfigurationExecutionError`. (`BaseException`
-    #: instances are never wrapped.)
+    #: without being re-wrapped into a `~.ConfigurationError`. (`BaseException`
+    #: and other `~.ConfigurationError` instances are never wrapped.)
     #:
     #: Users of instances of this class may modify this before calling `execute_actions`
     #: if they need to propagate specific exceptions.
@@ -727,9 +735,8 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
             [('f', (1,), {}), ('f', (2,), {})]
 
         If the action raises an error, we convert it to a
-        `ConfigurationExecutionError`.
+        `~.ConfigurationError`.
 
-            >>> from zope.configuration.config import ConfigurationExecutionError
             >>> output = []
             >>> def bad():
             ...    bad.xxx
@@ -751,7 +758,7 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
             >>> output
             [('f', (1,), {}), ('f', (2,), {})]
 
-        If the exception was already a `ConfigurationError`, it is raised
+        If the exception was already a `~.ConfigurationError`, it is raised
         as-is with the action's ``info`` added.
 
             >>> def bad():
@@ -1808,9 +1815,10 @@ def resolveConflicts(actions):
 class ConfigurationConflictError(ConfigurationError):
 
     def __init__(self, conflicts):
+        super(ConfigurationConflictError, self).__init__()
         self._conflicts = conflicts
 
-    def __str__(self): #pragma NO COVER
+    def _with_details(self, opening, detail_formatter):
         r = ["Conflicting configuration actions"]
         for discriminator, infos in sorted(self._conflicts.items()):
             r.append("  For: %s" % (discriminator, ))
@@ -1818,7 +1826,8 @@ class ConfigurationConflictError(ConfigurationError):
                 for line in text_type(info).rstrip().split(u'\n'):
                     r.append(u"    " + line)
 
-        return "\n".join(r)
+        opening = "\n".join(r)
+        return super(ConfigurationConflictError, self)._with_details(opening, detail_formatter)
 
 
 ##############################################################################

@@ -1974,6 +1974,14 @@ class Test_resolveConflicts(unittest.TestCase):
             "For: ('a', 1)\n    conflict!\n    conflict2!",
             str(exc.exception))
 
+        exc.exception.add_details('a detail')
+
+        self.assertEqual(
+            "Conflicting configuration actions\n  "
+            "For: ('a', 1)\n    conflict!\n    conflict2!\n"
+            "    a detail",
+            str(exc.exception))
+
     def test_wo_discriminators_final_sorting_order(self):
         from zope.configuration.config import expand_action
         def _a():
