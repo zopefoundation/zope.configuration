@@ -1685,15 +1685,16 @@ def toargs(context, schema, data):
             try:
                 args[str(name)] = field.fromUnicode(s)
             except ValidationError as v:
-                reraise(ConfigurationError("Invalid value for %r: %r" % (n, v)).add_details(v),
+                reraise(ConfigurationError("Invalid value for %r" % (n)).add_details(v),
                         None, sys.exc_info()[2])
         elif field.required:
             # if the default is valid, we can use that:
             default = field.default
             try:
                 field.validate(default)
-            except ValidationError:
-                raise ConfigurationError("Missing parameter:", n)
+            except ValidationError as v:
+                reraise(ConfigurationError("Missing parameter: %r" % (n,)).add_details(v),
+                        None, sys.exc_info()[2])
             args[str(name)] = default
 
     if data:
