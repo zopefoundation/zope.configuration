@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.2.3 (unreleased)
+4.3.0 (2018-10-01)
 ------------------
 
 - Simplify exception chaining and nested exception error messages.
