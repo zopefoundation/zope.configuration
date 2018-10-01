@@ -40,14 +40,13 @@ from zope.configuration.config import GroupingContextDecorator
 from zope.configuration.config import GroupingStackItem
 from zope.configuration.config import resolveConflicts
 from zope.configuration.exceptions import ConfigurationError
+from zope.configuration.exceptions import ConfigurationWrapperError
 from zope.configuration.fields import GlobalObject
 from zope.configuration.zopeconfigure import IZopeConfigure
 from zope.configuration.zopeconfigure import ZopeConfigure
 from zope.configuration._compat import reraise
 
 __all__ = [
-    'ZopeXMLConfigurationError',
-    'ZopeSAXParseException',
     'ParserInfo',
     'ConfigurationHandler',
     'processxmlfile',
@@ -70,7 +69,7 @@ ZCML_NAMESPACE = "http://namespaces.zope.org/zcml"
 ZCML_CONDITION = (ZCML_NAMESPACE, u"condition")
 
 
-class ZopeXMLConfigurationError(ConfigurationError):
+class ZopeXMLConfigurationError(ConfigurationWrapperError):
     """
     Zope XML Configuration error
 
@@ -80,41 +79,28 @@ class ZopeXMLConfigurationError(ConfigurationError):
     Example
 
         >>> from zope.configuration.xmlconfig import ZopeXMLConfigurationError
-        >>> v = ZopeXMLConfigurationError("blah", AttributeError, "xxx")
+        >>> v = ZopeXMLConfigurationError("blah", AttributeError("xxx"))
         >>> print(v)
         'blah'
             AttributeError: xxx
     """
-    def __init__(self, info, etype, evalue):
-        self.info, self.etype, self.evalue = info, etype, evalue
 
-    def __str__(self):
-        # Only use the repr of the info. This is because we expect to
-        # get a parse info and we only want the location information.
-        return "%s\n    %s: %s" % (
-            repr(self.info), self.etype.__name__, self.evalue)
+    USE_INFO_REPR = True
 
-class ZopeSAXParseException(ConfigurationError):
+
+class ZopeSAXParseException(ConfigurationWrapperError):
     """
-    Sax Parser errors, reformatted in an emacs friendly way.
+    Sax Parser errors as a ConfigurationError.
 
     Example
 
         >>> from zope.configuration.xmlconfig import ZopeSAXParseException
-        >>> v = ZopeSAXParseException("foo.xml:12:3:Not well formed")
+        >>> v = ZopeSAXParseException("info", Exception("foo.xml:12:3:Not well formed"))
         >>> print(v)
-        File "foo.xml", line 12.3, Not well formed
+        info
+            Exception: foo.xml:12:3:Not well formed
     """
-    def __init__(self, v):
-        self._v = v
 
-    def __str__(self):
-        v = self._v
-        s = tuple(str(v).split(':'))
-        if len(s) == 4:
-            return 'File "%s", line %s.%s, %s' % s
-        else:
-            return str(v)
 
 class ParserInfo(object):
     r"""
@@ -238,6 +224,16 @@ class ConfigurationHandler(ContentHandler):
     def characters(self, text):
         self.context.getInfo().characters(text)
 
+    def _handle_exception(self, ex, info):
+        if self.testing:
+            raise
+        if isinstance(ex, ConfigurationError):
+            ex.add_details(repr(info))
+            raise
+
+        exc = ZopeXMLConfigurationError(info, ex)
+        reraise(exc, None, sys.exc_info()[2])
+
     def startElementNS(self, name, qname, attrs):
         if self.ignore_depth:
             self.ignore_depth += 1
@@ -268,13 +264,8 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.begin(name, data, info)
-        except Exception:
-            if self.testing:
-                raise
-            reraise(ZopeXMLConfigurationError(info,
-                                              sys.exc_info()[0],
-                                              sys.exc_info()[1]),
-                    None, sys.exc_info()[2])
+        except Exception as ex:
+            self._handle_exception(ex, info)
 
         self.context.setInfo(info)
 
@@ -398,13 +389,8 @@ class ConfigurationHandler(ContentHandler):
 
         try:
             self.context.end()
-        except Exception:
-            if self.testing:
-                raise
-            reraise(ZopeXMLConfigurationError(info,
-                                              sys.exc_info()[0],
-                                              sys.exc_info()[1]),
-                    None, sys.exc_info()[2])
+        except Exception as ex:
+            self._handle_exception(ex, info)
 
 
 def processxmlfile(file, context, testing=False):
@@ -420,7 +406,7 @@ def processxmlfile(file, context, testing=False):
     try:
         parser.parse(src)
     except SAXParseException:
-        reraise(ZopeSAXParseException(sys.exc_info()[1]),
+        reraise(ZopeSAXParseException(file, sys.exc_info()[1]),
                 None, sys.exc_info()[2])
 
 

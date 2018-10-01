@@ -4,7 +4,8 @@ Changes
 4.2.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Simplify exception chaining and nested exception error messages.
+  See `issue 43 <https://github.com/zopefoundation/zope.configuration/issues/43>`_.
 
 
 4.2.2 (2018-09-27)

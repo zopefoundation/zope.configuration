@@ -1162,16 +1162,15 @@ redefine our directives:
 .. doctest::
 
    >>> from zope.configuration.xmlconfig import string
-   >>> from zope.configuration.xmlconfig import ZopeXMLConfigurationError
-   >>> try:
-   ...    v = string(
+   >>> from zope.configuration.exceptions import ConfigurationError
+   >>> v = string(
    ...      '<text xmlns="http://sample.namespaces.zope.org/schema" name="x" />',
    ...      context)
-   ... except ZopeXMLConfigurationError as e:
-   ...   v = e
-   >>> print(v)
-   File "<string>", line 1.0
-       ConfigurationError: The directive ('http://sample.namespaces.zope.org/schema', 'text') cannot be used in this context
+   Traceback (most recent call last):
+   ...
+   zope.configuration.exceptions.ConfigurationError: The directive ('http://sample.namespaces.zope.org/schema', 'text') cannot be used in this context
+     File "<string>", line 1.0
+
 
 Let's see what happens if we declare duplicate fields:
 
@@ -1187,7 +1186,7 @@ Let's see what happens if we declare duplicate fields:
    ...      </schema>
    ...      ''',
    ...      context)
-   ... except ZopeXMLConfigurationError as e:
+   ... except ConfigurationError as e:
    ...   v = e
    >>> print(v)
    File "<string>", line 5.7-5.24

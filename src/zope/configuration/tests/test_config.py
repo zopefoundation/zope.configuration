@@ -1789,7 +1789,18 @@ class Test_toargs(unittest.TestCase):
         with self.assertRaises(ConfigurationError) as exc:
             self._callFUT(context, ISchema, {})
         self.assertEqual(exc.exception.args,
-                         ('Missing parameter:', 'no_default'))
+                         ("Missing parameter: 'no_default'",))
+
+        # It includes the details of any validation failure;
+        # The rendering of the nested exception varies by Python version,
+        # sadly.
+        exception_str = str(exc.exception)
+        self.assertTrue(exception_str.startswith(
+            "Missing parameter: 'no_default'\n"
+        ), exception_str)
+        self.assertTrue(exception_str.endswith(
+            "RequiredMissing: no_default"
+        ), exception_str)
 
     def test_w_field_missing_but_default(self):
         from zope.interface import Interface
@@ -1810,8 +1821,16 @@ class Test_toargs(unittest.TestCase):
         with self.assertRaises(ConfigurationError) as exc:
             self._callFUT(context, ISchema, {'count': '-1'})
         self.assertEqual(exc.exception.args,
-                         ('Invalid value for', 'count', '(-1, 0)'))
+                         ("Invalid value for 'count'",))
 
+        for meth in str, repr:
+            exception_str = meth(exc.exception)
+            self.assertIn(
+                "Invalid value for",
+                exception_str)
+            self.assertIn(
+                "TooSmall: (-1, 0)",
+                exception_str)
 
 class Test_expand_action(unittest.TestCase):
 
@@ -1972,6 +1991,14 @@ class Test_resolveConflicts(unittest.TestCase):
         self.assertEqual(
             "Conflicting configuration actions\n  "
             "For: ('a', 1)\n    conflict!\n    conflict2!",
+            str(exc.exception))
+
+        exc.exception.add_details('a detail')
+
+        self.assertEqual(
+            "Conflicting configuration actions\n  "
+            "For: ('a', 1)\n    conflict!\n    conflict2!\n"
+            "    a detail",
             str(exc.exception))
 
     def test_wo_discriminators_final_sorting_order(self):
