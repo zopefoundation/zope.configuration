@@ -20,7 +20,6 @@ from __future__ import division
 from __future__ import print_function
 
 import re
-import sys
 import os.path
 import unittest
 import doctest
@@ -49,12 +48,15 @@ optionflags = (
 )
 
 def test_suite():
+    suite = unittest.TestSuite()
     here = os.path.dirname(os.path.abspath(__file__))
     while not os.path.exists(os.path.join(here, 'setup.py')):
         prev, here = here, os.path.dirname(here)
         if here == prev:
             # Let's avoid infinite loops at root
-            raise AssertionError('could not find my setup.py')
+            print('tests_doc.py: WARNING could not find setup.py -->'
+                  ' omitting documentation tests.')  # pragma: no cover
+            return suite  # pragma: no cover
 
     docs = os.path.join(here, 'docs')
     api_docs = os.path.join(docs, 'api')
@@ -89,7 +91,6 @@ def test_suite():
     m += manuel.codeblock.Manuel()
     m += manuel.capture.Manuel()
 
-    suite = unittest.TestSuite()
     suite.addTest(
         manuel.testing.TestSuite(
             m,
