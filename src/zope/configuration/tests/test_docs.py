@@ -54,8 +54,14 @@ def test_suite():
         prev, here = here, os.path.dirname(here)
         if here == prev:
             # Let's avoid infinite loops at root
-            print('tests_doc.py: WARNING could not find setup.py -->'
-                  ' omitting documentation tests.')  # pragma: no cover
+            class SkippedDocTests(unittest.TestCase):  # pragma: no cover
+
+                @unittest.skip('Could not find setup.py')
+                def test_docs(self):
+                    pass
+
+            suite.addTest(
+                unittest.makeSuite(SkippedDocTests))  # pragma: no cover
             return suite  # pragma: no cover
 
     docs = os.path.join(here, 'docs')
