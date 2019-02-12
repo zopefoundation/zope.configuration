@@ -4,7 +4,7 @@ Changes
 4.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Do not break when running the tests from a wheel.
 
 
 4.3.0 (2018-10-01)
