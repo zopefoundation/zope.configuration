@@ -35,7 +35,7 @@ TESTS_REQUIRE = [
 ]
 
 setup(name='zope.configuration',
-      version='4.3.1.dev0',
+      version='4.3.1',
       author='Zope Foundation and Contributors',
       author_email='zope-dev@zope.org',
       description='Zope Configuration Markup Language (ZCML)',
