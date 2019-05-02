@@ -3,7 +3,7 @@
 ===========================
 
 The zope configuration system provides an extensible system for
-supporting variouse kinds of configurations.
+supporting various kinds of configurations.
 
 It is based on the idea of configuration directives. Users of the
 configuration system provide configuration directives in some
