@@ -31,6 +31,7 @@ from zope.schema.interfaces import InvalidValue
 
 from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.interfaces import InvalidToken
+from zope.configuration._compat import implementer_if_needed
 
 __all__ = [
     'Bool',
@@ -91,7 +92,7 @@ class PythonIdentifier(schema_PythonIdentifier):
             raise ValidationError(value).with_field_and_value(self, value)
 
 
-@implementer(IFromUnicode)
+@implementer_if_needed(IFromUnicode)
 class GlobalObject(Field):
     """
     An object that can be accessed as a module global.
@@ -176,7 +177,7 @@ class GlobalObject(Field):
         return value
 
 
-@implementer(IFromUnicode)
+@implementer_if_needed(IFromUnicode)
 class GlobalInterface(GlobalObject):
     """
     An interface that can be accessed from a module.
@@ -297,7 +298,7 @@ class PathProcessor(object):
         return filename, True
 
 
-@implementer(IFromUnicode)
+@implementer_if_needed(IFromUnicode)
 class Path(Text):
     """
     A file path name, which may be input as a relative path
@@ -376,7 +377,7 @@ class Path(Text):
         return filename
 
 
-@implementer(IFromUnicode)
+@implementer_if_needed(IFromUnicode)
 class Bool(schema_Bool):
     """
     A boolean value.
@@ -428,7 +429,7 @@ class Bool(schema_Bool):
 
 
 
-@implementer(IFromUnicode)
+@implementer_if_needed(IFromUnicode)
 class MessageID(Text):
     """
     Text string that should be translated.
@@ -439,7 +440,7 @@ class MessageID(Text):
 
     __factories = {}
 
-    def fromUnicode(self, u):
+    def fromUnicode(self, value):
         """
         Translate a string to a MessageID.
 
@@ -539,7 +540,7 @@ class MessageID(Text):
             enc = sys.getfilesystemencoding() or sys.getdefaultencoding()
             domain = domain.decode(enc)
 
-        v = super(MessageID, self).fromUnicode(u)
+        v = super(MessageID, self).fromUnicode(value)
 
         # Check whether there is an explicit message is specified
         default = None

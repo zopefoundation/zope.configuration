@@ -4,7 +4,12 @@ Changes
 4.4.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Ensure a consistent interface resolution order for all objects. See
+  `issue 49 <https://github.com/zopefoundation/zope.configuration/issues/49>`_.
+
+- Drop support for Python 3.4.
+
+- Add support for Python 3.8.
 
 
 4.3.1 (2019-02-12)

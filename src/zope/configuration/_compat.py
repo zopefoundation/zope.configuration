@@ -42,3 +42,27 @@ else: # pragma: no cover
 def reraise(tp, value, tb=None):
     raise tp, value, tb
 """)
+
+
+class implementer_if_needed(object):
+    # Helper to make sure we don't redundantly implement
+    # interfaces already inherited. Doing so tends to produce
+    # problems with the C3 order. In this package, we could easily
+    # statically determine to elide the relevant interfaces, but
+    # this is a defense against changes in parent classes and lessens
+    # the testing burden.
+    def __init__(self, *ifaces):
+        self._ifaces = ifaces
+
+    def __call__(self, cls):
+        from zope.interface import implementedBy
+        from zope.interface import implementer
+
+        ifaces_needed = []
+        implemented = implementedBy(cls)
+        ifaces_needed = [
+            iface
+            for iface in self._ifaces
+            if not implemented.isOrExtends(iface)
+        ]
+        return implementer(*ifaces_needed)(cls)

@@ -38,8 +38,3 @@ class ZopeConfigureTests(unittest.TestCase):
 
 class Context(object):
     basepath = None
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(ZopeConfigureTests),
-    ))

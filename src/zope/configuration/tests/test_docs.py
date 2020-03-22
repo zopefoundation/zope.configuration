@@ -48,6 +48,7 @@ optionflags = (
 )
 
 def test_suite():
+    # zope.testrunner
     suite = unittest.TestSuite()
     here = os.path.dirname(os.path.abspath(__file__))
     while not os.path.exists(os.path.join(here, 'setup.py')):
@@ -115,3 +116,8 @@ def test_suite():
         )
 
     return suite
+
+
+def load_tests(loader, standard_tests, pattern):
+    # Pure unittest protocol.
+    return test_suite()
