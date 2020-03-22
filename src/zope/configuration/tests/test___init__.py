@@ -29,8 +29,3 @@ class Test_namespace(unittest.TestCase):
     def test_non_empty(self):
         self.assertEqual(self._callFUT('test'),
                          'http://namespaces.zope.org/test')
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(Test_namespace),
-    ))

@@ -121,10 +121,3 @@ class Test_makeDocStructures(unittest.TestCase):
                           (NS, 'three', ISchema, _three, 'THREE')])
         self.assertEqual(subdirs[(PNS, 'parent2')],
                          [(NS2, 'two', ISchema, _two, 'TWO')])
-
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(Test_wrap),
-        unittest.makeSuite(Test_makeDocStructures),
-    ))

@@ -319,6 +319,3 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
         msgid = bound.fromUnicode(u'msgid')
         self.assertIsInstance(msgid.domain, str)
         self.assertEqual(msgid.domain, 'domain')
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
