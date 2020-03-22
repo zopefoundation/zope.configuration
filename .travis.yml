@@ -1,19 +1,36 @@
 language: python
 sudo: false
+
+env:
+  global:
+    ZOPE_INTERFACE_STRICT_IRO: 1
+
 python:
   - 2.7
-  - 3.4
   - 3.5
   - 3.6
+  - 3.7
+  - 3.8
   - pypy
   - pypy3
-matrix:
+jobs:
   include:
-    - python: "3.7"
-      dist: xenial
-      sudo: true
+    - name: Documentation
+      python: 3.8
+      install:
+        - pip install -U -e .[docs]
+      env: ZOPE_INTERFACE_STRICT_IRO=0
+      script:
+        - sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html
+        - sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest
+      after_success:
+
+
 script:
-  - coverage run -m zope.testrunner --test-path=src  --auto-color --auto-progress
+# Temporary work around. Avoid zope.testrunner
+# pending https://github.com/zopefoundation/zope.security/issues/71
+# due to cyclic dependency.
+  - coverage run -m unittest discover -s src
 
 after_success:
   - coveralls

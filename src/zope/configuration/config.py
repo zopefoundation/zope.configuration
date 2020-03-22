@@ -37,6 +37,7 @@ from zope.configuration._compat import builtins
 from zope.configuration._compat import reraise
 from zope.configuration._compat import string_types
 from zope.configuration._compat import text_type
+from zope.configuration._compat import implementer_if_needed
 
 __all__ = [
     'ConfigurationContext',
@@ -897,7 +898,7 @@ class RootStackItem(object):
     def finish(self):
         pass
 
-@implementer(IStackItem)
+@implementer_if_needed(IStackItem)
 class GroupingStackItem(RootStackItem):
     """
     Stack item for a grouping directive
