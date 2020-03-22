@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.4.0 (unreleased)
+4.4.0 (2020-03-22)
 ------------------
 
 - Ensure a consistent interface resolution order for all objects. See
