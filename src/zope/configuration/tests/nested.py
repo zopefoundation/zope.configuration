@@ -48,7 +48,7 @@ class ISchema(Interface):
     fields = Attribute("Dictionary of field definitions")
 
 
-@implementer(IConfigurationContext, ISchema)
+@implementer(ISchema)
 class Schema(GroupingContextDecorator):
     """Handle schema directives
     """
