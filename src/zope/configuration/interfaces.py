@@ -24,7 +24,7 @@ __all__ = [
 ]
 
 class InvalidToken(ValidationError):
-    """Invaid token in list."""
+    """Invalid token in list."""
 
 class IConfigurationContext(Interface):
     """Configuration Context
