@@ -5,8 +5,8 @@
     :target: https://pypi.python.org/pypi/zope.configuration/
     :alt: Latest Version
 
-.. image:: https://travis-ci.org/zopefoundation/zope.configuration.svg?branch=master
-        :target: https://travis-ci.org/zopefoundation/zope.configuration
+.. image:: https://travis-ci.com/zopefoundation/zope.configuration.svg?branch=master
+        :target: https://travis-ci.com/zopefoundation/zope.configuration
 
 .. image:: https://readthedocs.org/projects/zopeconfiguration/badge/?version=latest
         :target: http://zopeconfiguration.readthedocs.io/en/latest/
