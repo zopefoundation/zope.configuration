@@ -24,11 +24,15 @@ if PY3: # pragma: no cover
 
     # borrowed from 'six'
     def reraise(tp, value, tb=None):
-        if value is None:
-            value = tp
-        if value.__traceback__ is not tb:
-            raise value.with_traceback(tb)
-        raise value
+        try:
+            if value is None:
+                value = tp
+            if value.__traceback__ is not tb:
+                raise value.with_traceback(tb)
+            raise value
+        finally:
+            value = None
+            tb = None
 
 else: # pragma: no cover
 
@@ -40,7 +44,10 @@ else: # pragma: no cover
     # borrowed from 'six'
     exec("""\
 def reraise(tp, value, tb=None):
-    raise tp, value, tb
+    try:
+        raise tp, value, tb
+    finally:
+        tb = None
 """)
 
 

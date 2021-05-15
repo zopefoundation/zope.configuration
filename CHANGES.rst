@@ -4,7 +4,8 @@ Changes
 4.4.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Avoid creating reference cycles through tracebacks in ``reraise`` (change
+  imported from ``six``).
 
 
 4.4.0 (2020-03-22)
