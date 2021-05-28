@@ -1,0 +1,37 @@
+# Generated from:
+# https://github.com/zopefoundation/meta/tree/master/config/pure-python
+[meta]
+template = "pure-python"
+commit-id = "34ba449783fa888fbfa2b17c03d8d97ea6096a64"
+
+[python]
+with-appveyor = false
+with-pypy = true
+with-legacy-python = true
+with-docs = true
+with-sphinx-doctests = true
+
+[tox]
+use-flake8 = true
+
+[coverage]
+fail-under = 99.5
+
+[flake8]
+additional-config = [
+    "# F401 imported but unused",
+    "per-file-ignores =",
+    "    src/zope/configuration/tests/victim.py: F401",
+    ]
+
+[manifest]
+additional-rules = [
+    "recursive-include docs *.bat",
+    "recursive-include src *.in",
+    "recursive-include src *.zcml",
+    ]
+
+[check-manifest]
+additional-ignores = [
+    "docs/_build/html/_sources/api/*",
+    ]
