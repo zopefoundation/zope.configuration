@@ -65,6 +65,7 @@ class Test_resolve(unittest.TestCase):
                 'zope.configuration.tests.samplepackage.NamedForClass.'),
             NamedForClass)
 
+
 class Test_getNormalizedName(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):

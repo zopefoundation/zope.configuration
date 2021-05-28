@@ -140,7 +140,6 @@ class ConfigurationContext(object):
         Examples:
 
              >>> from zope.configuration.config import ConfigurationContext
-             >>> from zope.configuration.config import ConfigurationError
              >>> c = ConfigurationContext()
              >>> import zope, zope.interface
              >>> c.resolve('zope') is zope
@@ -167,7 +166,7 @@ class ConfigurationContext(object):
              True
              >>> c.resolve('str') is str
              True
-        """
+        """  # noqa: E501 line too long
         name = dottedname.strip()
 
         if not name:
@@ -236,7 +235,6 @@ class ConfigurationContext(object):
             # see not mname case above
             return mod
 
-
         try:
             obj = getattr(mod, oname)
             return obj
@@ -278,8 +276,7 @@ class ConfigurationContext(object):
              True
              >>> c.path("y/../z") == d + os.path.normpath("/z")
              True
-
-        """
+        """  # noqa: E501 line too long
         filename, needs_processing = PathProcessor.expand(filename)
 
         if not needs_processing:
@@ -509,8 +506,8 @@ class ConfigurationContext(object):
                 includepath=includepath,
                 info=info,
                 order=order,
-                )
             )
+        )
 
         self.actions.append(action)
 
@@ -555,7 +552,6 @@ class ConfigurationAdapterRegistry(object):
 
         >>> from zope.configuration.interfaces import IConfigurationContext
         >>> from zope.configuration.config import ConfigurationAdapterRegistry
-        >>> from zope.configuration.config import ConfigurationError
         >>> from zope.configuration.config import ConfigurationMachine
         >>> r = ConfigurationAdapterRegistry()
         >>> c = ConfigurationMachine()
@@ -566,7 +562,8 @@ class ConfigurationAdapterRegistry(object):
         >>> def f():
         ...     pass
 
-        >>> r.register(IConfigurationContext, ('http://www.zope.com', 'xxx'), f)
+        >>> r.register(
+        ...     IConfigurationContext, ('http://www.zope.com', 'xxx'), f)
         >>> r.factory(c, ('http://www.zope.com', 'xxx')) is f
         True
         >>> r.factory(c, ('http://www.zope.com', 'yyy')) is f
@@ -636,6 +633,7 @@ class ConfigurationAdapterRegistry(object):
                 "The directive %s cannot be used in this context" % (name, ))
         return f
 
+
 @implementer(IConfigurationContext)
 class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
     """
@@ -674,12 +672,13 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
     includepath = ()
     info = ''
 
-    #: These `Exception` subclasses are allowed to be raised from `execute_actions`
-    #: without being re-wrapped into a `~.ConfigurationError`. (`BaseException`
-    #: and other `~.ConfigurationError` instances are never wrapped.)
+    #: These `Exception` subclasses are allowed to be raised from
+    #: `execute_actions` without being re-wrapped into a
+    #: `~.ConfigurationError`. (`BaseException` and other
+    #: `~.ConfigurationError` instances are never wrapped.)
     #:
-    #: Users of instances of this class may modify this before calling `execute_actions`
-    #: if they need to propagate specific exceptions.
+    #: Users of instances of this class may modify this before calling
+    #: `execute_actions` if they need to propagate specific exceptions.
     #:
     #: .. versionadded:: 4.2.0
     pass_through_exceptions = ()
@@ -797,11 +796,13 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                     raise
                 except Exception:
                     # Wrap it up and raise.
-                    reraise(ConfigurationExecutionError(info, sys.exc_info()[1]),
-                            None, sys.exc_info()[2])
+                    reraise(
+                        ConfigurationExecutionError(info, sys.exc_info()[1]),
+                        None, sys.exc_info()[2])
         finally:
             if clear:
                 del self.actions[:]
+
 
 class ConfigurationExecutionError(ConfigurationWrapperError):
     """
@@ -810,6 +811,7 @@ class ConfigurationExecutionError(ConfigurationWrapperError):
 
 ##############################################################################
 # Stack items
+
 
 class IStackItem(Interface):
     """
@@ -836,6 +838,7 @@ class IStackItem(Interface):
         """Finish processing a directive
         """
 
+
 @implementer(IStackItem)
 class SimpleStackItem(object):
     """
@@ -848,7 +851,8 @@ class SimpleStackItem(object):
     It also defers any computation until the end of the directive
     has been reached.
     """
-    #XXX why this *argdata hack instead of schema, data?
+    # XXX why this *argdata hack instead of schema, data?
+
     def __init__(self, context, handler, info, *argdata):
         newcontext = GroupingContextDecorator(context)
         newcontext.info = info
@@ -871,8 +875,9 @@ class SimpleStackItem(object):
             # we allow the handler to return nothing
             for action in actions:
                 if not isinstance(action, dict):
-                    action = expand_action(*action) # b/c
+                    action = expand_action(*action)  # b/c
                 context.action(**action)
+
 
 @implementer(IStackItem)
 class RootStackItem(object):
@@ -897,6 +902,7 @@ class RootStackItem(object):
 
     def finish(self):
         pass
+
 
 @implementer_if_needed(IStackItem)
 class GroupingStackItem(RootStackItem):
@@ -1079,6 +1085,7 @@ class GroupingStackItem(RootStackItem):
                     action = expand_action(*action)
                 self.context.action(**action)
 
+
 def noop():
     pass
 
@@ -1139,8 +1146,8 @@ class ComplexStackItem(object):
     ready to use a stack item.
 
         >>> from zope.configuration.config import ComplexStackItem
-        >>> item = ComplexStackItem(definition, context, {'x': u'xv', 'y': u'yv'},
-        ...                         'foo')
+        >>> item = ComplexStackItem(
+        ...     definition, context, {'x': u'xv', 'y': u'yv'}, 'foo')
 
     When we created the definition, the handler (factory) was called.
 
@@ -1215,6 +1222,7 @@ class ComplexStackItem(object):
           'kw': {},
           'order': 0}]
     """
+
     def __init__(self, meta, context, data, info):
         newcontext = GroupingContextDecorator(context)
         newcontext.info = info
@@ -1233,7 +1241,7 @@ class ComplexStackItem(object):
         schema = self.meta.get(name)
         if schema is None:
             raise ConfigurationError("Invalid directive", name)
-        schema = schema[0] # strip off info
+        schema = schema[0]  # strip off info
         handler = getattr(self.handler, name)
         return SimpleStackItem(self.context, handler, info, schema, data)
 
@@ -1245,10 +1253,10 @@ class ComplexStackItem(object):
             actions = self.handler()
         except AttributeError as v:
             if v.args[0] == '__call__':
-                return # noncallable
+                return  # noncallable
             raise
         except TypeError:
-            return # non callable
+            return  # non callable
 
         if actions:
             # we allow the handler to return nothing
@@ -1288,9 +1296,11 @@ class GroupingContextDecorator(ConfigurationContext):
 ##############################################################################
 # Directive-definition
 
+
 class DirectiveSchema(GlobalInterface):
     """A field that contains a global variable value that must be a schema
     """
+
 
 class IDirectivesInfo(Interface):
     """Schema for the ``directives`` directive
@@ -1357,6 +1367,7 @@ class IStandaloneDirectiveInfo(IDirectivesInfo, IFullInfo):
     """Info for full directives defined outside a directives directives
     """
 
+
 def defineSimpleDirective(context, name, schema, handler,
                           namespace='', usedIn=IConfigurationContext):
     """
@@ -1414,7 +1425,7 @@ def defineSimpleDirective(context, name, schema, handler,
           'info': None,
           'kw': {},
           'order': 0}]
-    """
+    """  # noqa: E501 line too long
     namespace = namespace or context.namespace
     if namespace != '*':
         name = namespace, name
@@ -1425,6 +1436,7 @@ def defineSimpleDirective(context, name, schema, handler,
 
     context.register(usedIn, name, factory)
     context.document(name, schema, usedIn, handler, context.info)
+
 
 def defineGroupingDirective(context, name, schema, handler,
                             namespace='', usedIn=IConfigurationContext):
@@ -1442,7 +1454,6 @@ def defineGroupingDirective(context, name, schema, handler,
         >>> context = ConfigurationMachine()
         >>> from zope.interface import Interface
         >>> from zope.schema import TextLine
-        >>> from zope.configuration.tests.directives import f
         >>> class Ixy(Interface):
         ...    x = TextLine()
         ...    y = TextLine()
@@ -1476,7 +1487,7 @@ def defineGroupingDirective(context, name, schema, handler,
         'vx'
         >>> context.stack[-1].context.y
         'vy'
-    """
+    """  # noqa: E501 line too long
     namespace = namespace or context.namespace
     if namespace != '*':
         name = namespace, name
@@ -1502,6 +1513,7 @@ class ComplexDirectiveDefinition(GroupingContextDecorator, dict):
 
     See the description and tests for ComplexStackItem.
     """
+
     def before(self):
 
         def factory(context, data, info):
@@ -1512,6 +1524,7 @@ class ComplexDirectiveDefinition(GroupingContextDecorator, dict):
         self.document((self.namespace, self.name), self.schema, self.usedIn,
                       self.handler, self.info)
 
+
 def subdirective(context, name, schema):
     context.document((context.namespace, name), schema, context.usedIn,
                      getattr(context.handler, name, context.handler),
@@ -1520,6 +1533,7 @@ def subdirective(context, name, schema):
 
 ##############################################################################
 # Features
+
 
 class IProvidesDirectiveInfo(Interface):
     """Information for a <meta:provides> directive"""
@@ -1531,6 +1545,7 @@ class IProvidesDirectiveInfo(Interface):
         You can test available features with zcml:condition="have featurename".
         """,
     )
+
 
 def provides(context, feature):
     """
@@ -1686,16 +1701,20 @@ def toargs(context, schema, data):
             try:
                 args[str(name)] = field.fromUnicode(s)
             except ValidationError as v:
-                reraise(ConfigurationError("Invalid value for %r" % (n)).add_details(v),
-                        None, sys.exc_info()[2])
+                reraise(
+                    ConfigurationError(
+                        "Invalid value for %r" % (n)).add_details(v),
+                    None, sys.exc_info()[2])
         elif field.required:
             # if the default is valid, we can use that:
             default = field.default
             try:
                 field.validate(default)
             except ValidationError as v:
-                reraise(ConfigurationError("Missing parameter: %r" % (n,)).add_details(v),
-                        None, sys.exc_info()[2])
+                reraise(
+                    ConfigurationError(
+                        "Missing parameter: %r" % (n,)).add_details(v),
+                    None, sys.exc_info()[2])
             args[str(name)] = default
 
     if data:
@@ -1715,6 +1734,7 @@ def toargs(context, schema, data):
 ##############################################################################
 # Conflict resolution
 
+
 def expand_action(discriminator, callable=None, args=(), kw=None,
                   includepath=(), info=None, order=0, **extra):
     if kw is None:
@@ -1729,9 +1749,10 @@ def expand_action(discriminator, callable=None, args=(), kw=None,
             includepath=includepath,
             info=info,
             order=order,
-            )
         )
+    )
     return action
+
 
 def resolveConflicts(actions):
     """
@@ -1802,8 +1823,8 @@ def resolveConflicts(actions):
         for _, _, action in rest:
             includepath = action['includepath']
             # Test whether path is a prefix of opath
-            if (includepath[:len(basepath)] != basepath # not a prefix
-                or includepath == basepath):
+            if (includepath[:len(basepath)] != basepath  # not a prefix
+                    or includepath == basepath):
                 L = conflicts.setdefault(discriminator, [baseinfo])
                 L.append(action['info'])
 
@@ -1829,7 +1850,8 @@ class ConfigurationConflictError(ConfigurationError):
                     r.append(u"    " + line)
 
         opening = "\n".join(r)
-        return super(ConfigurationConflictError, self)._with_details(opening, detail_formatter)
+        return super(ConfigurationConflictError, self)._with_details(
+            opening, detail_formatter)
 
 
 ##############################################################################

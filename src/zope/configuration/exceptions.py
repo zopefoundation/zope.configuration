@@ -20,6 +20,7 @@ __all__ = [
     'ConfigurationError',
 ]
 
+
 class ConfigurationError(Exception):
     """There was an error in a configuration
     """
@@ -60,7 +61,8 @@ class ConfigurationWrapperError(ConfigurationError):
     USE_INFO_REPR = False
 
     def __init__(self, info, exception):
-        super(ConfigurationWrapperError, self).__init__(repr(info) if self.USE_INFO_REPR else info)
+        super(ConfigurationWrapperError, self).__init__(
+            repr(info) if self.USE_INFO_REPR else info)
         self.add_details(exception)
 
         # This stuff is undocumented and not used but we store

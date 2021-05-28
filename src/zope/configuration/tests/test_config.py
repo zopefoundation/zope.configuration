@@ -19,6 +19,7 @@ import sys
 # pylint:disable=inherit-non-class,protected-access
 # pylint:disable=attribute-defined-outside-init, arguments-differ
 
+
 class ConfigurationContextTests(unittest.TestCase):
 
     def _getTargetClass(self):
@@ -51,7 +52,7 @@ class ConfigurationContextTests(unittest.TestCase):
         self.assertTrue(c.resolve('.') is package)
 
     def test_resolve_trailing_dot_in_resolve(self):
-        #Dotted names are no longer allowed to end in dots
+        # Dotted names are no longer allowed to end in dots
         c = self._makeOne()
         with self.assertRaises(ValueError):
             c.resolve('zope.')
@@ -99,15 +100,15 @@ class ConfigurationContextTests(unittest.TestCase):
         self.assertIn('ImportError', str(exc.exception))
 
     def test_resolve_bad_sub_last_import(self):
-        #Import error caused by a bad sub import inside the referenced
-        #dotted name. Here we keep the standard traceback.
+        # Import error caused by a bad sub import inside the referenced
+        # dotted name. Here we keep the standard traceback.
         c = self._makeOne()
         with self.assertRaises(ImportError):
             c.resolve('zope.configuration.tests.victim')
 
     def test_resolve_bad_sub_import(self):
-        #Import error caused by a bad sub import inside part of the referenced
-        #dotted name. Here we keep the standard traceback.
+        # Import error caused by a bad sub import inside part of the referenced
+        # dotted name. Here we keep the standard traceback.
         c = self._makeOne()
         with self.assertRaises(ImportError):
             c.resolve('zope.configuration.tests.victim.nosuch')
@@ -144,8 +145,9 @@ class ConfigurationContextTests(unittest.TestCase):
                          os.path.join(os.getcwd(), 'somewhere'))
 
     def test_path_wo_basepath_w_package_having_file(self):
-        #Path must always return an absolute path.
+        # Path must always return an absolute path.
         import os
+
         class stub:
             __file__ = os.path.join('relative', 'path')
         c = self._makeOne()
@@ -153,10 +155,11 @@ class ConfigurationContextTests(unittest.TestCase):
         self.assertTrue(os.path.isabs(c.path('y/z')))
 
     def test_path_wo_basepath_w_package_having_no_file_but_path(self):
-        #Determine package path using __path__ if __file__ isn't available.
+        # Determine package path using __path__ if __file__ isn't available.
         # (i.e. namespace package installed with
-        #--single-version-externally-managed)
+        # --single-version-externally-managed)
         import os
+
         class stub:
             __path__ = [os.path.join('relative', 'path')]
         c = self._makeOne()
@@ -182,7 +185,7 @@ class ConfigurationContextTests(unittest.TestCase):
         try:
             path = c.path('~')
             self.assertEqual(path, os.path.join(os.sep, 'HOME'))
-        finally: # pragma: no cover
+        finally:  # pragma: no cover
             if old_home:
                 os.environ['HOME'] = old_home
             else:
@@ -191,7 +194,7 @@ class ConfigurationContextTests(unittest.TestCase):
     def test_checkDuplicate_miss(self):
         import os
         c = self._makeOne()
-        c.checkDuplicate('/path') # doesn't raise
+        c.checkDuplicate('/path')  # doesn't raise
         self.assertEqual(list(c._seen_files), [os.path.normpath('/path')])
 
     def test_checkDuplicate_hit(self):
@@ -219,7 +222,7 @@ class ConfigurationContextTests(unittest.TestCase):
     def test_action_defaults_no_info_no_includepath(self):
         DISCRIMINATOR = ('a', ('b',), 0)
         c = self._makeOne()
-        c.actions = [] # normally provided by subclass
+        c.actions = []  # normally provided by subclass
         c.action(DISCRIMINATOR)
         self.assertEqual(len(c.actions), 1)
         info = c.actions[0]
@@ -234,9 +237,9 @@ class ConfigurationContextTests(unittest.TestCase):
     def test_action_defaults_w_info_w_includepath(self):
         DISCRIMINATOR = ('a', ('b',), 0)
         c = self._makeOne()
-        c.actions = [] # normally provided by subclass
-        c.info = 'INFO' # normally provided by subclass
-        c.includepath = ('a', 'b') # normally provided by subclass
+        c.actions = []  # normally provided by subclass
+        c.info = 'INFO'  # normally provided by subclass
+        c.includepath = ('a', 'b')  # normally provided by subclass
         c.action(DISCRIMINATOR)
         self.assertEqual(len(c.actions), 1)
         info = c.actions[0]
@@ -254,10 +257,11 @@ class ConfigurationContextTests(unittest.TestCase):
         KW = {'one': 1}
         INCLUDE_PATH = ('p', 'q/r')
         INFO = 'INFO'
+
         def _callable():
             raise AssertionError("should not be called")
         c = self._makeOne()
-        c.actions = [] # normally provided by subclass
+        c.actions = []  # normally provided by subclass
         c.action(DISCRIMINATOR,
                  _callable,
                  ARGS,
@@ -265,7 +269,7 @@ class ConfigurationContextTests(unittest.TestCase):
                  42,
                  INCLUDE_PATH,
                  INFO,
-                )
+                 )
         self.assertEqual(len(c.actions), 1)
         info = c.actions[0]
         self.assertEqual(info['discriminator'], DISCRIMINATOR)
@@ -282,10 +286,11 @@ class ConfigurationContextTests(unittest.TestCase):
         KW = {'one': 1}
         INCLUDE_PATH = ('p', 'q/r')
         INFO = 'INFO'
+
         def _callable():
             raise AssertionError("should not be called")
         c = self._makeOne()
-        c.actions = [] # normally provided by subclass
+        c.actions = []  # normally provided by subclass
         c.action(DISCRIMINATOR,
                  _callable,
                  ARGS,
@@ -295,7 +300,7 @@ class ConfigurationContextTests(unittest.TestCase):
                  INFO,
                  foo='bar',
                  baz=17,
-                )
+                 )
         self.assertEqual(len(c.actions), 1)
         info = c.actions[0]
         self.assertEqual(info['discriminator'], DISCRIMINATOR)
@@ -339,10 +344,12 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
 
     def test_register(self):
         from zope.interface import Interface
+
         class IFoo(Interface):
             pass
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
+
         def _factory():
             raise AssertionError("should not be called")
         reg = self._makeOne()
@@ -354,12 +361,15 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
 
     def test_register_replacement(self):
         from zope.interface import Interface
+
         class IFoo(Interface):
             pass
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
+
         def _factory():
             raise AssertionError("should not be called")
+
         def _rival():
             raise AssertionError("should not be called")
         reg = self._makeOne()
@@ -372,13 +382,16 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
 
     def test_register_new_name(self):
         from zope.interface import Interface
+
         class IFoo(Interface):
             pass
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         NAME2 = 'other'
+
         def _factory():
             raise AssertionError("should not be called")
+
         def _rival():
             raise AssertionError("should not be called")
         reg = self._makeOne()
@@ -393,8 +406,10 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
 
     def test_document_non_string_name(self):
         from zope.interface import Interface
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
         NS = 'http://namespace.example.com/'
@@ -415,8 +430,10 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
 
     def test_document_w_string_name(self):
         from zope.interface import Interface
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
         NAME = 'testing'
@@ -446,14 +463,17 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
     def test_factory_hit_on_fqn(self):
         from zope.interface import Interface
         from zope.interface import implementer
+
         class IFoo(Interface):
             pass
+
         @implementer(IFoo)
         class Context(object):
             pass
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         context = Context()
+
         def _factory():
             raise AssertionError("should not be called")
         reg = self._makeOne()
@@ -463,14 +483,17 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
     def test_factory_miss_on_fqn_hit_on_bare_name(self):
         from zope.interface import Interface
         from zope.interface import implementer
+
         class IFoo(Interface):
             pass
+
         @implementer(IFoo)
         class Context(object):
             pass
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         context = Context()
+
         def _factory():
             raise AssertionError("should not be called")
         reg = self._makeOne()
@@ -480,11 +503,13 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
     def test_factory_hit_on_fqn_lookup_fails(self):
         from zope.interface import Interface
         from zope.configuration.exceptions import ConfigurationError
+
         class IFoo(Interface):
             pass
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
-        context = object() # doesn't provide IFoo
+        context = object()  # doesn't provide IFoo
+
         def _factory():
             raise AssertionError("should not be called")
         reg = self._makeOne()
@@ -514,7 +539,7 @@ class _ConformsToIConfigurationContext(object):
 
 class ConfigurationMachineTests(_ConformsToIConfigurationContext,
                                 unittest.TestCase,
-                               ):
+                                ):
 
     def _getTargetClass(self):
         from zope.configuration.config import ConfigurationMachine
@@ -549,6 +574,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         from zope.configuration.config import IConfigurationContext
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
+
         def _factory(context, data, info):
             raise AssertionError("should not be called")
         cm = self._makeOne()
@@ -560,16 +586,20 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         from zope.interface import Interface
         from zope.configuration.config import IConfigurationContext
         from zope.configuration.config import RootStackItem
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
+
         def _handler(*args, **kw):
             raise AssertionError("should not be called")
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         _called_with = []
         item = object()
+
         def _factory(context, data, info):
             _called_with.append((context, data, info))
             return item
@@ -598,16 +628,20 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         from zope.interface import Interface
         from zope.configuration.config import IConfigurationContext
         from zope.configuration.config import RootStackItem
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
+
         def _handler(*args, **kw):
             raise AssertionError("should not be called")
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         _called_with = []
         item = object()
+
         def _factory(context, data, info):
             _called_with.append((context, data, info))
             return item
@@ -635,8 +669,10 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
 
     def test_end(self):
         from zope.configuration.config import RootStackItem
+
         class FauxItem(object):
             _finished = False
+
             def finish(self):
                 self._finished = True
         cm = self._makeOne()
@@ -652,20 +688,26 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         from zope.interface import Interface
         from zope.configuration.config import IConfigurationContext
         from zope.configuration.config import RootStackItem
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
+
         class FauxItem(object):
             _finished = False
+
             def finish(self):
                 self._finished = True
+
         def _handler(*args, **kw):
             raise AssertionError("should not be called")
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         _called_with = []
         item = FauxItem()
+
         def _factory(context, data, info):
             _called_with.append((context, data, info))
             return item
@@ -702,6 +744,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
     def test_getInfo_w_item(self):
         class FauxItem(object):
             info = 'FAUX'
+
             def __init__(self):
                 self.context = self
         cm = self._makeOne()
@@ -716,6 +759,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
     def test_setInfo_w_item(self):
         class FauxItem(object):
             info = 'FAUX'
+
             def __init__(self):
                 self.context = self
         cm = self._makeOne()
@@ -726,16 +770,18 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
 
     def test_execute_actions_empty(self):
         cm = self._makeOne()
-        cm.execute_actions() # noop
+        cm.execute_actions()  # noop
 
     def test_execute_actions_wo_errors(self):
         _called_with = {}
+
         def _a1(*args, **kw):
             _called_with.setdefault('_a1', []).append((args, kw))
+
         def _a2(*args, **kw):
             _called_with.setdefault('_a2', []).append((args, kw))
         cm = self._makeOne()
-        cm.action(None, None) # will be skipped
+        cm.action(None, None)  # will be skipped
         cm.action(None, _a1, ('a', 0), {'foo': 'bar'}, 4)
         cm.action(None, _a2, ('a', 1), {'foo': 'baz'}, 3)
         cm.action(None, _a1, ('b', 2), {'foo': 'qux'}, 2)
@@ -743,10 +789,10 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         self.assertEqual(_called_with['_a1'],
                          [(('b', 2), {'foo': 'qux'}),
                           (('a', 0), {'foo': 'bar'}),
-                         ])
+                          ])
         self.assertEqual(_called_with['_a2'],
                          [(('a', 1), {'foo': 'baz'}),
-                         ])
+                          ])
 
     def test_execute_actions_w_errors_w_testing(self):
         def _err(*args, **kw):
@@ -759,6 +805,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
 
     def test_execute_actions_w_errors_wo_testing(self):
         from zope.configuration.config import ConfigurationExecutionError
+
         def _err(*args, **kw):
             raise ValueError('XXX')
         cm = self._makeOne()
@@ -772,6 +819,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
 
     def _check_execute_actions_w_errors_wo_testing(self, ex_kind, cm=None):
         ex = ex_kind('XXX')
+
         def _err(*args, **kw):
             raise ex
         cm = cm if cm is not None else self._makeOne()
@@ -811,7 +859,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
         machine = self._makeOne()
         ns = "http://www.zope.org/testing"
 
-        #Register some test directives, starting with a grouping directive
+        # Register some test directives, starting with a grouping directive
         # that sets a package:
 
         machine(
@@ -827,7 +875,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
             package="zope.configuration.tests.directives",
         )
 
-        #Which makes it easier to define the other directives:
+        # Which makes it easier to define the other directives:
         machine((metans, "directive"),
                 namespace=ns, name="k",
                 schema=".Ik", handler=".k")
@@ -844,7 +892,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
                           'info': 'yee ha',
                           'kw': {},
                           'order': 0,
-                         })
+                          })
 
 
 class _ConformsToIStackItem(object):
@@ -868,7 +916,7 @@ class _ConformsToIStackItem(object):
 
 class SimpleStackItemTests(_ConformsToIStackItem,
                            unittest.TestCase,
-                          ):
+                           ):
 
     def _getTargetClass(self):
         from zope.configuration.config import SimpleStackItem
@@ -894,9 +942,11 @@ class SimpleStackItemTests(_ConformsToIStackItem,
     def test_ctor(self):
         from zope.interface import Interface
         from zope.configuration.config import GroupingContextDecorator
+
         class ISchema(Interface):
             pass
         context = FauxContext()
+
         def _handler():
             raise AssertionError("should not be called")
         _data = {}
@@ -916,24 +966,29 @@ class SimpleStackItemTests(_ConformsToIStackItem,
     def test_finish_handler_returns_no_actions(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISchema(Interface):
             name = Text(required=True)
         context = FauxContext()
+
         def _handler(context, **kw):
             return ()
         _data = {'name': 'NAME'}
         ssi = self._makeOne(context, _handler, 'INFO', ISchema, _data)
-        ssi.finish() # noraise
+        ssi.finish()  # noraise
         self.assertEqual(context.actions, [])
 
     def test_finish_handler_returns_oldstyle_actions(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISchema(Interface):
             name = Text(required=True)
         context = FauxContext()
+
         def _action(context, **kw):
             raise AssertionError("should not be called")
+
         def _handler(context, **kw):
             return [(None, _action)]
         _data = {'name': 'NAME'}
@@ -947,16 +1002,19 @@ class SimpleStackItemTests(_ConformsToIStackItem,
                            'includepath': (),
                            'info': 'INFO',
                            'order': 0,
-                          }])
+                           }])
 
     def test_finish_handler_returns_newstyle_actions(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISchema(Interface):
             name = Text(required=True)
         context = FauxContext()
+
         def _action(context, **kw):
             raise AssertionError("should not be called")
+
         def _handler(context, **kw):
             return [{'discriminator': None, 'callable': _action}]
         _data = {'name': 'NAME'}
@@ -970,13 +1028,12 @@ class SimpleStackItemTests(_ConformsToIStackItem,
                            'includepath': (),
                            'info': 'INFO',
                            'order': 0,
-                          }])
-
+                           }])
 
 
 class RootStackItemTests(_ConformsToIStackItem,
                          unittest.TestCase,
-                        ):
+                         ):
 
     def _getTargetClass(self):
         from zope.configuration.config import RootStackItem
@@ -989,6 +1046,7 @@ class RootStackItemTests(_ConformsToIStackItem,
 
     def test_contained_context_factory_fails(self):
         from zope.configuration.exceptions import ConfigurationError
+
         class _Context(object):
             def factory(self, context, name):
                 "does nothing"
@@ -999,9 +1057,11 @@ class RootStackItemTests(_ConformsToIStackItem,
     def test_contained_context_factory_normal(self):
         _called_with = []
         _adapter = object()
+
         def _factory(context, data, info):
             _called_with.append((context, data, info))
             return _adapter
+
         class _Context(object):
             def factory(self, context, name):
                 return _factory
@@ -1013,12 +1073,12 @@ class RootStackItemTests(_ConformsToIStackItem,
 
     def test_finish(self):
         rsi = self._makeOne()
-        rsi.finish() #noraise
+        rsi.finish()  # noraise
 
 
 class GroupingStackItemTests(_ConformsToIStackItem,
                              unittest.TestCase,
-                            ):
+                             ):
 
     def _getTargetClass(self):
         from zope.configuration.config import GroupingStackItem
@@ -1032,16 +1092,21 @@ class GroupingStackItemTests(_ConformsToIStackItem,
     def test_contained_context_before_returns_oldstyle_actions(self):
         _called_with = []
         _adapter = object()
+
         def _factory(context, data, info):
             _called_with.append((context, data, info))
             return _adapter
+
         def _action(*args, **kw):
             raise AssertionError("should not be called")
+
         class _Context(FauxContext):
             def factory(self, context, name):
                 return _factory
+
             def before(self):
                 return [(None, _action)]
+
             def after(self):
                 return ()
         context = _Context()
@@ -1058,25 +1123,31 @@ class GroupingStackItemTests(_ConformsToIStackItem,
                           'includepath': (),
                           'info': None,
                           'order': 0,
-                         })
-        rsi.finish() # doesn't re-do the 'before' dance
+                          })
+        rsi.finish()  # doesn't re-do the 'before' dance
         self.assertEqual(len(context.actions), 1)
 
     def test_contained_context_before_returns_newstyle_actions(self):
         _called_with = []
         _adapter = object()
+
         def _factory(context, data, info):
             _called_with.append((context, data, info))
             return _adapter
+
         def _before(*args, **kw):
             raise AssertionError("should not be called")
+
         def _after(*args, **kw):
             raise AssertionError("should not be called")
+
         class _Context(FauxContext):
             def factory(self, context, name):
                 return _factory
+
             def before(self):
                 return [{'discriminator': None, 'callable': _before}]
+
             def after(self):
                 return [{'discriminator': None, 'callable': _after}]
         context = _Context()
@@ -1085,32 +1156,35 @@ class GroupingStackItemTests(_ConformsToIStackItem,
         self.assertTrue(adapter is _adapter)
         self.assertEqual(_called_with, [(context, {'a': 'b'}, 'INFO')])
         self.assertEqual(len(context.actions), 1)
-        self.assertEqual(context.actions[0], # no GSI to add extras
+        self.assertEqual(context.actions[0],  # no GSI to add extras
                          {'discriminator': None,
                           'callable': _before,
-                         })
-        rsi.finish() # doesn't re-do the 'before' dance
+                          })
+        rsi.finish()  # doesn't re-do the 'before' dance
         self.assertEqual(len(context.actions), 2)
         self.assertEqual(context.actions[1],
                          {'discriminator': None,
                           'callable': _after,
-                         })
+                          })
 
     def test_finish_calls_before_if_not_already_called(self):
         def _before(*args, **kw):
             raise AssertionError("should not be called")
+
         def _after(*args, **kw):
             raise AssertionError("should not be called")
+
         class _Context(FauxContext):
             def before(self):
                 return [(None, _before)]
+
             def after(self):
                 return [(None, _after)]
         context = _Context()
         rsi = self._makeOne(context)
         rsi.finish()
         self.assertEqual(len(context.actions), 2)
-        self.assertEqual(context.actions[0], # no GSI to add extras
+        self.assertEqual(context.actions[0],  # no GSI to add extras
                          {'discriminator': None,
                           'callable': _before,
                           'args': (),
@@ -1118,7 +1192,7 @@ class GroupingStackItemTests(_ConformsToIStackItem,
                           'includepath': (),
                           'info': None,
                           'order': 0,
-                         })
+                          })
         self.assertEqual(context.actions[1],
                          {'discriminator': None,
                           'callable': _after,
@@ -1127,12 +1201,12 @@ class GroupingStackItemTests(_ConformsToIStackItem,
                           'includepath': (),
                           'info': None,
                           'order': 0,
-                         })
+                          })
 
 
 class ComplexStackItemTests(_ConformsToIStackItem,
                             unittest.TestCase,
-                           ):
+                            ):
 
     def _getTargetClass(self):
         from zope.configuration.config import ComplexStackItem
@@ -1152,12 +1226,15 @@ class ComplexStackItemTests(_ConformsToIStackItem,
     def _makeMeta(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISchema(Interface):
             name = Text()
+
         class FauxMeta(dict):
             schema = ISchema
             _handler_args = None
             _handler = object()
+
             def handler(self, newcontext, **kw):
                 self._handler_kwargs = kw
                 return self._handler
@@ -1189,8 +1266,10 @@ class ComplexStackItemTests(_ConformsToIStackItem,
         from zope.configuration.config import SimpleStackItem
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
+
         class ISubSchema(Interface):
             pass
+
         class WithName(object):
             def testing(self, *args):
                 raise AssertionError("should not be called")
@@ -1213,7 +1292,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
         context = FauxContext()
         _data = {'name': 'NAME'}
         csi = self._makeOne(meta, context, _data, 'INFO')
-        csi.finish() #noraise
+        csi.finish()  # noraise
         self.assertEqual(len(context.actions), 0)
 
     def test_finish_handler_raises_AE_for___call__(self):
@@ -1224,7 +1303,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
         context = FauxContext()
         _data = {'name': 'NAME'}
         csi = self._makeOne(meta, context, _data, 'INFO')
-        csi.finish() #noraise
+        csi.finish()  # noraise
         self.assertEqual(len(context.actions), 0)
 
     def test_finish_handler_raises_AE_for_other(self):
@@ -1241,6 +1320,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
     def test_finish_handler_returns_oldstyle_actions(self):
         def _action():
             raise AssertionError("should not be called")
+
         def _handler():
             return [(None, _action)]
         meta = self._makeMeta()
@@ -1258,11 +1338,12 @@ class ComplexStackItemTests(_ConformsToIStackItem,
                           'includepath': (),
                           'info': 'INFO',
                           'order': 0,
-                         })
+                          })
 
     def test_finish_handler_returns_newstyle_actions(self):
         def _action():
             raise AssertionError("should not be called")
+
         def _handler():
             return [{'discriminator': None, 'callable': _action}]
         meta = self._makeMeta()
@@ -1280,7 +1361,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
                           'includepath': (),
                           'info': 'INFO',
                           'order': 0,
-                         })
+                          })
 
 
 class _ConformsToIGroupingContext(object):
@@ -1305,7 +1386,7 @@ class _ConformsToIGroupingContext(object):
 class GroupingContextDecoratorTests(_ConformsToIConfigurationContext,
                                     _ConformsToIGroupingContext,
                                     unittest.TestCase,
-                                   ):
+                                    ):
 
     def _getTargetClass(self):
         from zope.configuration.config import GroupingContextDecorator
@@ -1314,7 +1395,7 @@ class GroupingContextDecoratorTests(_ConformsToIConfigurationContext,
     def _makeOne(self, context=None, **kw):
         if context is None:
             context = FauxContext()
-            context.package = None #appease IConfigurationContext
+            context.package = None  # appease IConfigurationContext
         instance = self._getTargetClass()(context, **kw)
         return instance
 
@@ -1339,11 +1420,11 @@ class GroupingContextDecoratorTests(_ConformsToIConfigurationContext,
 
     def test_before(self):
         gcd = self._makeOne()
-        gcd.before() #noraise
+        gcd.before()  # noraise
 
     def test_after(self):
         gcd = self._makeOne()
-        gcd.after() #noraise
+        gcd.after()  # noraise
 
 
 class _ConformsToIDirectivesContext(object):
@@ -1367,17 +1448,16 @@ class _ConformsToIDirectivesContext(object):
 
 class DirectivesHandlerTests(_ConformsToIDirectivesContext,
                              unittest.TestCase,
-                            ):
+                             ):
 
     def _getTargetClass(self):
         from zope.configuration.config import DirectivesHandler
         return DirectivesHandler
 
-    def _makeOne(self, context=None):
-        if context is None:
-            context = FauxContext()
-            context.package = None #appease IConfigurationContext
-            context.namespace = None #appease IDirectivesInfo
+    def _makeOne(self):
+        context = FauxContext()
+        context.package = None  # appease IConfigurationContext
+        context.namespace = None  # appease IDirectivesInfo
         instance = self._getTargetClass()(context)
         return instance
 
@@ -1394,8 +1474,10 @@ class Test_defineSimpleDirective(unittest.TestCase):
                 FauxContext.__init__(self)
                 self._registered = []
                 self._documented = []
+
             def register(self, usedIn, name, factory):
                 self._registered.append((usedIn, name, factory))
+
             def document(self, name, schema, usedIn, handler, info):
                 self._documented.append((name, schema, usedIn, handler, info))
         return _Context()
@@ -1403,6 +1485,7 @@ class Test_defineSimpleDirective(unittest.TestCase):
     def test_defaults(self):
         from zope.interface import Interface
         from zope.configuration.interfaces import IConfigurationContext as ICC
+
         class ISchema(Interface):
             pass
         NS = 'http://namespace.example.com/'
@@ -1410,6 +1493,7 @@ class Test_defineSimpleDirective(unittest.TestCase):
         context = self._makeContext()
         context.namespace = NS
         context.info = 'INFO'
+
         def _handler():
             raise AssertionError("should not be called")
 
@@ -1431,8 +1515,10 @@ class Test_defineSimpleDirective(unittest.TestCase):
 
     def test_explicit_w_star_namespace(self):
         from zope.interface import Interface
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
         NS = 'http://namespace.example.com/'
@@ -1440,6 +1526,7 @@ class Test_defineSimpleDirective(unittest.TestCase):
         context = self._makeContext()
         context.namespace = NS
         context.info = 'INFO'
+
         def _handler():
             raise AssertionError("should not be called")
 
@@ -1473,8 +1560,10 @@ class Test_defineGroupingDirective(unittest.TestCase):
                 FauxContext.__init__(self)
                 self._registered = []
                 self._documented = []
+
             def register(self, usedIn, name, factory):
                 self._registered.append((usedIn, name, factory))
+
             def document(self, name, schema, usedIn, handler, info):
                 self._documented.append((name, schema, usedIn, handler, info))
         return _Context()
@@ -1483,6 +1572,7 @@ class Test_defineGroupingDirective(unittest.TestCase):
         from zope.interface import Interface
         from zope.schema import Text
         from zope.configuration.interfaces import IConfigurationContext as ICC
+
         class ISchema(Interface):
             arg = Text()
         NS = 'http://namespace.example.com/'
@@ -1492,6 +1582,7 @@ class Test_defineGroupingDirective(unittest.TestCase):
         context.info = 'INFO'
         newcontext = FauxContext()
         _called_with = []
+
         def _handler(context, **kw):
             _called_with.append((context, kw))
             return newcontext
@@ -1515,8 +1606,10 @@ class Test_defineGroupingDirective(unittest.TestCase):
     def test_explicit_w_star_namespace(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISchema(Interface):
             arg = Text()
+
         class IUsedIn(Interface):
             pass
         NS = 'http://namespace.example.com/'
@@ -1526,6 +1619,7 @@ class Test_defineGroupingDirective(unittest.TestCase):
         context.info = 'INFO'
         newcontext = FauxContext()
         _called_with = []
+
         def _handler(context, **kw):
             _called_with.append((context, kw))
             return newcontext
@@ -1569,7 +1663,7 @@ class _ConformsToIComplexDirectiveContext(object):
 
 class ComplexDirectiveDefinitionTests(_ConformsToIComplexDirectiveContext,
                                       unittest.TestCase,
-                                     ):
+                                      ):
 
     def _getTargetClass(self):
         from zope.configuration.config import ComplexDirectiveDefinition
@@ -1595,14 +1689,17 @@ class ComplexDirectiveDefinitionTests(_ConformsToIComplexDirectiveContext,
     def test_before(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISchema(Interface):
             arg = Text()
+
         class IUsedIn(Interface):
             pass
         NS = 'http://namespace.example.com/'
         NAME = 'testing'
         _handled = []
         _csi_handler = object()
+
         def _handler(context, **kw):
             _handled.append((context, kw))
             return _csi_handler
@@ -1610,10 +1707,12 @@ class ComplexDirectiveDefinitionTests(_ConformsToIComplexDirectiveContext,
                                     handler=_handler, usedIn=IUsedIn)
         context.info = 'INFO'
         _registered = []
+
         def _register(*args):
             _registered.append(args)
         context.register = _register
         _documented = []
+
         def _document(*args):
             _documented.append(args)
         context.document = _document
@@ -1649,6 +1748,7 @@ class Test_subdirective(unittest.TestCase):
             def __init__(self):
                 self.context = {}
                 self._documented = []
+
             def document(self, *args):
                 self._documented.append(args)
         context = _Context()
@@ -1663,10 +1763,13 @@ class Test_subdirective(unittest.TestCase):
     def test_wo_handler_attribute(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISubSchema(Interface):
             arg = Text()
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
         NS = 'http://namespace.example.com/'
@@ -1690,12 +1793,16 @@ class Test_subdirective(unittest.TestCase):
     def test_w_handler_attribute(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISubSchema(Interface):
             arg = Text()
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
+
         class Handler(object):
             sub = object()
         NS = 'http://namespace.example.com/'
@@ -1729,6 +1836,7 @@ class Test_provides(unittest.TestCase):
 
     def test_w_single(self):
         _provided = []
+
         def _provideFeature(feature):
             _provided.append(feature)
         context = FauxContext()
@@ -1745,6 +1853,7 @@ class Test_toargs(unittest.TestCase):
 
     def test_w_empty_schema_no_data(self):
         from zope.interface import Interface
+
         class ISchema(Interface):
             pass
         context = FauxContext()
@@ -1753,6 +1862,7 @@ class Test_toargs(unittest.TestCase):
     def test_w_empty_schema_w_data_no_kwargs_allowed(self):
         from zope.configuration.exceptions import ConfigurationError
         from zope.interface import Interface
+
         class ISchema(Interface):
             pass
         context = FauxContext()
@@ -1763,6 +1873,7 @@ class Test_toargs(unittest.TestCase):
 
     def test_w_empty_schema_w_data_w_kwargs_allowed(self):
         from zope.interface import Interface
+
         class ISchema(Interface):
             pass
         ISchema.setTaggedValue('keyword_arguments', True)
@@ -1773,6 +1884,7 @@ class Test_toargs(unittest.TestCase):
     def test_w_keyword_sub(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISchema(Interface):
             for_ = Text()
         context = FauxContext()
@@ -1783,6 +1895,7 @@ class Test_toargs(unittest.TestCase):
         from zope.interface import Interface
         from zope.schema import Text
         from zope.configuration.exceptions import ConfigurationError
+
         class ISchema(Interface):
             no_default = Text()
         context = FauxContext()
@@ -1805,6 +1918,7 @@ class Test_toargs(unittest.TestCase):
     def test_w_field_missing_but_default(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         class ISchema(Interface):
             w_default = Text(default=u'default')
         context = FauxContext()
@@ -1815,6 +1929,7 @@ class Test_toargs(unittest.TestCase):
         from zope.interface import Interface
         from zope.schema import Int
         from zope.configuration.exceptions import ConfigurationError
+
         class ISchema(Interface):
             count = Int(min=0)
         context = FauxContext()
@@ -1832,6 +1947,7 @@ class Test_toargs(unittest.TestCase):
                 "TooSmall: (-1, 0)",
                 exception_str)
 
+
 class Test_expand_action(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
@@ -1847,7 +1963,7 @@ class Test_expand_action(unittest.TestCase):
                           'includepath': (),
                           'info': None,
                           'order': 0,
-                         })
+                          })
 
     def test_explicit_no_extra(self):
         def _callable():
@@ -1855,7 +1971,7 @@ class Test_expand_action(unittest.TestCase):
         self.assertEqual(self._callFUT(('a', 1, None),
                                        _callable, ('b', 2), {'c': None},
                                        ('p', 'q/r'), 'INFO', 42,
-                                      ),
+                                       ),
                          {'discriminator': ('a', 1, None),
                           'callable': _callable,
                           'args': ('b', 2),
@@ -1863,7 +1979,7 @@ class Test_expand_action(unittest.TestCase):
                           'includepath': ('p', 'q/r'),
                           'info': 'INFO',
                           'order': 42,
-                         })
+                          })
 
     def test_explicit_w_extra(self):
         def _callable():
@@ -1872,7 +1988,7 @@ class Test_expand_action(unittest.TestCase):
                                        _callable, ('b', 2), {'c': None},
                                        ('p', 'q/r'), 'INFO', 42,
                                        foo='bar', baz=None,
-                                      ),
+                                       ),
                          {'discriminator': ('a', 1, None),
                           'callable': _callable,
                           'args': ('b', 2),
@@ -1882,7 +1998,7 @@ class Test_expand_action(unittest.TestCase):
                           'order': 42,
                           'foo': 'bar',
                           'baz': None,
-                         })
+                          })
 
 
 class Test_resolveConflicts(unittest.TestCase):
@@ -1914,12 +2030,16 @@ class Test_resolveConflicts(unittest.TestCase):
 
     def test_wo_discriminator_clash(self):
         from zope.configuration.config import expand_action
+
         def _a():
             raise AssertionError("should not be called")
+
         def _b():
             raise AssertionError("should not be called")
+
         def _c():
             raise AssertionError("should not be called")
+
         def _d():
             raise AssertionError("should not be called")
         actions = [
@@ -1933,8 +2053,10 @@ class Test_resolveConflicts(unittest.TestCase):
 
     def test_w_resolvable_discriminator_clash(self):
         from zope.configuration.config import expand_action
+
         def _a():
             raise AssertionError("should not be called")
+
         def _b():
             raise AssertionError("should not be called")
         actions = [
@@ -1947,8 +2069,10 @@ class Test_resolveConflicts(unittest.TestCase):
     def test_w_non_resolvable_discriminator_clash_different_paths(self):
         from zope.configuration.config import ConfigurationConflictError
         from zope.configuration.config import expand_action
+
         def _a():
             raise AssertionError("should not be called")
+
         def _b():
             raise AssertionError("should not be called")
         actions = [
@@ -1962,8 +2086,10 @@ class Test_resolveConflicts(unittest.TestCase):
     def test_w_non_resolvable_discriminator_clash_same_path(self):
         from zope.configuration.config import ConfigurationConflictError
         from zope.configuration.config import expand_action
+
         def _a():
             raise AssertionError("should not be called")
+
         def _b():
             raise AssertionError("should not be called")
         actions = [
@@ -1977,8 +2103,10 @@ class Test_resolveConflicts(unittest.TestCase):
     def test_configuration_conflict_error_has_readable_exception(self):
         from zope.configuration.config import ConfigurationConflictError
         from zope.configuration.config import expand_action
+
         def _a():
             raise AssertionError("should not be called")
+
         def _b():
             raise AssertionError("should not be called")
         actions = [
@@ -2003,12 +2131,16 @@ class Test_resolveConflicts(unittest.TestCase):
 
     def test_wo_discriminators_final_sorting_order(self):
         from zope.configuration.config import expand_action
+
         def _a():
             raise AssertionError("should not be called")
+
         def _b():
             raise AssertionError("should not be called")
+
         def _c():
             raise AssertionError("should not be called")
+
         def _d():
             raise AssertionError("should not be called")
         actions = [
@@ -2024,5 +2156,6 @@ class Test_resolveConflicts(unittest.TestCase):
 class FauxContext(object):
     def __init__(self):
         self.actions = []
+
     def action(self, **kw):
         self.actions.append(kw)

@@ -47,6 +47,7 @@ optionflags = (
     | doctest.IGNORE_EXCEPTION_DETAIL
 )
 
+
 def test_suite():
     # zope.testrunner
     suite = unittest.TestSuite()

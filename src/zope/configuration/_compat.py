@@ -15,7 +15,7 @@ import sys
 
 PY3 = sys.version_info[0] >= 3
 
-if PY3: # pragma: no cover
+if PY3:  # pragma: PY3
 
     import builtins
 
@@ -24,7 +24,7 @@ if PY3: # pragma: no cover
 
     # borrowed from 'six'
     def reraise(tp, value, tb=None):
-        try:
+        try:  # pragma: no cover
             if value is None:
                 value = tp
             if value.__traceback__ is not tb:
@@ -34,12 +34,12 @@ if PY3: # pragma: no cover
             value = None
             tb = None
 
-else: # pragma: no cover
+else:  # pragma: PY2
 
-    import __builtin__  as builtins
+    import __builtin__ as builtins  # noqa: F401 imported but unused
 
-    text_type = unicode
-    string_types = (basestring,)
+    text_type = unicode  # noqa: F821 undefined name
+    string_types = (basestring,)  # noqa: F821 undefined name
 
     # borrowed from 'six'
     exec("""\

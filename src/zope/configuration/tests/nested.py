@@ -23,12 +23,11 @@ from zope.schema import Int
 from zope.schema import Text
 from zope.schema import TextLine
 from zope.configuration.config import GroupingContextDecorator
-from zope.configuration.config import IConfigurationContext
 from zope.configuration.fields import Bool
 
 
-
 schema_registry = {}
+
 
 class ISchemaInfo(Interface):
     """Parameter schema for the schema directive
@@ -37,9 +36,10 @@ class ISchemaInfo(Interface):
     name = TextLine(
         title=u"The schema name",
         description=u"This is a descriptive name for the schema.",
-        )
+    )
 
     id = Id(title=u"The unique id for the schema")
+
 
 class ISchema(Interface):
     """Interface that distinguishes the schema directive
@@ -53,7 +53,6 @@ class Schema(GroupingContextDecorator):
     """Handle schema directives
     """
 
-
     def __init__(self, context, name, id):
         self.context, self.name, self.id = context, name, id
         self.fields = {}
@@ -63,13 +62,13 @@ class Schema(GroupingContextDecorator):
             self.name,
             (Interface, ),
             self.fields
-            )
+        )
         schema.__doc__ = self.info.text.strip()
         self.action(
             discriminator=('schema', self.id),
             callable=schema_registry.__setitem__,
             args=(self.id, schema),
-            )
+        )
 
 
 class IFieldInfo(Interface):
@@ -96,6 +95,7 @@ class IFieldInfo(Interface):
         required=False,
         default=False)
 
+
 class ITextInfo(IFieldInfo):
 
     min_length = Int(
@@ -106,7 +106,7 @@ class ITextInfo(IFieldInfo):
             u"no minimum."
         ),
         required=False,
-        min=0, # needs to be a positive number
+        min=0,  # needs to be a positive number
         default=0)
 
     max_length = Int(
@@ -117,8 +117,9 @@ class ITextInfo(IFieldInfo):
             u"None, there is no maximum."
         ),
         required=False,
-        min=0, # needs to be a positive number
+        min=0,  # needs to be a positive number
         default=None)
+
 
 def field(context, constructor, name, **kw):
 
@@ -135,19 +136,21 @@ def field(context, constructor, name, **kw):
 def textField(context, **kw):
     field(context, Text, **kw)
 
+
 class IIntInfo(IFieldInfo):
 
     min = Int(
         title=u"Start of the range",
         required=False,
         default=None
-        )
+    )
 
     max = Int(
         title=u"End of the range (excluding the value itself)",
         required=False,
         default=None
-        )
+    )
+
 
 def intField(context, **kw):
     field(context, Int, **kw)

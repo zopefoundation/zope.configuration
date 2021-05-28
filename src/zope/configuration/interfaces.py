@@ -23,8 +23,10 @@ __all__ = [
     'IGroupingContext',
 ]
 
+
 class InvalidToken(ValidationError):
     """Invalid token in list."""
+
 
 class IConfigurationContext(Interface):
     """Configuration Context
@@ -110,8 +112,8 @@ class IConfigurationContext(Interface):
             with the value `None`. An action with a discriminator of `None`
             never conflicts with other actions.
 
-        :keyword int order: This is possible to add an order argument to crudely control
-            the order of execution.
+        :keyword int order: This is possible to add an order argument to
+            crudely control the order of execution.
 
         :keyword str info: Optional source line information
 

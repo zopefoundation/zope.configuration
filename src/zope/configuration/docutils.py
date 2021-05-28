@@ -25,6 +25,7 @@ __all__ = [
 para_sep = re.compile('\n{2,}')
 whitespace = re.compile('[ \t\n\r]+')
 
+
 def wrap(text, width=78, indent=0):
     """
     Makes sure that we keep a line length of a certain width.
@@ -59,11 +60,11 @@ def wrap(text, width=78, indent=0):
                 line.append(word)
                 length += len(word) + 1
             else:
-                lines.append(' '*indent + ' '.join(line))
+                lines.append(' ' * indent + ' '.join(line))
                 line = [word]
                 length = len(word) + 1 + indent
 
-        lines.append(' '*indent + ' '.join(line))
+        lines.append(' ' * indent + ' '.join(line))
 
         new_paras.append('\n'.join(lines))
 

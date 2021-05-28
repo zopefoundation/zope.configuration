@@ -68,7 +68,8 @@ class PythonIdentifier(schema_PythonIdentifier):
 
     Now let's see whether validation works alright
 
-      >>> for value in (u'foo', u'foo3', u'foo_', u'_foo3', u'foo_3', u'foo3_'):
+      >>> values = (u'foo', u'foo3', u'foo_', u'_foo3', u'foo_3', u'foo3_')
+      >>> for value in values:
       ...     _ = field.fromUnicode(value)
       >>> from zope.schema import ValidationError
       >>> for value in (u'3foo', u'foo:', u'\\', u''):
@@ -212,6 +213,7 @@ class GlobalInterface(GlobalObject):
       NotAnInterface: (<class 'Foo'>, ...
 
     """
+
     def __init__(self, **kw):
         super(GlobalInterface, self).__init__(InterfaceField(), **kw)
 
@@ -268,7 +270,9 @@ class Tokens(List):
                 try:
                     v = vt.fromUnicode(s)
                 except ValidationError as ex:
-                    raise InvalidToken("%s in %r" % (ex, value)).with_field_and_value(self, s)
+                    raise InvalidToken(
+                        "%s in %r" % (ex, value)).with_field_and_value(
+                            self, s)
                 else:
                     values.append(v)
         else:
@@ -277,6 +281,7 @@ class Tokens(List):
         self.validate(values)
 
         return values
+
 
 class PathProcessor(object):
     # Internal helper for manipulations on paths
@@ -428,7 +433,6 @@ class Bool(schema_Bool):
         raise InvalidValue().with_field_and_value(self, value)
 
 
-
 @implementer_if_needed(IFromUnicode)
 class MessageID(Text):
     """
@@ -506,7 +510,8 @@ class MessageID(Text):
                                         ('file location', 8)]}}
 
           >>> from zope.i18nmessageid import Message
-          >>> isinstance(list(context.i18n_strings['testing'].keys())[0], Message)
+          >>> isinstance(list(context.i18n_strings['testing'].keys())[0],
+          ...            Message)
           True
 
         Explicit Message IDs
@@ -523,15 +528,15 @@ class MessageID(Text):
           >>> i.default is None
           True
 
-        """
+        """  # noqa: E501 line too long
         context = self.context
         domain = getattr(context, 'i18n_domain', '')
         if not domain:
             domain = 'untranslated'
             warnings.warn(
-                "You did not specify an i18n translation domain for the "\
+                "You did not specify an i18n translation domain for the "
                 "'%s' field in %s" % (self.getName(), context.info.file)
-                )
+            )
         if not isinstance(domain, str):
             # IZopeConfigure specifies i18n_domain as a BytesLine, but that's
             # wrong on Python 3, where the filesystem uses str, and hence
@@ -548,7 +553,7 @@ class MessageID(Text):
             v = v[2:].lstrip()
         elif v.startswith('['):
             end = v.find(']')
-            default = v[end+2:]
+            default = v[end + 2:]
             v = v[1:end]
 
         # Convert to a message id, importing the factory, if necessary

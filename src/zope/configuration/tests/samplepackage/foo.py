@@ -18,14 +18,17 @@ from zope import schema
 
 data = []
 
+
 class S1(Interface):
     x = schema.BytesLine()
     y = schema.Int()
+
 
 class stuff(object):
     def __init__(self, args, info, basepath, package, includepath):
         (self.args, self.info, self.basepath, self.package, self.includepath
          ) = args, info, basepath, package, includepath
+
 
 def handler(_context, **kw):
     args = sorted(kw.items())
