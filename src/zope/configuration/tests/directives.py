@@ -26,10 +26,13 @@ from zope.configuration.fields import GlobalObject
 class F(object):
     def __repr__(self):
         return 'f'
+
     def __call__(self, *a, **k):
         raise NotImplementedError
 
+
 f = F()
+
 
 class ISimple(Interface):
 
@@ -37,8 +40,10 @@ class ISimple(Interface):
     b = Text(required=False)
     c = NativeStringLine()
 
+
 def simple(context, a=None, c=None, b=u"xxx"):
     return [(('simple', a, b, c), f, (a, b, c))]
+
 
 def newsimple(context, a, c, b=u"xxx"):
     context.action(('newsimple', a, b, c), f, (a, b, c))
@@ -62,8 +67,10 @@ class IFactory(Interface):
 
     factory = GlobalObject()
 
+
 def factory(context, factory):
-    context.action(('factory', 1,2), factory)
+    context.action(('factory', 1, 2), factory)
+
 
 class Complex(object):
 
@@ -75,13 +82,14 @@ class Complex(object):
         return [(('Complex.factory', 1, 2), factory, (self.a, ))]
 
     def __call__(self):
-        return [(('Complex', 1,2), f, (self.b, self.c))]
+        return [(('Complex', 1, 2), f, (self.b, self.c))]
 
 
 class Ik(Interface):
     for_ = NativeStringLine()
     class_ = NativeStringLine()
     x = NativeStringLine()
+
 
 def k(context, for_, class_, x):
     context.action(('k', for_), f, (for_, class_, x))

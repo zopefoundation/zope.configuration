@@ -30,13 +30,13 @@ class Test_wrap(unittest.TestCase):
 
     def test_single_paragraphs(self):
         self.assertEqual(
-                self._callFUT('abcde fghij klmno pqrst uvwxy', 10, 3),
-                '   abcde\n   fghij\n   klmno\n   pqrst\n   uvwxy\n\n')
+            self._callFUT('abcde fghij klmno pqrst uvwxy', 10, 3),
+            '   abcde\n   fghij\n   klmno\n   pqrst\n   uvwxy\n\n')
 
     def test_multiple_paragraphs(self):
         self.assertEqual(
-                self._callFUT('abcde fghij klmno\n\npqrst uvwxy', 10, 3),
-                '   abcde\n   fghij\n   klmno\n\n   pqrst\n   uvwxy\n\n')
+            self._callFUT('abcde fghij klmno\n\npqrst uvwxy', 10, 3),
+            '   abcde\n   fghij\n   klmno\n\n   pqrst\n   uvwxy\n\n')
 
 
 class Test_makeDocStructures(unittest.TestCase):
@@ -59,25 +59,30 @@ class Test_makeDocStructures(unittest.TestCase):
 
     def test_wo_parents(self):
         from zope.interface import Interface
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
         NS = 'http://namespace.example.com/main'
         NS2 = 'http://namespace.example.com/other'
+
         def _one():
             raise AssertionError("should not be called")
+
         def _two():
             raise AssertionError("should not be called")
+
         def _three():
             raise AssertionError("should not be called")
         context = self._makeContext()
         context._docRegistry.append(
-                    ((NS, 'one'), ISchema, IUsedIn, _one, 'ONE', None))
+            ((NS, 'one'), ISchema, IUsedIn, _one, 'ONE', None))
         context._docRegistry.append(
-                    ((NS2, 'two'), ISchema, IUsedIn, _two, 'TWO', None))
+            ((NS2, 'two'), ISchema, IUsedIn, _two, 'TWO', None))
         context._docRegistry.append(
-                    ((NS, 'three'), ISchema, IUsedIn, _three, 'THREE', None))
+            ((NS, 'three'), ISchema, IUsedIn, _three, 'THREE', None))
         namespaces, subdirs = self._callFUT(context)
         self.assertEqual(len(namespaces), 2)
         self.assertEqual(namespaces[NS], {'one': (ISchema, _one, 'ONE'),
@@ -87,19 +92,25 @@ class Test_makeDocStructures(unittest.TestCase):
 
     def test_w_parents(self):
         from zope.interface import Interface
+
         class ISchema(Interface):
             pass
+
         class IUsedIn(Interface):
             pass
         PNS = 'http://namespace.example.com/parent'
         NS = 'http://namespace.example.com/main'
         NS2 = 'http://namespace.example.com/other'
+
         def _one():
             raise AssertionError("should not be called")
+
         def _two():
             raise AssertionError("should not be called")
+
         def _three():
             raise AssertionError("should not be called")
+
         class Parent(object):
             namespace = PNS
             name = 'parent'
@@ -108,11 +119,11 @@ class Test_makeDocStructures(unittest.TestCase):
         parent2.name = 'parent2'
         context = self._makeContext()
         context._docRegistry.append(
-                    ((NS, 'one'), ISchema, IUsedIn, _one, 'ONE', parent1))
+            ((NS, 'one'), ISchema, IUsedIn, _one, 'ONE', parent1))
         context._docRegistry.append(
-                    ((NS2, 'two'), ISchema, IUsedIn, _two, 'TWO', parent2))
+            ((NS2, 'two'), ISchema, IUsedIn, _two, 'TWO', parent2))
         context._docRegistry.append(
-                    ((NS, 'three'), ISchema, IUsedIn, _three, 'THREE', parent1))
+            ((NS, 'three'), ISchema, IUsedIn, _three, 'THREE', parent1))
         namespaces, subdirs = self._callFUT(context)
         self.assertEqual(len(namespaces), 0)
         self.assertEqual(len(subdirs), 2)

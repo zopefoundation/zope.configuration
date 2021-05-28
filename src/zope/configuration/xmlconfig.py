@@ -95,7 +95,8 @@ class ZopeSAXParseException(ConfigurationWrapperError):
     Example
 
         >>> from zope.configuration.xmlconfig import ZopeSAXParseException
-        >>> v = ZopeSAXParseException("info", Exception("foo.xml:12:3:Not well formed"))
+        >>> v = ZopeSAXParseException(
+        ...     "info", Exception("foo.xml:12:3:Not well formed"))
         >>> print(v)
         info
             Exception: foo.xml:12:3:Not well formed
@@ -168,34 +169,35 @@ class ParserInfo(object):
 
         try:
             with open(file) as f:
-                lines = f.readlines()[self.line-1:self.eline]
+                lines = f.readlines()[self.line - 1:self.eline]
         except IOError:
             src = "  Could not read source."
         else:
             ecolumn = self.ecolumn
-            if lines[-1][ecolumn:ecolumn+2] == '</': # pragma: no cover
+            if lines[-1][ecolumn:ecolumn + 2] == '</':  # pragma: no cover
                 # We're pointing to the start of an end tag. Try to find
                 # the end
-                l = lines[-1].find('>', ecolumn)
-                if l >= 0:
-                    lines[-1] = lines[-1][:l+1]
-            else: # pragma: no cover
-                lines[-1] = lines[-1][:ecolumn+1]
+                l_ = lines[-1].find('>', ecolumn)
+                if l_ >= 0:
+                    lines[-1] = lines[-1][:l_ + 1]
+            else:  # pragma: no cover
+                lines[-1] = lines[-1][:ecolumn + 1]
 
             column = self.column
-            if lines[0][:column].strip(): # pragma: no cover
+            if lines[0][:column].strip():  # pragma: no cover
                 # Remove text before start if it's noy whitespace
                 lines[0] = lines[0][self.column:]
 
             pad = u'  '
             blank = u''
             try:
-                src = blank.join([pad + l for l in lines])
-            except UnicodeDecodeError: # pragma: no cover
+                src = blank.join([pad + line for line in lines])
+            except UnicodeDecodeError:  # pragma: no cover
                 # XXX:
                 # I hope so most internation zcml will use UTF-8 as encoding
                 # otherwise this code must be made more clever
-                src = blank.join([pad + l.decode('utf-8') for l in lines])
+                src = blank.join([pad + line.decode('utf-8')
+                                  for line in lines])
                 # unicode won't be printable, at least on my console
                 src = src.encode('ascii', 'replace')
 
@@ -260,7 +262,7 @@ class ConfigurationHandler(ContentHandler):
             self.locator.getSystemId(),
             self.locator.getLineNumber(),
             self.locator.getColumnNumber(),
-            )
+        )
 
         try:
             self.context.begin(name, data, info)
@@ -385,7 +387,7 @@ class ConfigurationHandler(ContentHandler):
         info.end(
             self.locator.getLineNumber(),
             self.locator.getColumnNumber(),
-            )
+        )
 
         try:
             self.context.end()
@@ -432,7 +434,8 @@ def openInOrPlain(filename):
         >>> from zope.configuration.xmlconfig import __file__
         >>> from zope.configuration.xmlconfig import openInOrPlain
         >>> here = os.path.dirname(__file__)
-        >>> path = os.path.join(here, 'tests', 'samplepackage', 'configure.zcml')
+        >>> path = os.path.join(
+        ...     here, 'tests', 'samplepackage', 'configure.zcml')
         >>> f = openInOrPlain(path)
         >>> f.name[-14:]
         'configure.zcml'
@@ -558,6 +561,7 @@ def include(_context, file=None, package=None, files=None):
             assert _context.stack[-1].context is context
             _context.stack.pop()
 
+
 def exclude(_context, file=None, package=None, files=None):
     """Exclude a zcml file
 
@@ -570,7 +574,6 @@ def exclude(_context, file=None, package=None, files=None):
             raise ValueError("Must specify only one of file or files")
     elif not file:
         file = 'configure.zcml'
-
 
     context = GroupingContextDecorator(_context)
     if package is not None:
@@ -590,6 +593,7 @@ def exclude(_context, file=None, package=None, files=None):
         # here the side effect is used to keep the given file from being
         # processed in the future
         context.processFile(path)
+
 
 def includeOverrides(_context, file=None, package=None, files=None):
     """Include zcml file containing overrides.
@@ -624,6 +628,7 @@ def includeOverrides(_context, file=None, package=None, files=None):
 
     _context.actions[nactions:] = newactions
 
+
 def registerCommonDirectives(context):
     # We have to use the direct definition functions to define
     # a directive for all namespaces.
@@ -643,7 +648,8 @@ def registerCommonDirectives(context):
         namespace="*",
         schema=IZopeConfigure,
         handler=ZopeConfigure,
-        )
+    )
+
 
 def file(name, package=None, context=None, execute=True):
     """Execute a zcml file
@@ -659,6 +665,7 @@ def file(name, package=None, context=None, execute=True):
         context.execute_actions()
 
     return context
+
 
 def string(s, context=None, name="<string>", execute=True):
     """Execute a zcml string
@@ -682,10 +689,13 @@ def string(s, context=None, name="<string>", execute=True):
 
 
 _context = None
+
+
 def _clearContext():
     global _context
     _context = ConfigurationMachine()
     registerCommonDirectives(_context)
+
 
 def _getContext():
     global _context
@@ -693,12 +703,13 @@ def _getContext():
         _clearContext()
         try:
             from zope.testing.cleanup import addCleanUp
-        except ImportError: # pragma: no cover
+        except ImportError:  # pragma: no cover
             pass
-        else: # pragma: no cover
+        else:  # pragma: no cover
             addCleanUp(_clearContext)
             del addCleanUp
     return _context
+
 
 class XMLConfig(object):
     """Provide high-level handling of configuration files.
@@ -713,6 +724,7 @@ class XMLConfig(object):
 
     def __call__(self):
         self.context.execute_actions()
+
 
 def xmlconfig(file, testing=False):
     context = _getContext()

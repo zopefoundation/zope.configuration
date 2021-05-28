@@ -19,6 +19,7 @@ from zope.schema import Text
 
 from zope.configuration.fields import Path
 
+
 class IRegisterFile(Interface):
 
     path = Path(
@@ -32,13 +33,16 @@ class IRegisterFile(Interface):
         required=False
     )
 
+
 class FileInfo(object):
 
     def __init__(self, path, title, description, info):
         (self.path, self.title, self.description, self.info
          ) = path, title, description, info
 
+
 file_registry = []
+
 
 def registerFile(context, path, title=u""):
     info = context.info

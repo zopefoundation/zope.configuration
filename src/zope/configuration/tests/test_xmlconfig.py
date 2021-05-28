@@ -28,6 +28,7 @@ BVALUE = u'bvalue'
 
 # pylint:disable=protected-access
 
+
 class ZopeXMLConfigurationErrorTests(unittest.TestCase):
     maxDiff = None
 
@@ -44,7 +45,6 @@ class ZopeXMLConfigurationErrorTests(unittest.TestCase):
             str(zxce),
             "'info'\n    Exception: value"
         )
-
 
 
 class ZopeSAXParseExceptionTests(unittest.TestCase):
@@ -150,7 +150,7 @@ class ConfigurationHandlerTests(unittest.TestCase):
                                {ZCML_CONDITION: 'have nonesuch',
                                 (None, A): AVALUE,
                                 (None, B): BVALUE,
-                               })
+                                })
         self.assertEqual(handler.ignore_depth, 1)
 
     def test_startElementNS_w_ignore_depth_already_set(self):
@@ -163,7 +163,7 @@ class ConfigurationHandlerTests(unittest.TestCase):
                                {(XXX, SPLAT): SPLATV,
                                 (None, A): AVALUE,
                                 (None, B): BVALUE,
-                               })
+                                })
         self.assertEqual(handler.ignore_depth, 2)
 
     def _check_elementNS_context_raises(self, raises, catches,
@@ -174,8 +174,10 @@ class ConfigurationHandlerTests(unittest.TestCase):
             def end(self, *args):
                 raise raises("xxx")
             begin = end
+
         class Info(object):
             _line = _col = None
+
             def end(self, line, col):
                 self._line, self._col = line, col
         context = ErrorContext()
@@ -190,7 +192,8 @@ class ConfigurationHandlerTests(unittest.TestCase):
             meth(*meth_args)
         return exc.exception, info
 
-    def _check_startElementNS_context_begin_raises(self, raises, catches, testing=False):
+    def _check_startElementNS_context_begin_raises(
+            self, raises, catches, testing=False):
         return self._check_elementNS_context_raises(
             raises, catches, testing,
             meth='startElementNS',
@@ -199,13 +202,13 @@ class ConfigurationHandlerTests(unittest.TestCase):
                        {(XXX, SPLAT): SPLATV,
                         (None, A): AVALUE,
                         (None, B): BVALUE,
-                       })
+                        })
         )
 
     def test_startElementNS_context_begin_raises_wo_testing(self):
         from zope.configuration.xmlconfig import ZopeXMLConfigurationError
-        raised, _ = self._check_startElementNS_context_begin_raises(AttributeError,
-                                                                    ZopeXMLConfigurationError)
+        raised, _ = self._check_startElementNS_context_begin_raises(
+            AttributeError, ZopeXMLConfigurationError)
         info = raised.info
         self.assertEqual(info.file, 'tests//sample.zcml')
         self.assertEqual(info.line, 7)
@@ -222,7 +225,6 @@ class ConfigurationHandlerTests(unittest.TestCase):
         self._check_startElementNS_context_begin_raises(Bex,
                                                         Bex)
 
-
     def test_startElementNS_normal(self):
         # Integration test of startElementNS / endElementNS pair.
         context = FauxContext()
@@ -234,7 +236,7 @@ class ConfigurationHandlerTests(unittest.TestCase):
                                {(XXX, SPLAT): SPLATV,
                                 (None, A): AVALUE,
                                 (None, B): BVALUE,
-                               })
+                                })
         self.assertEqual(context.info.file, 'tests//sample.zcml')
         self.assertEqual(context.info.line, 1)
         self.assertEqual(context.info.column, 1)
@@ -252,14 +254,15 @@ class ConfigurationHandlerTests(unittest.TestCase):
         handler.endElementNS((NS, FOO), FOO)
         self.assertEqual(handler.ignore_depth, 0)
 
-    def _check_endElementNS_context_end_raises(self, raises, catches, testing=False):
+    def _check_endElementNS_context_end_raises(
+            self, raises, catches, testing=False):
         return self._check_elementNS_context_raises(raises, catches, testing)
 
     def test_endElementNS_context_end_raises_wo_testing(self):
         from zope.configuration.xmlconfig import ZopeXMLConfigurationError
 
-        raised, info = self._check_endElementNS_context_end_raises(AttributeError,
-                                                                   ZopeXMLConfigurationError)
+        raised, info = self._check_endElementNS_context_end_raises(
+            AttributeError, ZopeXMLConfigurationError)
 
         self.assertIs(raised.info, info)
         self.assertEqual(raised.info._line, 7)
@@ -365,6 +368,7 @@ class ConfigurationHandlerTests(unittest.TestCase):
     def test_endElementNS_normal(self):
         class Info(object):
             _line = _col = None
+
             def end(self, line, col):
                 self._line, self._col = line, col
         context = FauxContext()
@@ -413,11 +417,13 @@ class Test_processxmlfile(unittest.TestCase):
         context.execute_actions()
         data = foo.data.pop()
         self.assertEqual(data.args, (('x', (b'blah')), ('y', 0)))
-        self.assertEqual(clean_info_path(repr(data.info)),
-                         'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
-        self.assertEqual(clean_info_path(str(data.info)),
-                         'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n'
-                         + '    <test:foo x="blah" y="0" />')
+        self.assertEqual(
+            clean_info_path(repr(data.info)),
+            'File "tests/samplepackage/configure.zcml", line 12.2-12.29')
+        self.assertEqual(
+            clean_info_path(str(data.info)),
+            'File "tests/samplepackage/configure.zcml", line 12.2-12.29\n'
+            '    <test:foo x="blah" y="0" />')
         self.assertEqual(data.package, None)
         self.assertEqual(data.basepath, None)
 
@@ -476,7 +482,7 @@ class Test_include(unittest.TestCase):
         context._seen_files.add(fqn)
         logger = LoggerStub()
         with _Monkey(xmlconfig, logger=logger):
-            self._callFUT(context) #skips
+            self._callFUT(context)  # skips
         self.assertEqual(len(logger.debugs), 0)
         self.assertEqual(len(context.actions), 0)
 
@@ -662,11 +668,12 @@ class Test_includeOverrides(unittest.TestCase):
         context.package = tests
         # dummy action, path from "previous" include
         context.includepath = (fqp,)
+
         def _callable():
             raise AssertionError("should not be called")
         context.actions.append({'discriminator': None,
                                 'callable': _callable,
-                               })
+                                })
         fqn = _packageFile(tests, 'simple.zcml')
         logger = LoggerStub()
         with _Monkey(xmlconfig, logger=logger):
@@ -873,7 +880,7 @@ class XMLConfigTests(unittest.TestCase):
             xc = self._makeOne(path)
         self.assertEqual(len(logger.debugs), 1)
         self.assertEqual(logger.debugs[0], ('include %s', (path,), {}))
-        self.assertEqual(len(foo.data), 0) # no execut_actions
+        self.assertEqual(len(foo.data), 0)  # no execut_actions
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
         self.assertEqual(action['discriminator'],
@@ -890,7 +897,7 @@ class XMLConfigTests(unittest.TestCase):
             xc = self._makeOne(fqn)
         self.assertEqual(len(logger.debugs), 1)
         self.assertEqual(logger.debugs[0], ('include %s', (fqn,), {}))
-        self.assertEqual(len(foo.data), 0) # no execut_actions
+        self.assertEqual(len(foo.data), 0)  # no execut_actions
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
         self.assertEqual(action['discriminator'],
@@ -907,7 +914,7 @@ class XMLConfigTests(unittest.TestCase):
             xc = self._makeOne("configure.zcml", samplepackage)
         self.assertEqual(len(logger.debugs), 1)
         self.assertEqual(logger.debugs[0], ('include %s', (fqn,), {}))
-        self.assertEqual(len(foo.data), 0) # no execut_actions
+        self.assertEqual(len(foo.data), 0)  # no execut_actions
         self.assertEqual(len(xc.context.actions), 1)
         action = xc.context.actions[0]
         self.assertEqual(action['discriminator'],
@@ -926,7 +933,7 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(len(logger.debugs), 1)
         self.assertEqual(logger.debugs[0], ('include %s', (fqn,), {}))
         self.assertEqual(len(foo.data), 0)
-        xc() # call to process the actions
+        xc()  # call to process the actions
         self.assertEqual(len(foo.data), 1)
         data = foo.data.pop(0)
         self.assertEqual(data.args, (('x', (b'blah')), ('y', 0)))
@@ -937,7 +944,6 @@ class XMLConfigTests(unittest.TestCase):
         self.assertEqual(data.info.column, 2)
         self.assertEqual(data.info.eline, 12)
         self.assertEqual(data.info.ecolumn, 29)
-
 
 
 class Test_xmlconfig(unittest.TestCase):
@@ -963,6 +969,7 @@ class Test_xmlconfig(unittest.TestCase):
         from zope.configuration import xmlconfig
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
+
         def _assertTestingFalse(func):
             def _wrapper(*args, **kw):
                 assert not kw['testing']
@@ -991,6 +998,7 @@ class Test_xmlconfig(unittest.TestCase):
         from zope.configuration import xmlconfig
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
+
         def _assertTestingTrue(func):
             def _wrapper(*args, **kw):
                 assert kw['testing']
@@ -1038,6 +1046,7 @@ class Test_testxmlconfig(unittest.TestCase):
         from zope.configuration import xmlconfig
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
+
         def _assertTestingTrue(func):
             def _wrapper(*args, **kw):
                 assert kw['testing']
@@ -1062,14 +1071,16 @@ class Test_testxmlconfig(unittest.TestCase):
         self.assertEqual(data.info.ecolumn, 29)
 
 
-
 class FauxLocator(object):
     def __init__(self, file, line, column):
         self.file, self.line, self.column = file, line, column
+
     def getSystemId(self):
         return self.file
+
     def getLineNumber(self):
         return self.line
+
     def getColumnNumber(self):
         return self.column
 
@@ -1078,15 +1089,20 @@ class FauxContext(object):
     includepath = ()
     _features = ()
     _end_called = False
+
     def setInfo(self, info):
         self.info = info
+
     def getInfo(self):
         return self.info
+
     def begin(self, name, data, info):
         self.begin_args = name, data
         self.info = info
+
     def end(self):
         self._end_called = 1
+
     def hasFeature(self, feature):
         return feature in self._features
 
@@ -1095,6 +1111,7 @@ def path(*p):
     import os
     return os.path.join(os.path.dirname(__file__), *p)
 
+
 def clean_info_path(s):
     import os
     part1 = s[:6]
@@ -1102,13 +1119,15 @@ def clean_info_path(s):
     part2 = part2[part2.rfind("tests"):]
     part2 = part2.replace(os.sep, '/')
     part3 = s[s.find('"', 6):].rstrip()
-    return part1+part2+part3
+    return part1 + part2 + part3
+
 
 def clean_path(s):
     import os
     s = s[s.rfind("tests"):]
     s = s.replace(os.sep, '/')
     return s
+
 
 def clean_actions(actions):
     return [
@@ -1120,15 +1139,16 @@ def clean_actions(actions):
         for action in actions
     ]
 
+
 def clean_text_w_paths(error):
     r = []
     for line in str(error).split("\n"):
         line = line.rstrip()
         if not line:
             continue
-        l = line.find('File "')
-        if l >= 0:
-            line = line[:l] + clean_info_path(line[l:])
+        l_ = line.find('File "')
+        if l_ >= 0:
+            line = line[:l_] + clean_info_path(line[l_:])
         r.append(line)
     return '\n'.join(r)
 
@@ -1136,6 +1156,7 @@ def clean_text_w_paths(error):
 def _packageFile(package, filename):
     import os
     return os.path.join(os.path.dirname(package.__file__), filename)
+
 
 class _Monkey(object):
 
@@ -1155,7 +1176,7 @@ class _Monkey(object):
         for k in self.replacements:
             if k in self.orig:
                 setattr(self.module, k, self.orig[k])
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 delattr(self.module, k)
 
 

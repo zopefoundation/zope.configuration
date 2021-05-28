@@ -26,7 +26,9 @@ class IRegister(Interface):
         required=True,
     )
 
+
 registry = []
+
 
 def register(context, id):
     context.action(discriminator=('Register', id),

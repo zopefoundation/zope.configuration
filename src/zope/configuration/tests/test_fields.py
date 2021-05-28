@@ -17,6 +17,7 @@ import unittest
 
 # pylint:disable=protected-access
 
+
 class _ConformsToIFromUnicode(object):
 
     def _getTargetClass(self):
@@ -48,7 +49,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test__validate_wo_value_type(self):
         go = self._makeOne(value_type=None)
         for value in [0, 0.0, (), [], set(), frozenset(), u'', b'']:
-            go._validate(value) #noraise
+            go._validate(value)  # noraise
 
     def test__validate_w_value_type(self):
         from zope.schema import Text
@@ -66,8 +67,10 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_fromUnicode_w_resolve_fails(self):
         from zope.schema import ValidationError
         from zope.configuration.config import ConfigurationError
+
         class Context(object):
             _resolved = None
+
             def resolve(self, name):
                 self._resolved = name
                 raise ConfigurationError()
@@ -83,8 +86,10 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_fromUnicode_w_resolve_success(self):
         _target = object()
+
         class Context(object):
             _resolved = None
+
             def resolve(self, name):
                 self._resolved = name
                 return _target
@@ -97,8 +102,10 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_fromUnicode_w_resolve_dots(self):
         _target = object()
+
         class Context(object):
             _resolved = None
+
             def resolve(self, name):
                 self._resolved = name
                 return _target
@@ -120,8 +127,10 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
         from zope.schema import Text
         from zope.schema import ValidationError
         _target = object()
+
         class Context(object):
             _resolved = None
+
             def resolve(self, name):
                 self._resolved = name
                 return _target
@@ -134,7 +143,6 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_fromUnicode_rejects_slash(self):
         from zope.schema import ValidationError
-        _target = object()
         field = self._makeOne()
         with self.assertRaises(ValidationError) as exc:
             field.fromUnicode('foo/bar')
@@ -156,6 +164,7 @@ class GlobalInterfaceTests(unittest.TestCase, _ConformsToIFromUnicode):
         from zope.schema import InterfaceField
         gi = self._makeOne()
         self.assertIsInstance(gi.value_type, InterfaceField)
+
 
 class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
 
@@ -205,6 +214,7 @@ class PathTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_fromUnicode_relative(self):
         class Context(object):
             _pathed = None
+
             def path(self, value):
                 self._pathed = value
                 return '/hard/coded'
@@ -261,8 +271,10 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
         class Info(object):
             file = 'test_file'
             line = 42
+
         class Context(object):
             i18n_domain = domain
+
             def __init__(self):
                 self.i18n_strings = {}
                 self.info = Info()

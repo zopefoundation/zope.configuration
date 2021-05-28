@@ -17,6 +17,6 @@ Software that wants to provide new config directives calls
 zope.configuration.meta.register.
 """
 
-def namespace(suffix):
-    return 'http://namespaces.zope.org/'+suffix
 
+def namespace(suffix):
+    return 'http://namespaces.zope.org/' + suffix

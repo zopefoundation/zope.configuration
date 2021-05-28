@@ -27,6 +27,7 @@ __all__ = [
     'path',
 ]
 
+
 def resolve(name, package='zopeproducts', _silly=('__doc__',), _globals={}):
     name = name.strip()
 
@@ -46,7 +47,7 @@ def resolve(name, package='zopeproducts', _silly=('__doc__',), _globals={}):
     if not mod:
         return __import__(name, _globals, _globals, _silly)
 
-    while 1:
+    while True:
         m = __import__(mod, _globals, _globals, _silly)
         try:
             a = getattr(m, last)
@@ -78,6 +79,7 @@ def getNormalizedName(name, package):
     if repeat:
         name += "+"
     return name
+
 
 def path(file='', package='zopeproducts', _silly=('__doc__',), _globals={}):
     # XXX WTF? why not look for abspath before importing?
