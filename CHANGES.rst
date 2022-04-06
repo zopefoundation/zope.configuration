@@ -7,7 +7,7 @@ Changes
 - Avoid creating reference cycles through tracebacks in ``reraise`` (change
   imported from ``six``).
 
-- Add support for Python 3.9.
+- Add support for Python 3.9, 3.10.
 
 
 4.4.0 (2020-03-22)
