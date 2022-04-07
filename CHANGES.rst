@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.4.1 (unreleased)
+4.4.1 (2022-04-07)
 ------------------
 
 - Avoid creating reference cycles through tracebacks in ``reraise`` (change
