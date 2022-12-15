@@ -21,6 +21,7 @@ Provide configuration object name resolution.
 import os
 from types import ModuleType
 
+
 __all__ = [
     'resolve',
     'getNormalizedName',

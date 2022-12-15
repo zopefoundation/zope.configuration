@@ -19,18 +19,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import re
-import os.path
-import unittest
 import doctest
+import os.path
+import re
+import unittest
 
 import manuel.capture
 import manuel.codeblock
 import manuel.doctest
 import manuel.ignore
 import manuel.testing
-
 from zope.testing import renormalizing
+
 
 checker = renormalizing.RENormalizing([
     # Python 3 unicode removed the "u".

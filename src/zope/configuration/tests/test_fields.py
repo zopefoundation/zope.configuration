@@ -15,6 +15,7 @@
 """
 import unittest
 
+
 # pylint:disable=protected-access
 
 
@@ -66,6 +67,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_fromUnicode_w_resolve_fails(self):
         from zope.schema import ValidationError
+
         from zope.configuration.config import ConfigurationError
 
         class Context(object):
@@ -187,6 +189,7 @@ class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test_fromUnicode_invalid(self):
         from zope.schema import Int
+
         from zope.configuration.interfaces import InvalidToken
         tok = self._makeOne(value_type=Int(min=0))
         with self.assertRaises(InvalidToken) as exc:

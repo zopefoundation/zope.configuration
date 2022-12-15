@@ -13,8 +13,9 @@
 ##############################################################################
 """Test configuration machinery.
 """
-import unittest
 import sys
+import unittest
+
 
 # pylint:disable=inherit-non-class,protected-access
 # pylint:disable=attribute-defined-outside-init, arguments-differ
@@ -199,6 +200,7 @@ class ConfigurationContextTests(unittest.TestCase):
 
     def test_checkDuplicate_hit(self):
         import os
+
         from zope.configuration.exceptions import ConfigurationError
         c = self._makeOne()
         c.checkDuplicate('/path')
@@ -502,6 +504,7 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
 
     def test_factory_hit_on_fqn_lookup_fails(self):
         from zope.interface import Interface
+
         from zope.configuration.exceptions import ConfigurationError
 
         class IFoo(Interface):
@@ -528,11 +531,13 @@ class _ConformsToIConfigurationContext(object):
 
     def test_class_conforms_to_IConfigurationContext(self):
         from zope.interface.verify import verifyClass
+
         from zope.configuration.interfaces import IConfigurationContext
         verifyClass(IConfigurationContext, self._getTargetClass())
 
     def test_instance_conforms_to_IConfigurationContext(self):
         from zope.interface.verify import verifyObject
+
         from zope.configuration.interfaces import IConfigurationContext
         verifyObject(IConfigurationContext, self._makeOne())
 
@@ -584,6 +589,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
 
     def test_begin_w___data_no_kw(self):
         from zope.interface import Interface
+
         from zope.configuration.config import IConfigurationContext
         from zope.configuration.config import RootStackItem
 
@@ -626,6 +632,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
 
     def test_begin_wo___data_w_kw(self):
         from zope.interface import Interface
+
         from zope.configuration.config import IConfigurationContext
         from zope.configuration.config import RootStackItem
 
@@ -686,6 +693,7 @@ class ConfigurationMachineTests(_ConformsToIConfigurationContext,
 
     def test___call__(self):
         from zope.interface import Interface
+
         from zope.configuration.config import IConfigurationContext
         from zope.configuration.config import RootStackItem
 
@@ -905,11 +913,13 @@ class _ConformsToIStackItem(object):
 
     def test_class_conforms_to_IStackItem(self):
         from zope.interface.verify import verifyClass
+
         from zope.configuration.config import IStackItem
         verifyClass(IStackItem, self._getTargetClass())
 
     def test_instance_conforms_to_IStackItem(self):
         from zope.interface.verify import verifyObject
+
         from zope.configuration.config import IStackItem
         verifyObject(IStackItem, self._makeOne())
 
@@ -941,6 +951,7 @@ class SimpleStackItemTests(_ConformsToIStackItem,
 
     def test_ctor(self):
         from zope.interface import Interface
+
         from zope.configuration.config import GroupingContextDecorator
 
         class ISchema(Interface):
@@ -1262,6 +1273,7 @@ class ComplexStackItemTests(_ConformsToIStackItem,
 
     def test_contained_hit(self):
         from zope.interface import Interface
+
         from zope.configuration.config import GroupingContextDecorator
         from zope.configuration.config import SimpleStackItem
         NS = 'http://namespace.example.com/'
@@ -1374,11 +1386,13 @@ class _ConformsToIGroupingContext(object):
 
     def test_class_conforms_to_IGroupingContext(self):
         from zope.interface.verify import verifyClass
+
         from zope.configuration.interfaces import IGroupingContext
         verifyClass(IGroupingContext, self._getTargetClass())
 
     def test_instance_conforms_to_IGroupingContext(self):
         from zope.interface.verify import verifyObject
+
         from zope.configuration.interfaces import IGroupingContext
         verifyObject(IGroupingContext, self._makeOne())
 
@@ -1437,11 +1451,13 @@ class _ConformsToIDirectivesContext(object):
 
     def test_class_conforms_to_IDirectivesContext(self):
         from zope.interface.verify import verifyClass
+
         from zope.configuration.config import IDirectivesContext
         verifyClass(IDirectivesContext, self._getTargetClass())
 
     def test_instance_conforms_to_IDirectivesContext(self):
         from zope.interface.verify import verifyObject
+
         from zope.configuration.config import IDirectivesContext
         verifyObject(IDirectivesContext, self._makeOne())
 
@@ -1484,6 +1500,7 @@ class Test_defineSimpleDirective(unittest.TestCase):
 
     def test_defaults(self):
         from zope.interface import Interface
+
         from zope.configuration.interfaces import IConfigurationContext as ICC
 
         class ISchema(Interface):
@@ -1571,6 +1588,7 @@ class Test_defineGroupingDirective(unittest.TestCase):
     def test_defaults(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         from zope.configuration.interfaces import IConfigurationContext as ICC
 
         class ISchema(Interface):
@@ -1652,11 +1670,13 @@ class _ConformsToIComplexDirectiveContext(object):
 
     def test_class_conforms_to_IComplexDirectiveContext(self):
         from zope.interface.verify import verifyClass
+
         from zope.configuration.config import IComplexDirectiveContext
         verifyClass(IComplexDirectiveContext, self._getTargetClass())
 
     def test_instance_conforms_to_IComplexDirectiveContext(self):
         from zope.interface.verify import verifyObject
+
         from zope.configuration.config import IComplexDirectiveContext
         verifyObject(IComplexDirectiveContext, self._makeOne())
 
@@ -1860,8 +1880,9 @@ class Test_toargs(unittest.TestCase):
         self.assertEqual(self._callFUT(context, ISchema, {}), {})
 
     def test_w_empty_schema_w_data_no_kwargs_allowed(self):
-        from zope.configuration.exceptions import ConfigurationError
         from zope.interface import Interface
+
+        from zope.configuration.exceptions import ConfigurationError
 
         class ISchema(Interface):
             pass
@@ -1894,6 +1915,7 @@ class Test_toargs(unittest.TestCase):
     def test_w_field_missing_no_default(self):
         from zope.interface import Interface
         from zope.schema import Text
+
         from zope.configuration.exceptions import ConfigurationError
 
         class ISchema(Interface):
@@ -1928,6 +1950,7 @@ class Test_toargs(unittest.TestCase):
     def test_w_invalid_value(self):
         from zope.interface import Interface
         from zope.schema import Int
+
         from zope.configuration.exceptions import ConfigurationError
 
         class ISchema(Interface):

@@ -14,7 +14,9 @@
 """Sample module used for testing
 """
 from zope.interface import Interface
+
 from zope import schema
+
 
 data = []
 

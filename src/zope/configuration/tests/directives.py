@@ -19,8 +19,8 @@ from zope.schema import NativeStringLine
 from zope.schema import Text
 
 from zope.configuration.config import GroupingContextDecorator
-from zope.configuration.interfaces import IConfigurationContext
 from zope.configuration.fields import GlobalObject
+from zope.configuration.interfaces import IConfigurationContext
 
 
 class F(object):

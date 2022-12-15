@@ -17,11 +17,12 @@
 from zope.interface import Attribute
 from zope.interface import Interface
 from zope.interface import implementer
-from zope.schema import NativeStringLine
 from zope.schema import Id
 from zope.schema import Int
+from zope.schema import NativeStringLine
 from zope.schema import Text
 from zope.schema import TextLine
+
 from zope.configuration.config import GroupingContextDecorator
 from zope.configuration.fields import Bool
 
