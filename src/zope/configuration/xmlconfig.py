@@ -20,31 +20,33 @@ test_includeOverrides in tests/test_xmlconfig.py
 __docformat__ = 'restructuredtext'
 
 import errno
-from glob import glob
-import logging
 import io
+import logging
 import os
 import sys
-from xml.sax import make_parser
-from xml.sax.xmlreader import InputSource
-from xml.sax.handler import ContentHandler, feature_namespaces
+from glob import glob
 from xml.sax import SAXParseException
+from xml.sax import make_parser
+from xml.sax.handler import ContentHandler
+from xml.sax.handler import feature_namespaces
+from xml.sax.xmlreader import InputSource
 
 from zope.interface import Interface
 from zope.schema import NativeStringLine
 
+from zope.configuration._compat import reraise
 from zope.configuration.config import ConfigurationMachine
-from zope.configuration.config import defineGroupingDirective
-from zope.configuration.config import defineSimpleDirective
 from zope.configuration.config import GroupingContextDecorator
 from zope.configuration.config import GroupingStackItem
+from zope.configuration.config import defineGroupingDirective
+from zope.configuration.config import defineSimpleDirective
 from zope.configuration.config import resolveConflicts
 from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.exceptions import ConfigurationWrapperError
 from zope.configuration.fields import GlobalObject
 from zope.configuration.zopeconfigure import IZopeConfigure
 from zope.configuration.zopeconfigure import ZopeConfigure
-from zope.configuration._compat import reraise
+
 
 __all__ = [
     'ParserInfo',

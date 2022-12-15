@@ -391,9 +391,10 @@ class Test_processxmlfile(unittest.TestCase):
 
     def test_w_empty_xml(self):
         from io import StringIO
+
         from zope.configuration.config import ConfigurationMachine
-        from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration.xmlconfig import ZopeSAXParseException
+        from zope.configuration.xmlconfig import registerCommonDirectives
 
         context = ConfigurationMachine()
         registerCommonDirectives(context)
@@ -405,8 +406,8 @@ class Test_processxmlfile(unittest.TestCase):
     def test_w_valid_xml_fp(self):
         # Integration test, really
         from zope.configuration.config import ConfigurationMachine
-        from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration.tests.samplepackage import foo
+        from zope.configuration.xmlconfig import registerCommonDirectives
 
         context = ConfigurationMachine()
         registerCommonDirectives(context)
@@ -436,6 +437,7 @@ class Test_openInOrPlain(unittest.TestCase):
 
     def _makeFilename(self, fn):
         import os
+
         from zope.configuration.tests.samplepackage import __file__
         return os.path.join(os.path.dirname(__file__), fn)
 
@@ -473,8 +475,8 @@ class Test_include(unittest.TestCase):
     def test_neither_file_nor_files_passed_already_seen(self):
         from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
-        from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration.tests import samplepackage
+        from zope.configuration.xmlconfig import registerCommonDirectives
         context = ConfigurationMachine()
         registerCommonDirectives(context)
         context.package = samplepackage
@@ -489,9 +491,9 @@ class Test_include(unittest.TestCase):
     def test_neither_file_nor_files_passed(self):
         from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
-        from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
+        from zope.configuration.xmlconfig import registerCommonDirectives
         context = ConfigurationMachine()
         registerCommonDirectives(context)
         before_stack = context.stack[:]
@@ -511,11 +513,11 @@ class Test_include(unittest.TestCase):
         self.assertIn(fqn, context._seen_files)
 
     def test_w_file_passed(self):
+        from zope.configuration import tests
         from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
-        from zope.configuration.xmlconfig import registerCommonDirectives
-        from zope.configuration import tests
         from zope.configuration.tests import simple
+        from zope.configuration.xmlconfig import registerCommonDirectives
         context = ConfigurationMachine()
         registerCommonDirectives(context)
         before_stack = context.stack[:]
@@ -549,9 +551,9 @@ class Test_include(unittest.TestCase):
     def test_w_files_passed_and_package(self):
         from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
-        from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
+        from zope.configuration.xmlconfig import registerCommonDirectives
         context = ConfigurationMachine()
         registerCommonDirectives(context)
         before_stack = context.stack[:]
@@ -609,8 +611,8 @@ class Test_exclude(unittest.TestCase):
         self.assertIn(fqn, context._seen_files)
 
     def test_w_file_passed(self):
-        from zope.configuration.config import ConfigurationMachine
         from zope.configuration import tests
+        from zope.configuration.config import ConfigurationMachine
         context = ConfigurationMachine()
         context.package = tests
         fqn = _packageFile(tests, 'simple.zcml')
@@ -656,11 +658,11 @@ class Test_includeOverrides(unittest.TestCase):
         return includeOverrides(*args, **kw)
 
     def test_actions_have_parents_includepath(self):
+        from zope.configuration import tests
         from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
-        from zope.configuration.xmlconfig import registerCommonDirectives
-        from zope.configuration import tests
         from zope.configuration.tests import simple
+        from zope.configuration.xmlconfig import registerCommonDirectives
         context = ConfigurationMachine()
         fqp = _packageFile(tests, 'configure.zcml')
         registerCommonDirectives(context)
@@ -748,9 +750,9 @@ class Test_file(unittest.TestCase):
     def test_wo_execute_w_context(self):
         from zope.configuration import xmlconfig
         from zope.configuration.config import ConfigurationMachine
-        from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
+        from zope.configuration.xmlconfig import registerCommonDirectives
         context = ConfigurationMachine()
         context.package = samplepackage
         registerCommonDirectives(context)
@@ -771,6 +773,7 @@ class Test_file(unittest.TestCase):
 
     def test_w_execute(self):
         import os
+
         from zope.configuration import xmlconfig
         from zope.configuration.tests.samplepackage import foo
         file_name = path("samplepackage", "configure.zcml")
@@ -814,8 +817,8 @@ class Test_string(unittest.TestCase):
 
     def test_wo_execute_w_context(self):
         from zope.configuration.config import ConfigurationMachine
-        from zope.configuration.xmlconfig import registerCommonDirectives
         from zope.configuration.tests.samplepackage import foo
+        from zope.configuration.xmlconfig import registerCommonDirectives
         context = ConfigurationMachine()
         registerCommonDirectives(context)
         file_name = path("samplepackage", "configure.zcml")
@@ -850,14 +853,14 @@ class Test_string(unittest.TestCase):
 class XMLConfigTests(unittest.TestCase):
 
     def setUp(self):
-        from zope.configuration.xmlconfig import _clearContext
         from zope.configuration.tests.samplepackage.foo import data
+        from zope.configuration.xmlconfig import _clearContext
         _clearContext()
         del data[:]
 
     def tearDown(self):
-        from zope.configuration.xmlconfig import _clearContext
         from zope.configuration.tests.samplepackage.foo import data
+        from zope.configuration.xmlconfig import _clearContext
         _clearContext()
         del data[:]
 
@@ -870,6 +873,7 @@ class XMLConfigTests(unittest.TestCase):
 
     def test_ctor_w_global_context_missing(self):
         import os
+
         from zope.configuration import xmlconfig
         from zope.configuration.tests.samplepackage import foo
         here = os.path.dirname(__file__)
@@ -906,8 +910,8 @@ class XMLConfigTests(unittest.TestCase):
 
     def test_ctor_w_module(self):
         from zope.configuration import xmlconfig
-        from zope.configuration.tests.samplepackage import foo
         from zope.configuration.tests import samplepackage
+        from zope.configuration.tests.samplepackage import foo
         fqn = _packageFile(samplepackage, 'configure.zcml')
         logger = LoggerStub()
         with _Monkey(xmlconfig, logger=logger):
@@ -923,6 +927,7 @@ class XMLConfigTests(unittest.TestCase):
 
     def test___call__(self):
         import os
+
         from zope.configuration import xmlconfig
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
@@ -949,14 +954,14 @@ class XMLConfigTests(unittest.TestCase):
 class Test_xmlconfig(unittest.TestCase):
 
     def setUp(self):
-        from zope.configuration.xmlconfig import _clearContext
         from zope.configuration.tests.samplepackage.foo import data
+        from zope.configuration.xmlconfig import _clearContext
         _clearContext()
         del data[:]
 
     def tearDown(self):
-        from zope.configuration.xmlconfig import _clearContext
         from zope.configuration.tests.samplepackage.foo import data
+        from zope.configuration.xmlconfig import _clearContext
         _clearContext()
         del data[:]
 
@@ -966,6 +971,7 @@ class Test_xmlconfig(unittest.TestCase):
 
     def test_wo_testing_passed(self):
         import os
+
         from zope.configuration import xmlconfig
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
@@ -995,6 +1001,7 @@ class Test_xmlconfig(unittest.TestCase):
 
     def test_w_testing_passed(self):
         import os
+
         from zope.configuration import xmlconfig
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo
@@ -1026,14 +1033,14 @@ class Test_xmlconfig(unittest.TestCase):
 class Test_testxmlconfig(unittest.TestCase):
 
     def setUp(self):
-        from zope.configuration.xmlconfig import _clearContext
         from zope.configuration.tests.samplepackage.foo import data
+        from zope.configuration.xmlconfig import _clearContext
         _clearContext()
         del data[:]
 
     def tearDown(self):
-        from zope.configuration.xmlconfig import _clearContext
         from zope.configuration.tests.samplepackage.foo import data
+        from zope.configuration.xmlconfig import _clearContext
         _clearContext()
         del data[:]
 
@@ -1043,6 +1050,7 @@ class Test_testxmlconfig(unittest.TestCase):
 
     def test_w_testing_passed(self):
         import os
+
         from zope.configuration import xmlconfig
         from zope.configuration.tests import samplepackage
         from zope.configuration.tests.samplepackage import foo

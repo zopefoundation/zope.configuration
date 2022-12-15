@@ -17,6 +17,7 @@ __docformat__ = 'restructuredtext'
 
 import re
 
+
 __all__ = [
     'wrap',
     'makeDocStructures',

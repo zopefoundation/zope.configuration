@@ -16,6 +16,7 @@
 
 import traceback
 
+
 __all__ = [
     'ConfigurationError',
 ]

@@ -36,6 +36,7 @@ class Test_resolve(unittest.TestCase):
 
     def test_importable_but_not_attr_of_parent(self):
         import sys
+
         import zope.configuration.tests as zct
         self.assertFalse('notyet' in zct.__dict__)
         mod = self._callFUT('zope.configuration.tests.notyet')
@@ -54,8 +55,8 @@ class Test_resolve(unittest.TestCase):
             Complex)
 
     def test_class_w_same_name_as_module(self):
-        from zope.configuration.tests.samplepackage.NamedForClass \
-            import NamedForClass
+        from zope.configuration.tests.samplepackage.NamedForClass import \
+            NamedForClass
         self.assertIs(
             self._callFUT(
                 'zope.configuration.tests.samplepackage.NamedForClass+'),

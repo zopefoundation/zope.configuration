@@ -13,31 +13,32 @@
 ##############################################################################
 """Configuration processor
 """
-from keyword import iskeyword
 import operator
 import os.path
 import sys
+from keyword import iskeyword
 
-from zope.interface.adapter import AdapterRegistry
 from zope.interface import Interface
 from zope.interface import implementer
 from zope.interface import providedBy
-from zope.schema import TextLine
+from zope.interface.adapter import AdapterRegistry
 from zope.schema import URI
+from zope.schema import TextLine
 from zope.schema import ValidationError
 
-from zope.configuration.exceptions import ConfigurationError
-from zope.configuration.exceptions import ConfigurationWrapperError
-from zope.configuration.interfaces import IConfigurationContext
-from zope.configuration.interfaces import IGroupingContext
-from zope.configuration.fields import GlobalInterface
-from zope.configuration.fields import GlobalObject
-from zope.configuration.fields import PathProcessor
 from zope.configuration._compat import builtins
+from zope.configuration._compat import implementer_if_needed
 from zope.configuration._compat import reraise
 from zope.configuration._compat import string_types
 from zope.configuration._compat import text_type
-from zope.configuration._compat import implementer_if_needed
+from zope.configuration.exceptions import ConfigurationError
+from zope.configuration.exceptions import ConfigurationWrapperError
+from zope.configuration.fields import GlobalInterface
+from zope.configuration.fields import GlobalObject
+from zope.configuration.fields import PathProcessor
+from zope.configuration.interfaces import IConfigurationContext
+from zope.configuration.interfaces import IGroupingContext
+
 
 __all__ = [
     'ConfigurationContext',

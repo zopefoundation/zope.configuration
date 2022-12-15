@@ -31,6 +31,7 @@ class ZopeConfigureTests(unittest.TestCase):
 
     def test_ctor_w_package(self):
         import os
+
         import zope.configuration.tests as zct
         zc = self._makeOne(Context(), package=zct)
         self.assertEqual(zc.basepath, os.path.dirname(zct.__file__))

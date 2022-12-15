@@ -29,9 +29,10 @@ from zope.schema import ValidationError
 from zope.schema.interfaces import IFromUnicode
 from zope.schema.interfaces import InvalidValue
 
+from zope.configuration._compat import implementer_if_needed
 from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.interfaces import InvalidToken
-from zope.configuration._compat import implementer_if_needed
+
 
 __all__ = [
     'Bool',
