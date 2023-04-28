@@ -19,7 +19,7 @@ import unittest
 # pylint:disable=protected-access
 
 
-class _ConformsToIFromUnicode(object):
+class _ConformsToIFromUnicode:
 
     def _getTargetClass(self):
         raise NotImplementedError
@@ -49,14 +49,14 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
 
     def test__validate_wo_value_type(self):
         go = self._makeOne(value_type=None)
-        for value in [0, 0.0, (), [], set(), frozenset(), u'', b'']:
+        for value in [0, 0.0, (), [], set(), frozenset(), '', b'']:
             go._validate(value)  # noraise
 
     def test__validate_w_value_type(self):
         from zope.schema import Text
         from zope.schema.interfaces import WrongType
         go = self._makeOne(value_type=Text())
-        go.validate(u'')
+        go.validate('')
         for value in [0, 0.0, (), [], set(), frozenset(), b'']:
             with self.assertRaises(WrongType):
                 go._validate(value)
@@ -70,7 +70,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
 
         from zope.configuration.config import ConfigurationError
 
-        class Context(object):
+        class Context:
             _resolved = None
 
             def resolve(self, name):
@@ -89,7 +89,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_fromUnicode_w_resolve_success(self):
         _target = object()
 
-        class Context(object):
+        class Context:
             _resolved = None
 
             def resolve(self, name):
@@ -105,7 +105,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_fromUnicode_w_resolve_dots(self):
         _target = object()
 
-        class Context(object):
+        class Context:
             _resolved = None
 
             def resolve(self, name):
@@ -130,7 +130,7 @@ class GlobalObjectTests(unittest.TestCase, _ConformsToIFromUnicode):
         from zope.schema import ValidationError
         _target = object()
 
-        class Context(object):
+        class Context:
             _resolved = None
 
             def resolve(self, name):
@@ -184,8 +184,8 @@ class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
     def test_fromUnicode_strips_ws(self):
         from zope.schema import Text
         tok = self._makeOne(value_type=Text())
-        self.assertEqual(tok.fromUnicode(u' one two three '),
-                         [u'one', u'two', u'three'])
+        self.assertEqual(tok.fromUnicode(' one two three '),
+                         ['one', 'two', 'three'])
 
     def test_fromUnicode_invalid(self):
         from zope.schema import Int
@@ -193,7 +193,7 @@ class TokensTests(unittest.TestCase, _ConformsToIFromUnicode):
         from zope.configuration.interfaces import InvalidToken
         tok = self._makeOne(value_type=Int(min=0))
         with self.assertRaises(InvalidToken) as exc:
-            tok.fromUnicode(u' 1 -1 3 ')
+            tok.fromUnicode(' 1 -1 3 ')
 
         ex = exc.exception
         self.assertIs(ex.field, tok)
@@ -215,7 +215,7 @@ class PathTests(unittest.TestCase, _ConformsToIFromUnicode):
         self.assertEqual(path.fromUnicode('/'), os.path.normpath('/'))
 
     def test_fromUnicode_relative(self):
-        class Context(object):
+        class Context:
             _pathed = None
 
             def path(self, value):
@@ -271,11 +271,11 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
         return self._getTargetClass()(*args, **kw)
 
     def _makeContext(self, domain='testing_domain'):
-        class Info(object):
+        class Info:
             file = 'test_file'
             line = 42
 
-        class Context(object):
+        class Context:
             i18n_domain = domain
 
             def __init__(self):
@@ -289,7 +289,7 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
         context = self._makeContext(None)
         bound = mid.bind(context)
         with warnings.catch_warnings(record=True) as log:
-            msgid = bound.fromUnicode(u'testing')
+            msgid = bound.fromUnicode('testing')
         self.assertEqual(len(log), 1)
         self.assertTrue(str(log[0].message).startswith(
             'You did not specify an i18n translation domain'))
@@ -305,7 +305,7 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
         context = self._makeContext()
         bound = mid.bind(context)
         with warnings.catch_warnings(record=True) as log:
-            msgid = bound.fromUnicode(u'[] testing')
+            msgid = bound.fromUnicode('[] testing')
         self.assertEqual(len(log), 0)
         self.assertEqual(msgid, 'testing')
         self.assertEqual(msgid.default, None)
@@ -319,7 +319,7 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
         context = self._makeContext()
         bound = mid.bind(context)
         with warnings.catch_warnings(record=True) as log:
-            msgid = bound.fromUnicode(u'[testing] default')
+            msgid = bound.fromUnicode('[testing] default')
         self.assertEqual(len(log), 0)
         self.assertEqual(msgid, 'testing')
         self.assertEqual(msgid.default, 'default')
@@ -331,6 +331,6 @@ class MessageIDTests(unittest.TestCase, _ConformsToIFromUnicode):
         mid = self._makeOne()
         context = self._makeContext(domain=b'domain')
         bound = mid.bind(context)
-        msgid = bound.fromUnicode(u'msgid')
+        msgid = bound.fromUnicode('msgid')
         self.assertIsInstance(msgid.domain, str)
         self.assertEqual(msgid.domain, 'domain')

@@ -37,5 +37,5 @@ class ZopeConfigureTests(unittest.TestCase):
         self.assertEqual(zc.basepath, os.path.dirname(zct.__file__))
 
 
-class Context(object):
+class Context:
     basepath = None

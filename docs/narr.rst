@@ -1169,7 +1169,6 @@ redefine our directives:
    Traceback (most recent call last):
    ...
    zope.configuration.exceptions.ConfigurationError: The directive ('http://sample.namespaces.zope.org/schema', 'text') cannot be used in this context
-     File "<string>", line 1.0
 
 
 Let's see what happens if we declare duplicate fields:

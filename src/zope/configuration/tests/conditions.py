@@ -21,8 +21,8 @@ class IRegister(Interface):
     """Trivial sample registry."""
 
     id = Id(
-        title=u"Identifier",
-        description=u"Some identifier that can be checked.",
+        title="Identifier",
+        description="Some identifier that can be checked.",
         required=True,
     )
 

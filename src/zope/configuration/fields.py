@@ -89,7 +89,7 @@ class PythonIdentifier(schema_PythonIdentifier):
     """
 
     def _validate(self, value):
-        super(PythonIdentifier, self)._validate(value)
+        super()._validate(value)
         if not value:
             raise ValidationError(value).with_field_and_value(self, value)
 
@@ -107,10 +107,10 @@ class GlobalObject(Field):
 
     def __init__(self, value_type=None, **kw):
         self.value_type = value_type
-        super(GlobalObject, self).__init__(**kw)
+        super().__init__(**kw)
 
     def _validate(self, value):
-        super(GlobalObject, self)._validate(value)
+        super()._validate(value)
         if self.value_type is not None:
             self.value_type.validate(value)
 
@@ -216,7 +216,7 @@ class GlobalInterface(GlobalObject):
     """
 
     def __init__(self, **kw):
-        super(GlobalInterface, self).__init__(InterfaceField(), **kw)
+        super().__init__(InterfaceField(), **kw)
 
 
 @implementer(IFromUnicode)
@@ -272,7 +272,7 @@ class Tokens(List):
                     v = vt.fromUnicode(s)
                 except ValidationError as ex:
                     raise InvalidToken(
-                        "%s in %r" % (ex, value)).with_field_and_value(
+                        f"{ex} in {value!r}").with_field_and_value(
                             self, s)
                 else:
                     values.append(v)
@@ -284,7 +284,7 @@ class Tokens(List):
         return values
 
 
-class PathProcessor(object):
+class PathProcessor:
     # Internal helper for manipulations on paths
 
     @classmethod
@@ -540,13 +540,13 @@ class MessageID(Text):
             )
         if not isinstance(domain, str):
             # IZopeConfigure specifies i18n_domain as a BytesLine, but that's
-            # wrong on Python 3, where the filesystem uses str, and hence
+            # wrong as the filesystem uses str, and hence
             # zope.i18n registers ITranslationDomain utilities with str names.
             # If we keep bytes, we can't find those utilities.
             enc = sys.getfilesystemencoding() or sys.getdefaultencoding()
             domain = domain.decode(enc)
 
-        v = super(MessageID, self).fromUnicode(value)
+        v = super().fromUnicode(value)
 
         # Check whether there is an explicit message is specified
         default = None
