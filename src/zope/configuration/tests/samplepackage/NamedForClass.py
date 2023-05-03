@@ -1,3 +1,3 @@
 # Test the "repeat" feature of zope.configuration.name.resolve.
-class NamedForClass(object):
+class NamedForClass:
     pass

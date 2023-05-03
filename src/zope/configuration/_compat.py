@@ -11,48 +11,8 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-import sys
 
-
-PY3 = sys.version_info[0] >= 3
-
-if PY3:  # pragma: PY3
-
-    import builtins
-
-    string_types = (str,)
-    text_type = str
-
-    # borrowed from 'six'
-    def reraise(tp, value, tb=None):
-        try:  # pragma: no cover
-            if value is None:
-                value = tp
-            if value.__traceback__ is not tb:
-                raise value.with_traceback(tb)
-            raise value
-        finally:
-            value = None
-            tb = None
-
-else:  # pragma: PY2
-
-    import __builtin__ as builtins  # noqa: F401 imported but unused
-
-    text_type = unicode  # noqa: F821 undefined name
-    string_types = (basestring,)  # noqa: F821 undefined name
-
-    # borrowed from 'six'
-    exec("""\
-def reraise(tp, value, tb=None):
-    try:
-        raise tp, value, tb
-    finally:
-        tb = None
-""")
-
-
-class implementer_if_needed(object):
+class implementer_if_needed:
     # Helper to make sure we don't redundantly implement
     # interfaces already inherited. Doing so tends to produce
     # problems with the C3 order. In this package, we could easily

@@ -46,7 +46,7 @@ class Test_makeDocStructures(unittest.TestCase):
         return makeDocStructures(*args, **kw)
 
     def _makeContext(self):
-        class _Context(object):
+        class _Context:
             def __init__(self):
                 self._docRegistry = []
         return _Context()
@@ -111,7 +111,7 @@ class Test_makeDocStructures(unittest.TestCase):
         def _three():
             raise AssertionError("should not be called")
 
-        class Parent(object):
+        class Parent:
             namespace = PNS
             name = 'parent'
         parent1 = Parent()

@@ -34,7 +34,6 @@ from xml.sax.xmlreader import InputSource
 from zope.interface import Interface
 from zope.schema import NativeStringLine
 
-from zope.configuration._compat import reraise
 from zope.configuration.config import ConfigurationMachine
 from zope.configuration.config import GroupingContextDecorator
 from zope.configuration.config import GroupingStackItem
@@ -68,7 +67,7 @@ __all__ = [
 logger = logging.getLogger("config")
 
 ZCML_NAMESPACE = "http://namespaces.zope.org/zcml"
-ZCML_CONDITION = (ZCML_NAMESPACE, u"condition")
+ZCML_CONDITION = (ZCML_NAMESPACE, "condition")
 
 
 class ZopeXMLConfigurationError(ConfigurationWrapperError):
@@ -105,7 +104,7 @@ class ZopeSAXParseException(ConfigurationWrapperError):
     """
 
 
-class ParserInfo(object):
+class ParserInfo:
     r"""
     Information about a directive based on parser data
 
@@ -141,7 +140,7 @@ class ParserInfo(object):
             </directives>
           </configure>
     """
-    text = u''
+    text = ''
 
     def __init__(self, file, line, column):
         self.file, self.line, self.column = file, line, column
@@ -152,15 +151,15 @@ class ParserInfo(object):
 
     def __repr__(self):
         if (self.line, self.column) == (self.eline, self.ecolumn):
-            return 'File "%s", line %s.%s' % (
+            return 'File "{}", line {}.{}'.format(
                 self.file, self.line, self.column)
 
-        return 'File "%s", line %s.%s-%s.%s' % (
+        return 'File "{}", line {}.{}-{}.{}'.format(
             self.file, self.line, self.column, self.eline, self.ecolumn)
 
     def __str__(self):
         if (self.line, self.column) == (self.eline, self.ecolumn):
-            return 'File "%s", line %s.%s' % (
+            return 'File "{}", line {}.{}'.format(
                 self.file, self.line, self.column)
 
         file = self.file
@@ -172,7 +171,7 @@ class ParserInfo(object):
         try:
             with open(file) as f:
                 lines = f.readlines()[self.line - 1:self.eline]
-        except IOError:
+        except OSError:
             src = "  Could not read source."
         else:
             ecolumn = self.ecolumn
@@ -190,8 +189,8 @@ class ParserInfo(object):
                 # Remove text before start if it's noy whitespace
                 lines[0] = lines[0][self.column:]
 
-            pad = u'  '
-            blank = u''
+            pad = '  '
+            blank = ''
             try:
                 src = blank.join([pad + line for line in lines])
             except UnicodeDecodeError:  # pragma: no cover
@@ -203,7 +202,7 @@ class ParserInfo(object):
                 # unicode won't be printable, at least on my console
                 src = src.encode('ascii', 'replace')
 
-        return "%s\n%s" % (repr(self), src)
+        return f"{repr(self)}\n{src}"
 
     def characters(self, characters):
         self.text += characters
@@ -235,8 +234,7 @@ class ConfigurationHandler(ContentHandler):
             ex.add_details(repr(info))
             raise
 
-        exc = ZopeXMLConfigurationError(info, ex)
-        reraise(exc, None, sys.exc_info()[2])
+        raise ZopeXMLConfigurationError(info, ex)
 
     def startElementNS(self, name, qname, attrs):
         if self.ignore_depth:
@@ -410,8 +408,7 @@ def processxmlfile(file, context, testing=False):
     try:
         parser.parse(src)
     except SAXParseException:
-        reraise(ZopeSAXParseException(file, sys.exc_info()[1]),
-                None, sys.exc_info()[2])
+        raise ZopeSAXParseException(file, sys.exc_info()[1])
 
 
 def openInOrPlain(filename):
@@ -420,9 +417,9 @@ def openInOrPlain(filename):
 
     If the requested file does not exist and filename.in does, fall
     back to filename.in. If opening the original filename fails for
-    any other reason, allow the failure to propogate.
+    any other reason, allow the failure to propagate.
 
-    For example, the tests/samplepackage dirextory has files:
+    For example, the tests/samplepackage directory has files:
 
         - configure.zcml
 
@@ -466,7 +463,7 @@ def openInOrPlain(filename):
     """
     try:
         return open(filename)
-    except IOError as e:
+    except OSError as e:
         code, msg = e.args
         if code == errno.ENOENT:
             fn = filename + ".in"
@@ -485,18 +482,18 @@ class IInclude(Interface):
     """
 
     file = NativeStringLine(
-        title=u"Configuration file name",
+        title="Configuration file name",
         description=(
-            u"The name of a configuration file to be included/"
-            u"excluded, relative to the directive containing the "
-            u"including configuration file."
+            "The name of a configuration file to be included/"
+            "excluded, relative to the directive containing the "
+            "including configuration file."
         ),
         required=False,
     )
 
     files = NativeStringLine(
-        title=u"Configuration file name pattern",
-        description=u"""
+        title="Configuration file name pattern",
+        description="""
         The names of multiple configuration files to be included/excluded,
         expressed as a file-name pattern, relative to the directive
         containing the including or excluding configuration file.
@@ -517,8 +514,8 @@ class IInclude(Interface):
     )
 
     package = GlobalObject(
-        title=u"Include or exclude package",
-        description=u"""
+        title="Include or exclude package",
+        description="""
         Include or exclude the named file (or configure.zcml) from the
         directory of this package.
         """,
@@ -713,7 +710,7 @@ def _getContext():
     return _context
 
 
-class XMLConfig(object):
+class XMLConfig:
     """Provide high-level handling of configuration files.
 
     See examples in tests/text_xmlconfig.py

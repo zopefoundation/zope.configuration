@@ -49,11 +49,11 @@ class ConfigurationError(Exception):
         return '\n'.join(lines)
 
     def __str__(self):
-        s = super(ConfigurationError, self).__str__()
+        s = super().__str__()
         return self._with_details(s, str)
 
     def __repr__(self):
-        s = super(ConfigurationError, self).__repr__()
+        s = super().__repr__()
         return self._with_details(s, repr)
 
 
@@ -62,7 +62,7 @@ class ConfigurationWrapperError(ConfigurationError):
     USE_INFO_REPR = False
 
     def __init__(self, info, exception):
-        super(ConfigurationWrapperError, self).__init__(
+        super().__init__(
             repr(info) if self.USE_INFO_REPR else info)
         self.add_details(exception)
 

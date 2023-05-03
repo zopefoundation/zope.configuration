@@ -13,6 +13,7 @@
 ##############################################################################
 """Configuration processor
 """
+import builtins
 import operator
 import os.path
 import sys
@@ -26,11 +27,7 @@ from zope.schema import URI
 from zope.schema import TextLine
 from zope.schema import ValidationError
 
-from zope.configuration._compat import builtins
 from zope.configuration._compat import implementer_if_needed
-from zope.configuration._compat import reraise
-from zope.configuration._compat import string_types
-from zope.configuration._compat import text_type
 from zope.configuration.exceptions import ConfigurationError
 from zope.configuration.exceptions import ConfigurationWrapperError
 from zope.configuration.fields import GlobalInterface
@@ -75,7 +72,7 @@ metans = 'http://namespaces.zope.org/meta'
 testns = 'http://namespaces.zope.org/test'
 
 
-class ConfigurationContext(object):
+class ConfigurationContext:
     """
     Mix-in for implementing.
     :class:`zope.configuration.interfaces.IConfigurationContext`.
@@ -130,7 +127,7 @@ class ConfigurationContext(object):
     # pylint:disable=no-member
 
     def __init__(self):
-        super(ConfigurationContext, self).__init__()
+        super().__init__()
         self._seen_files = set()
         self._features = set()
 
@@ -230,7 +227,7 @@ class ConfigurationContext(object):
                 # ImportError was caused deeper
                 raise
             raise ConfigurationError(
-                "ImportError: Couldn't import %s, %s" % (mname, v))
+                f"ImportError: Couldn't import {mname}, {v}")
 
         if not oname:
             # see not mname case above
@@ -250,7 +247,7 @@ class ConfigurationContext(object):
                     # ImportError was caused deeper
                     raise
                 raise ConfigurationError(
-                    "ImportError: Module %s has no global %s" % (mname, oname))
+                    f"ImportError: Module {mname} has no global {oname}")
 
     def path(self, filename):
         """
@@ -545,7 +542,7 @@ class ConfigurationContext(object):
         self._features.add(feature)
 
 
-class ConfigurationAdapterRegistry(object):
+class ConfigurationAdapterRegistry:
     """
     Simple adapter registry that manages directives as adapters.
 
@@ -600,7 +597,7 @@ class ConfigurationAdapterRegistry(object):
     """
 
     def __init__(self):
-        super(ConfigurationAdapterRegistry, self).__init__()
+        super().__init__()
         self._registry = {}
         # Stores tuples of form:
         #   (namespace, name), schema, usedIn, info, parent
@@ -615,7 +612,7 @@ class ConfigurationAdapterRegistry(object):
         r.register([interface], Interface, '', factory)
 
     def document(self, name, schema, usedIn, handler, info, parent=None):
-        if isinstance(name, string_types):
+        if isinstance(name, str):
             name = ('', name)
         self._docRegistry.append((name, schema, usedIn, handler, info, parent))
 
@@ -631,7 +628,7 @@ class ConfigurationAdapterRegistry(object):
         f = r.lookup1(providedBy(context), Interface)
         if f is None:
             raise ConfigurationError(
-                "The directive %s cannot be used in this context" % (name, ))
+                f"The directive {name} cannot be used in this context")
         return f
 
 
@@ -685,7 +682,7 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
     pass_through_exceptions = ()
 
     def __init__(self):
-        super(ConfigurationMachine, self).__init__()
+        super().__init__()
         self.actions = []
         self.stack = [RootStackItem(self)]
         self.i18n_strings = {}
@@ -797,9 +794,7 @@ class ConfigurationMachine(ConfigurationAdapterRegistry, ConfigurationContext):
                     raise
                 except Exception:
                     # Wrap it up and raise.
-                    reraise(
-                        ConfigurationExecutionError(info, sys.exc_info()[1]),
-                        None, sys.exc_info()[2])
+                    raise ConfigurationExecutionError(info, sys.exc_info()[1])
         finally:
             if clear:
                 del self.actions[:]
@@ -841,7 +836,7 @@ class IStackItem(Interface):
 
 
 @implementer(IStackItem)
-class SimpleStackItem(object):
+class SimpleStackItem:
     """
     Simple stack item
 
@@ -881,7 +876,7 @@ class SimpleStackItem(object):
 
 
 @implementer(IStackItem)
-class RootStackItem(object):
+class RootStackItem:
     """
     A root stack item.
     """
@@ -1062,7 +1057,7 @@ class GroupingStackItem(RootStackItem):
     """
 
     def __init__(self, context):
-        super(GroupingStackItem, self).__init__(context)
+        super().__init__(context)
 
     def __callBefore(self):
         actions = self.context.before()
@@ -1092,7 +1087,7 @@ def noop():
 
 
 @implementer(IStackItem)
-class ComplexStackItem(object):
+class ComplexStackItem:
     """
     Complex stack item
 
@@ -1308,10 +1303,10 @@ class IDirectivesInfo(Interface):
     """
 
     namespace = URI(
-        title=u"Namespace",
+        title="Namespace",
         description=(
-            u"The namespace in which directives' names "
-            u"will be defined"),
+            "The namespace in which directives' names "
+            "will be defined"),
     )
 
 
@@ -1334,13 +1329,13 @@ class IDirectiveInfo(Interface):
     """
 
     name = TextLine(
-        title=u"Directive name",
-        description=u"The name of the directive being defined",
+        title="Directive name",
+        description="The name of the directive being defined",
     )
 
     schema = DirectiveSchema(
-        title=u"Directive handler",
-        description=u"The dotted name of the directive handler",
+        title="Directive handler",
+        description="The dotted name of the directive handler",
     )
 
 
@@ -1350,15 +1345,15 @@ class IFullInfo(IDirectiveInfo):
     """
 
     handler = GlobalObject(
-        title=u"Directive handler",
-        description=u"The dotted name of the directive handler",
+        title="Directive handler",
+        description="The dotted name of the directive handler",
     )
 
     usedIn = GlobalInterface(
-        title=u"The directive types the directive can be used in",
+        title="The directive types the directive can be used in",
         description=(
-            u"The interface of the directives that can contain "
-            u"the directive"
+            "The interface of the directives that can contain "
+            "the directive"
         ),
         default=IConfigurationContext,
     )
@@ -1540,8 +1535,8 @@ class IProvidesDirectiveInfo(Interface):
     """Information for a <meta:provides> directive"""
 
     feature = TextLine(
-        title=u"Feature name",
-        description=u"""The name of the feature being provided
+        title="Feature name",
+        description="""The name of the feature being provided
 
         You can test available features with zcml:condition="have featurename".
         """,
@@ -1696,26 +1691,22 @@ def toargs(context, schema, data):
 
         s = data.get(n, data)
         if s is not data:
-            s = text_type(s)
+            s = str(s)
             del data[n]
 
             try:
                 args[str(name)] = field.fromUnicode(s)
             except ValidationError as v:
-                reraise(
-                    ConfigurationError(
-                        "Invalid value for %r" % (n)).add_details(v),
-                    None, sys.exc_info()[2])
+                raise ConfigurationError(
+                    "Invalid value for %r" % (n)).add_details(v)
         elif field.required:
             # if the default is valid, we can use that:
             default = field.default
             try:
                 field.validate(default)
             except ValidationError as v:
-                reraise(
-                    ConfigurationError(
-                        "Missing parameter: %r" % (n,)).add_details(v),
-                    None, sys.exc_info()[2])
+                raise ConfigurationError(
+                    f"Missing parameter: {n!r}").add_details(v)
             args[str(name)] = default
 
     if data:
@@ -1839,19 +1830,19 @@ def resolveConflicts(actions):
 class ConfigurationConflictError(ConfigurationError):
 
     def __init__(self, conflicts):
-        super(ConfigurationConflictError, self).__init__()
+        super().__init__()
         self._conflicts = conflicts
 
     def _with_details(self, opening, detail_formatter):
         r = ["Conflicting configuration actions"]
         for discriminator, infos in sorted(self._conflicts.items()):
-            r.append("  For: %s" % (discriminator, ))
+            r.append(f"  For: {discriminator}")
             for info in infos:
-                for line in text_type(info).rstrip().split(u'\n'):
-                    r.append(u"    " + line)
+                for line in str(info).rstrip().split('\n'):
+                    r.append("    " + line)
 
         opening = "\n".join(r)
-        return super(ConfigurationConflictError, self)._with_details(
+        return super()._with_details(
             opening, detail_formatter)
 
 

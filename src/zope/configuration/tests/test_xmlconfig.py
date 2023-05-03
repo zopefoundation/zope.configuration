@@ -16,15 +16,15 @@
 import unittest
 
 
-NS = u'ns'
-FOO = u'foo'
-XXX = u'xxx'
-SPLAT = u'splat'
-SPLATV = u'splatv'
-A = u'a'
-AVALUE = u'avalue'
-B = u'b'
-BVALUE = u'bvalue'
+NS = 'ns'
+FOO = 'foo'
+XXX = 'xxx'
+SPLAT = 'splat'
+SPLATV = 'splatv'
+A = 'a'
+AVALUE = 'avalue'
+B = 'b'
+BVALUE = 'bvalue'
 
 # pylint:disable=protected-access
 
@@ -175,7 +175,7 @@ class ConfigurationHandlerTests(unittest.TestCase):
                 raise raises("xxx")
             begin = end
 
-        class Info(object):
+        class Info:
             _line = _col = None
 
             def end(self, line, col):
@@ -366,7 +366,7 @@ class ConfigurationHandlerTests(unittest.TestCase):
                          "Invalid ZCML condition: 'nonesuch'")
 
     def test_endElementNS_normal(self):
-        class Info(object):
+        class Info:
             _line = _col = None
 
             def end(self, line, col):
@@ -1079,7 +1079,7 @@ class Test_testxmlconfig(unittest.TestCase):
         self.assertEqual(data.info.ecolumn, 29)
 
 
-class FauxLocator(object):
+class FauxLocator:
     def __init__(self, file, line, column):
         self.file, self.line, self.column = file, line, column
 
@@ -1093,7 +1093,7 @@ class FauxLocator(object):
         return self.column
 
 
-class FauxContext(object):
+class FauxContext:
     includepath = ()
     _features = ()
     _end_called = False
@@ -1166,7 +1166,7 @@ def _packageFile(package, filename):
     return os.path.join(os.path.dirname(package.__file__), filename)
 
 
-class _Monkey(object):
+class _Monkey:
 
     def __init__(self, module, **replacements):
         self.module = module
@@ -1188,7 +1188,7 @@ class _Monkey(object):
                 delattr(self.module, k)
 
 
-class LoggerStub(object):
+class LoggerStub:
 
     debugs = errors = warnings = infos = ()
 

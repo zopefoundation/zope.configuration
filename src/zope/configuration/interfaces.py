@@ -39,8 +39,8 @@ class IConfigurationContext(Interface):
     """
 
     package = BytesLine(
-        title=(u"The current package name"),
-        description=(u"""\
+        title=("The current package name"),
+        description=("""\
           This is the name of the package containing the configuration
           file being executed. If the configuration file was not
           included by package, then this is None.

@@ -26,7 +26,7 @@ class S1(Interface):
     y = schema.Int()
 
 
-class stuff(object):
+class stuff:
     def __init__(self, args, info, basepath, package, includepath):
         (self.args, self.info, self.basepath, self.package, self.includepath
          ) = args, info, basepath, package, includepath

@@ -129,22 +129,22 @@ class IZopeConfigure(Interface):
     """
 
     package = GlobalObject(
-        title=u"Package",
+        title="Package",
         description=(
-            u"The package to be used for evaluating relative imports "
-            u"and file names."
+            "The package to be used for evaluating relative imports "
+            "and file names."
         ),
         required=False)
 
     i18n_domain = BytesLine(
-        title=u"Internationalization domain",
+        title="Internationalization domain",
         description=(
-            u"This is a name for the software project. It must be a "
-            u"legal file-system name as it will be used to contruct "
-            u"names for directories containing translation data. "
-            u"\n"
-            u"The domain defines a namespace for the message ids "
-            u"used by a project."
+            "This is a name for the software project. It must be a "
+            "legal file-system name as it will be used to contruct "
+            "names for directories containing translation data. "
+            "\n"
+            "The domain defines a namespace for the message ids "
+            "used by a project."
         ),
         required=False
     )
@@ -156,7 +156,7 @@ class ZopeConfigure(GroupingContextDecorator):
     """
 
     def __init__(self, context, **kw):
-        super(ZopeConfigure, self).__init__(context, **kw)
+        super().__init__(context, **kw)
         if 'package' in kw:
             # if we have a package, we want to also define basepath
             # so we don't acquire one

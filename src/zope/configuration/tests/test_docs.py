@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
 #
 # Copyright (c) 2018 Zope Foundation and Contributors.
@@ -15,13 +14,9 @@
 """
 Tests for the documentation.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 
 import doctest
 import os.path
-import re
 import unittest
 
 import manuel.capture
@@ -29,17 +24,7 @@ import manuel.codeblock
 import manuel.doctest
 import manuel.ignore
 import manuel.testing
-from zope.testing import renormalizing
 
-
-checker = renormalizing.RENormalizing([
-    # Python 3 unicode removed the "u".
-    (re.compile("u('.*?')"), r"\1"),
-    (re.compile('u(".*?")'), r"\1"),
-    # Python 3 bytes added the "b".
-    (re.compile("b('.*?')"), r"\1"),
-    (re.compile('b(".*?")'), r"\1"),
-])
 
 optionflags = (
     doctest.NORMALIZE_WHITESPACE
@@ -63,7 +48,8 @@ def test_suite():
                     pass
 
             suite.addTest(
-                unittest.makeSuite(SkippedDocTests))  # pragma: no cover
+                unittest.defaultTestLoader.loadTestsFromTestCase(
+                    SkippedDocTests))  # pragma: no cover
             return suite  # pragma: no cover
 
     docs = os.path.join(here, 'docs')
@@ -95,7 +81,7 @@ def test_suite():
     paths += [os.path.join(api_docs, f) for f in api_files_to_test]
 
     m = manuel.ignore.Manuel()
-    m += manuel.doctest.Manuel(checker=checker, optionflags=optionflags)
+    m += manuel.doctest.Manuel(optionflags=optionflags)
     m += manuel.codeblock.Manuel()
     m += manuel.capture.Manuel()
 
@@ -111,7 +97,6 @@ def test_suite():
         suite.addTest(
             doctest.DocTestSuite(
                 mod_name,
-                checker=checker,
                 optionflags=optionflags
             )
         )

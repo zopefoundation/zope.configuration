@@ -252,10 +252,9 @@ texinfo_documents = [
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 #texinfo_show_urls = 'footnote'
 
-intersphinx_mapping = {
-    'https://docs.python.org/': None,
-    'https://zopeschema.readthedocs.io/en/latest': None,
-}
+# intersphinx_mapping = {
+#     'python': ('https://docs.python.org/', None),
+# }
 
 autodoc_default_flags = [
     'members',

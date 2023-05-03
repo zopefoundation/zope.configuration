@@ -23,7 +23,7 @@ from zope.configuration.fields import GlobalObject
 from zope.configuration.interfaces import IConfigurationContext
 
 
-class F(object):
+class F:
     def __repr__(self):
         return 'f'
 
@@ -41,11 +41,11 @@ class ISimple(Interface):
     c = NativeStringLine()
 
 
-def simple(context, a=None, c=None, b=u"xxx"):
+def simple(context, a=None, c=None, b="xxx"):
     return [(('simple', a, b, c), f, (a, b, c))]
 
 
-def newsimple(context, a, c, b=u"xxx"):
+def newsimple(context, a, c, b="xxx"):
     context.action(('newsimple', a, b, c), f, (a, b, c))
 
 
@@ -72,9 +72,9 @@ def factory(context, factory):
     context.action(('factory', 1, 2), factory)
 
 
-class Complex(object):
+class Complex:
 
-    def __init__(self, context, a, c, b=u"xxx"):
+    def __init__(self, context, a, c, b="xxx"):
         self.a, self.b, self.c = a, b, c
         context.action("Complex.__init__")
 
