@@ -1,8 +1,8 @@
 Changes
 =======
 
-5.1 (unreleased)
-----------------
+5.0.1 (2024-02-12)
+------------------
 
 - Fix tests when running from a distribution.
 
