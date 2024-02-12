@@ -16,14 +16,7 @@ Tests for the documentation.
 """
 
 import doctest
-import os.path
 import unittest
-
-import manuel.capture
-import manuel.codeblock
-import manuel.doctest
-import manuel.ignore
-import manuel.testing
 
 
 optionflags = (
