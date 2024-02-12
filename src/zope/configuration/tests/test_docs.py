@@ -34,39 +34,7 @@ optionflags = (
 
 
 def test_suite():
-    # zope.testrunner
     suite = unittest.TestSuite()
-    here = os.path.dirname(os.path.abspath(__file__))
-    while not os.path.exists(os.path.join(here, 'setup.py')):
-        prev, here = here, os.path.dirname(here)
-        if here == prev:
-            # Let's avoid infinite loops at root
-            class SkippedDocTests(unittest.TestCase):  # pragma: no cover
-
-                @unittest.skip('Could not find setup.py')
-                def test_docs(self):
-                    pass
-
-            suite.addTest(
-                unittest.defaultTestLoader.loadTestsFromTestCase(
-                    SkippedDocTests))  # pragma: no cover
-            return suite  # pragma: no cover
-
-    docs = os.path.join(here, 'docs')
-    api_docs = os.path.join(docs, 'api')
-
-    doc_files_to_test = (
-        'narr.rst',
-    )
-
-    api_files_to_test = (
-        'config.rst',
-        'docutils.rst',
-        'fields.rst',
-        'xmlconfig.rst',
-    )
-
-    # Plain doctest suites
     api_to_test = (
         'config',
         'docutils',
@@ -75,21 +43,6 @@ def test_suite():
         'name',
         'xmlconfig',
         'zopeconfigure',
-    )
-
-    paths = [os.path.join(docs, f) for f in doc_files_to_test]
-    paths += [os.path.join(api_docs, f) for f in api_files_to_test]
-
-    m = manuel.ignore.Manuel()
-    m += manuel.doctest.Manuel(optionflags=optionflags)
-    m += manuel.codeblock.Manuel()
-    m += manuel.capture.Manuel()
-
-    suite.addTest(
-        manuel.testing.TestSuite(
-            m,
-            *paths
-        )
     )
 
     for mod_name in api_to_test:
@@ -102,8 +55,3 @@ def test_suite():
         )
 
     return suite
-
-
-def load_tests(loader, standard_tests, pattern):
-    # Pure unittest protocol.
-    return test_suite()

@@ -4,7 +4,7 @@ Changes
 5.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fix tests when running from a distribution.
 
 
 5.0 (2023-05-04)
