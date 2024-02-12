@@ -28,16 +28,6 @@ def read(*rnames):
         return f.read()
 
 
-TESTS_REQUIRE = [
-    'manuel',
-    # We test the specific exceptions raised, which
-    # change from version to version, and we need the behaviour
-    # in DottedName that allows underscores.
-    'zope.schema >= 4.9.0',
-    'zope.testing',
-    'zope.testrunner',
-]
-
 setup(name='zope.configuration',
       version='5.1.dev0',
       author='Zope Foundation and Contributors',
@@ -76,7 +66,7 @@ setup(name='zope.configuration',
       python_requires='>=3.7',
       extras_require={
           'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
-          'test': TESTS_REQUIRE,
+          'test': ['zope.testing', 'zope.testrunner']
       },
       install_requires=[
           'setuptools',
@@ -86,5 +76,4 @@ setup(name='zope.configuration',
       ],
       include_package_data=True,
       zip_safe=False,
-      tests_require=TESTS_REQUIRE,
       )
