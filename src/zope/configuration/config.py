@@ -215,11 +215,8 @@ class ConfigurationContext:
 
         try:
             # Without a fromlist, this returns the package rather than the
-            # module if the name contains a dot.  Using a fromlist requires
-            # star imports to work, which may not be true if there are
-            # unicode items in __all__ due to unicode_literals on Python 2.
-            # Getting the module from sys.modules instead avoids both
-            # problems.
+            # module if the name contains a dot. Getting the module from
+            # sys.modules instead avoids this problem.
             __import__(mname)
             mod = sys.modules[mname]
         except ImportError as v:
@@ -373,8 +370,15 @@ class ConfigurationContext:
         self._seen_files.add(path)
         return True
 
-    def action(self, discriminator, callable=None, args=(), kw=None, order=0,
-               includepath=None, info=None, **extra):
+    def action(self,
+               discriminator,
+               callable=None,
+               args=(),
+               kw=None,
+               order=0,
+               includepath=None,
+               info=None,
+               **extra):
         """
         Add an action with the given discriminator, callable and
         arguments.
@@ -504,8 +508,7 @@ class ConfigurationContext:
                 includepath=includepath,
                 info=info,
                 order=order,
-            )
-        )
+            ))
 
         self.actions.append(action)
 
@@ -805,6 +808,7 @@ class ConfigurationExecutionError(ConfigurationWrapperError):
     An error occurred during execution of a configuration action
     """
 
+
 ##############################################################################
 # Stack items
 
@@ -847,6 +851,7 @@ class SimpleStackItem:
     It also defers any computation until the end of the directive
     has been reached.
     """
+
     # XXX why this *argdata hack instead of schema, data?
 
     def __init__(self, context, handler, info, *argdata):
@@ -1265,6 +1270,7 @@ class ComplexStackItem:
 ##############################################################################
 # Helper classes
 
+
 @implementer(IConfigurationContext, IGroupingContext)
 class GroupingContextDecorator(ConfigurationContext):
     """Helper mix-in class for building grouping directives
@@ -1289,6 +1295,7 @@ class GroupingContextDecorator(ConfigurationContext):
     def after(self):
         pass
 
+
 ##############################################################################
 # Directive-definition
 
@@ -1304,9 +1311,8 @@ class IDirectivesInfo(Interface):
 
     namespace = URI(
         title="Namespace",
-        description=(
-            "The namespace in which directives' names "
-            "will be defined"),
+        description=("The namespace in which directives' names "
+                     "will be defined"),
     )
 
 
@@ -1351,10 +1357,8 @@ class IFullInfo(IDirectiveInfo):
 
     usedIn = GlobalInterface(
         title="The directive types the directive can be used in",
-        description=(
-            "The interface of the directives that can contain "
-            "the directive"
-        ),
+        description=("The interface of the directives that can contain "
+                     "the directive"),
         default=IConfigurationContext,
     )
 
@@ -1364,8 +1368,12 @@ class IStandaloneDirectiveInfo(IDirectivesInfo, IFullInfo):
     """
 
 
-def defineSimpleDirective(context, name, schema, handler,
-                          namespace='', usedIn=IConfigurationContext):
+def defineSimpleDirective(context,
+                          name,
+                          schema,
+                          handler,
+                          namespace='',
+                          usedIn=IConfigurationContext):
     """
     Define a simple directive
 
@@ -1428,14 +1436,19 @@ def defineSimpleDirective(context, name, schema, handler,
 
     def factory(context, data, info):
         return SimpleStackItem(context, handler, info, schema, data)
+
     factory.schema = schema
 
     context.register(usedIn, name, factory)
     context.document(name, schema, usedIn, handler, context.info)
 
 
-def defineGroupingDirective(context, name, schema, handler,
-                            namespace='', usedIn=IConfigurationContext):
+def defineGroupingDirective(context,
+                            name,
+                            schema,
+                            handler,
+                            namespace='',
+                            usedIn=IConfigurationContext):
     """
     Define a grouping directive
 
@@ -1493,6 +1506,7 @@ def defineGroupingDirective(context, name, schema, handler,
         newcontext = handler(context, **args)
         newcontext.info = info
         return GroupingStackItem(newcontext)
+
     factory.schema = schema
 
     context.register(usedIn, name, factory)
@@ -1514,6 +1528,7 @@ class ComplexDirectiveDefinition(GroupingContextDecorator, dict):
 
         def factory(context, data, info):
             return ComplexStackItem(self, context, data, info)
+
         factory.schema = self.schema
 
         self.register(self.usedIn, (self.namespace, self.name), factory)
@@ -1526,6 +1541,7 @@ def subdirective(context, name, schema):
                      getattr(context.handler, name, context.handler),
                      context.info, context.context)
     context.context[name] = schema, context.info
+
 
 ##############################################################################
 # Features
@@ -1574,6 +1590,7 @@ def provides(context, feature):
 
 ##############################################################################
 # Argument conversion
+
 
 def toargs(context, schema, data):
     """
@@ -1697,8 +1714,8 @@ def toargs(context, schema, data):
             try:
                 args[str(name)] = field.fromUnicode(s)
             except ValidationError as v:
-                raise ConfigurationError(
-                    "Invalid value for %r" % (n)).add_details(v)
+                raise ConfigurationError("Invalid value for %r" %
+                                         (n)).add_details(v)
         elif field.required:
             # if the default is valid, we can use that:
             default = field.default
@@ -1723,12 +1740,19 @@ def toargs(context, schema, data):
 
     return args
 
+
 ##############################################################################
 # Conflict resolution
 
 
-def expand_action(discriminator, callable=None, args=(), kw=None,
-                  includepath=(), info=None, order=0, **extra):
+def expand_action(discriminator,
+                  callable=None,
+                  args=(),
+                  kw=None,
+                  includepath=(),
+                  info=None,
+                  order=0,
+                  **extra):
     if kw is None:
         kw = {}
     action = extra
@@ -1741,8 +1765,7 @@ def expand_action(discriminator, callable=None, args=(), kw=None,
             includepath=includepath,
             info=info,
             order=order,
-        )
-    )
+        ))
     return action
 
 
@@ -1842,8 +1865,7 @@ class ConfigurationConflictError(ConfigurationError):
                     r.append("    " + line)
 
         opening = "\n".join(r)
-        return super()._with_details(
-            opening, detail_formatter)
+        return super()._with_details(opening, detail_formatter)
 
 
 ##############################################################################
@@ -1860,11 +1882,11 @@ def _bootstrap(context):
     info = 'Manually registered in zope/configuration/config.py'
 
     context.info = info
-    defineSimpleDirective(
-        context,
-        namespace=metans, name='directive',
-        schema=IStandaloneDirectiveInfo,
-        handler=defineSimpleDirective)
+    defineSimpleDirective(context,
+                          namespace=metans,
+                          name='directive',
+                          schema=IStandaloneDirectiveInfo,
+                          handler=defineSimpleDirective)
     context.info = ''
 
     # OK, now that we have that, we can use the machine to define the
@@ -1877,8 +1899,7 @@ def _bootstrap(context):
             name='groupingDirective',
             namespace=metans,
             handler="zope.configuration.config.defineGroupingDirective",
-            schema="zope.configuration.config.IStandaloneDirectiveInfo"
-            )
+            schema="zope.configuration.config.IStandaloneDirectiveInfo")
 
     # Now we can use the grouping directive to define the directives directive
     context((metans, 'groupingDirective'),
@@ -1886,8 +1907,7 @@ def _bootstrap(context):
             name='directives',
             namespace=metans,
             handler="zope.configuration.config.DirectivesHandler",
-            schema="zope.configuration.config.IDirectivesInfo"
-            )
+            schema="zope.configuration.config.IDirectivesInfo")
 
     # directive and groupingDirective inside directives
     context((metans, 'directive'),
@@ -1896,16 +1916,14 @@ def _bootstrap(context):
             namespace=metans,
             usedIn="zope.configuration.config.IDirectivesContext",
             handler="zope.configuration.config.defineSimpleDirective",
-            schema="zope.configuration.config.IFullInfo"
-            )
+            schema="zope.configuration.config.IFullInfo")
     context((metans, 'directive'),
             info,
             name='groupingDirective',
             namespace=metans,
             usedIn="zope.configuration.config.IDirectivesContext",
             handler="zope.configuration.config.defineGroupingDirective",
-            schema="zope.configuration.config.IFullInfo"
-            )
+            schema="zope.configuration.config.IFullInfo")
 
     # Setup complex directive directive, both standalone, and in
     # directives directive
@@ -1914,16 +1932,14 @@ def _bootstrap(context):
             name='complexDirective',
             namespace=metans,
             handler="zope.configuration.config.ComplexDirectiveDefinition",
-            schema="zope.configuration.config.IStandaloneDirectiveInfo"
-            )
+            schema="zope.configuration.config.IStandaloneDirectiveInfo")
     context((metans, 'groupingDirective'),
             info,
             name='complexDirective',
             namespace=metans,
             usedIn="zope.configuration.config.IDirectivesContext",
             handler="zope.configuration.config.ComplexDirectiveDefinition",
-            schema="zope.configuration.config.IFullInfo"
-            )
+            schema="zope.configuration.config.IFullInfo")
 
     # Finally, setup subdirective directive
     context((metans, 'directive'),
@@ -1932,8 +1948,7 @@ def _bootstrap(context):
             namespace=metans,
             usedIn="zope.configuration.config.IComplexDirectiveContext",
             handler="zope.configuration.config.subdirective",
-            schema="zope.configuration.config.IDirectiveInfo"
-            )
+            schema="zope.configuration.config.IDirectiveInfo")
 
     # meta:provides
     context((metans, 'directive'),
@@ -1941,5 +1956,4 @@ def _bootstrap(context):
             name='provides',
             namespace=metans,
             handler="zope.configuration.config.provides",
-            schema="zope.configuration.config.IProvidesDirectiveInfo"
-            )
+            schema="zope.configuration.config.IProvidesDirectiveInfo")

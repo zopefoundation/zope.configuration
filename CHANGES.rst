@@ -1,10 +1,12 @@
 Changes
 =======
 
-5.1 (unreleased)
+6.0 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Drop support for Python 3.7.
+
+- Add support for Python 3.12.
 
 
 5.0.1 (2024-02-12)
