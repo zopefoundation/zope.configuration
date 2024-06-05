@@ -4,7 +4,7 @@ Changes
 6.0 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Drop support for Python 3.7.
 
 
 5.0.1 (2024-02-12)
