@@ -6,6 +6,8 @@ Changes
 
 - Drop support for Python 3.7.
 
+- Add support for Python 3.12.
+
 
 5.0.1 (2024-02-12)
 ------------------
