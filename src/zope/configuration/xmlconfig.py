@@ -373,6 +373,23 @@ class ConfigurationHandler(ContentHandler):
                 return installed
             elif verb == 'not-installed':
                 return not installed
+
+        elif verb in ('envvar', 'not-envvar'):
+            if not arguments:
+                raise ValueError(
+                    "Environment variable name missing: %r" % expression
+                )
+            if len(arguments) > 1:
+                raise ValueError(
+                    "Only one environment variable name allowed: %r"
+                    % expression
+                )
+
+            if verb == 'envvar':
+                return self.context.hasEnvironmentVariable(arguments[0])
+            elif verb == 'not-envvar':
+                return not self.context.hasEnvironmentVariable(arguments[0])
+
         else:
             raise ValueError("Invalid ZCML condition: %r" % expression)
 
