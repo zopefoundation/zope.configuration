@@ -6,7 +6,7 @@ Changes
 
 - Add support for checking environment variables in zcml conditions.
   Use ``envvar`` or ``not-envvar``.
-  ``not-envvar`` is true when the variable is not set, is empty, or is one of the usual 'falsy' values like '0'.
+  ``not-envvar`` is true when the variable is not set, is empty, or has one of the usual 'false' values like '0'.
 
 - Drop support for Python 3.7.
 

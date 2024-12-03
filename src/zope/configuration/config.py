@@ -586,7 +586,7 @@ class ConfigurationContext:
         value = os.getenv(envvar)
         if not value:
             return False
-        return value not in ('0', 'false', 'no', 'f', 'n')
+        return value.lower() not in ('0', 'false', 'no', 'f', 'n')
 
 
 class ConfigurationAdapterRegistry:
