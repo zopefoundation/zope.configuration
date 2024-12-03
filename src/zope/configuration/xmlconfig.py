@@ -372,7 +372,8 @@ class ConfigurationHandler(ContentHandler):
             >>> c.evaluateCondition("envvar x y")
             Traceback (most recent call last):
               ...
-            ValueError: Only one environment variable name allowed: 'envvar x y'
+            ValueError: Only one environment variable name allowed: \
+            'envvar x y'
 
             >>> c.evaluateCondition("envvar")
             Traceback (most recent call last):
