@@ -24,29 +24,29 @@ class Test_resolve(unittest.TestCase):
 
     def test_top_level_module(self):
         import os
-        self.assertTrue(self._callFUT('os') is os)
+        self.assertIs(self._callFUT('os'), os)
 
     def test_nested_module(self):
         import os.path
-        self.assertTrue(self._callFUT('os.path') is os.path)
+        self.assertIs(self._callFUT('os.path'), os.path)
 
     def test_function_in_module(self):
         import os.path
-        self.assertTrue(self._callFUT('os.path.join') is os.path.join)
+        self.assertIs(self._callFUT('os.path.join'), os.path.join)
 
     def test_importable_but_not_attr_of_parent(self):
         import sys
 
         import zope.configuration.tests as zct
-        self.assertFalse('notyet' in zct.__dict__)
+        self.assertNotIn('notyet', zct.__dict__)
         mod = self._callFUT('zope.configuration.tests.notyet')
-        self.assertTrue(mod is zct.notyet)
+        self.assertIs(mod, zct.notyet)
         del zct.notyet
         del sys.modules['zope.configuration.tests.notyet']
 
     def test_function_in_module_relative(self):
         import os.path
-        self.assertTrue(self._callFUT('.join', 'os.path') is os.path.join)
+        self.assertIs(self._callFUT('.join', 'os.path'), os.path.join)
 
     def test_class_in_module(self):
         from zope.configuration.tests.directives import Complex

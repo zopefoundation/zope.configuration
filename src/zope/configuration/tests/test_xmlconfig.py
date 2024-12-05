@@ -122,24 +122,24 @@ class ConfigurationHandlerTests(unittest.TestCase):
     def test_ctor_defaults(self):
         context = FauxContext()
         handler = self._makeOne(context)
-        self.assertTrue(handler.context is context)
+        self.assertIs(handler.context, context)
         self.assertFalse(handler.testing)
         self.assertEqual(handler.ignore_depth, 0)
 
     def test_ctor_explicit(self):
         context = FauxContext()
         handler = self._makeOne(context, True)
-        self.assertTrue(handler.context is context)
+        self.assertIs(handler.context, context)
         self.assertTrue(handler.testing)
         self.assertEqual(handler.ignore_depth, 0)
-        self.assertTrue(handler.locator is None)
+        self.assertIsNone(handler.locator)
 
     def test_setDocumentLocator(self):
         context = FauxContext()
         locator = FauxLocator('tests//sample.zcml', 1, 1)
         handler = self._makeOne(context, True)
         handler.setDocumentLocator(locator)
-        self.assertTrue(handler.locator is locator)
+        self.assertIs(handler.locator, locator)
 
     def test_startElementNS_w_zcml_condition_failing(self):
         from zope.configuration.xmlconfig import ZCML_CONDITION
@@ -646,8 +646,8 @@ class Test_exclude(unittest.TestCase):
         self._callFUT(context, package=sub)
         self.assertEqual(len(context.actions), 0)
         self.assertEqual(len(context._seen_files), 1)
-        self.assertFalse(fqne_spam in context._seen_files)
-        self.assertFalse(fqne_config in context._seen_files)
+        self.assertNotIn(fqne_spam, context._seen_files)
+        self.assertNotIn(fqne_config, context._seen_files)
         self.assertIn(fqns_config, context._seen_files)
 
 
@@ -740,7 +740,7 @@ class Test_file(unittest.TestCase):
         self.assertEqual(len(logger.debugs), 1)
         self.assertEqual(logger.debugs[0], ('include %s', (file_name,), {}))
         self.assertEqual(len(foo.data), 0)
-        self.assertTrue(context.package is samplepackage)
+        self.assertIs(context.package, samplepackage)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
         self.assertEqual(action['discriminator'],
@@ -761,7 +761,7 @@ class Test_file(unittest.TestCase):
         with _Monkey(xmlconfig, logger=logger):
             ret = self._callFUT('configure.zcml', context=context,
                                 execute=False)
-        self.assertTrue(ret is context)
+        self.assertIs(ret, context)
         self.assertEqual(len(logger.debugs), 1)
         self.assertEqual(logger.debugs[0], ('include %s', (file_name,), {}))
         self.assertEqual(len(foo.data), 0)
@@ -825,7 +825,7 @@ class Test_string(unittest.TestCase):
         with open(file_name) as f:
             xml = f.read()
         ret = self._callFUT(xml, context=context, execute=False)
-        self.assertTrue(ret is context)
+        self.assertIs(ret, context)
         self.assertEqual(len(foo.data), 0)
         self.assertEqual(len(context.actions), 1)
         action = context.actions[0]
