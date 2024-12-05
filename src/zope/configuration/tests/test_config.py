@@ -50,7 +50,7 @@ class ConfigurationContextTests(unittest.TestCase):
     def test_resolve_dot(self):
         c = self._makeOne()
         package = c.package = object()
-        self.assertTrue(c.resolve('.') is package)
+        self.assertIs(c.resolve('.'), package)
 
     def test_resolve_trailing_dot_in_resolve(self):
         # Dotted names are no longer allowed to end in dots
@@ -60,12 +60,12 @@ class ConfigurationContextTests(unittest.TestCase):
 
     def test_resolve_builtin(self):
         c = self._makeOne()
-        self.assertTrue(c.resolve('str') is str)
+        self.assertIs(c.resolve('str'), str)
 
     def test_resolve_single_non_builtin(self):
         import os
         c = self._makeOne()
-        self.assertTrue(c.resolve('os') is os)
+        self.assertIs(c.resolve('os'), os)
 
     def test_resolve_relative_miss_no_package(self):
         from zope.configuration.exceptions import ConfigurationError
@@ -357,7 +357,7 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         reg.register(IFoo, (NS, NAME), _factory)
         self.assertEqual(len(reg._registry), 1)
         areg = reg._registry[(NS, NAME)]
-        self.assertTrue(areg.lookup1(IFoo, Interface) is _factory)
+        self.assertIs(areg.lookup1(IFoo, Interface), _factory)
         self.assertEqual(len(reg._docRegistry), 0)
 
     def test_register_replacement(self):
@@ -380,7 +380,7 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         reg.register(IFoo, (NS, NAME), _rival)
         self.assertEqual(len(reg._registry), 1)
         areg = reg._registry[(NS, NAME)]
-        self.assertTrue(areg.lookup1(IFoo, Interface) is _rival)
+        self.assertIs(areg.lookup1(IFoo, Interface), _rival)
         self.assertEqual(len(reg._docRegistry), 0)
 
     def test_register_new_name(self):
@@ -404,9 +404,9 @@ class ConfigurationAdapterRegistryTests(unittest.TestCase):
         reg.register(IFoo, (NS, NAME2), _rival)
         self.assertEqual(len(reg._registry), 2)
         areg = reg._registry[(NS, NAME)]
-        self.assertTrue(areg.lookup1(IFoo, Interface) is _factory)
+        self.assertIs(areg.lookup1(IFoo, Interface), _factory)
         areg = reg._registry[(NS, NAME2)]
-        self.assertTrue(areg.lookup1(IFoo, Interface) is _rival)
+        self.assertIs(areg.lookup1(IFoo, Interface), _rival)
         self.assertEqual(len(reg._docRegistry), 0)
 
     def test_document_non_string_name(self):
@@ -577,7 +577,7 @@ class ConfigurationMachineTests(
         self.assertEqual(len(cm.stack), 1)
         root = cm.stack[0]
         self.assertIsInstance(root, RootStackItem)
-        self.assertTrue(root.context is cm)
+        self.assertIs(root.context, cm)
         self.assertEqual(len(cm.i18n_strings), 0)
         # Check bootstrapped meta:*.
         self.assertIn((metans, 'directive'), cm._registry)
@@ -637,7 +637,7 @@ class ConfigurationMachineTests(
         root = cm.stack[0]
         self.assertIsInstance(root, RootStackItem)
         nested = cm.stack[1]
-        self.assertTrue(nested is item)
+        self.assertIs(nested, item)
         self.assertEqual(_called_with, [(cm, {
             'name': 'testing',
             'schema': ISchema,
@@ -684,7 +684,7 @@ class ConfigurationMachineTests(
         root = cm.stack[0]
         self.assertIsInstance(root, RootStackItem)
         nested = cm.stack[1]
-        self.assertTrue(nested is item)
+        self.assertIs(nested, item)
         self.assertEqual(_called_with, [(cm, {
             'name': 'testing',
             'schema': ISchema,
@@ -1012,7 +1012,7 @@ class SimpleStackItemTests(
         _data = {}
         ssi = self._makeOne(context, _handler, 'INFO', ISchema, _data)
         self.assertIsInstance(ssi.context, GroupingContextDecorator)
-        self.assertTrue(ssi.context.context is context)
+        self.assertIs(ssi.context.context, context)
         self.assertEqual(ssi.context.info, 'INFO')
         self.assertEqual(ssi.handler, _handler)
         self.assertEqual(ssi.argdata, (ISchema, _data))
@@ -1139,7 +1139,7 @@ class RootStackItemTests(
         context = _Context()
         rsi = self._makeOne(context)
         adapter = rsi.contained(('ns', 'name'), {'a': 'b'}, 'INFO')
-        self.assertTrue(adapter is _adapter)
+        self.assertIs(adapter, _adapter)
         self.assertEqual(_called_with, [(context, {'a': 'b'}, 'INFO')])
 
     def test_finish(self):
@@ -1186,7 +1186,7 @@ class GroupingStackItemTests(
         context = _Context()
         rsi = self._makeOne(context)
         adapter = rsi.contained(('ns', 'name'), {'a': 'b'}, 'INFO')
-        self.assertTrue(adapter is _adapter)
+        self.assertIs(adapter, _adapter)
         self.assertEqual(_called_with, [(context, {'a': 'b'}, 'INFO')])
         self.assertEqual(len(context.actions), 1)
         self.assertEqual(
@@ -1230,7 +1230,7 @@ class GroupingStackItemTests(
         context = _Context()
         rsi = self._makeOne(context)
         adapter = rsi.contained(('ns', 'name'), {'a': 'b'}, 'INFO')
-        self.assertTrue(adapter is _adapter)
+        self.assertIs(adapter, _adapter)
         self.assertEqual(_called_with, [(context, {'a': 'b'}, 'INFO')])
         self.assertEqual(len(context.actions), 1)
         self.assertEqual(
@@ -1334,7 +1334,7 @@ class ComplexStackItemTests(
         _data = {'name': 'NAME'}
         csi = self._makeOne(meta, context, _data, 'INFO')
         self.assertIsInstance(csi.context, GroupingContextDecorator)
-        self.assertTrue(csi.context.context is context)
+        self.assertIs(csi.context.context, context)
         self.assertEqual(csi.context.info, 'INFO')
         self.assertEqual(csi.handler, meta._handler)
         self.assertEqual(meta._handler_kwargs, _data)
@@ -1372,7 +1372,7 @@ class ComplexStackItemTests(
         ssi = csi.contained((NS, NAME), {}, 'SUBINFO')
         self.assertIsInstance(ssi, SimpleStackItem)
         self.assertIsInstance(ssi.context, GroupingContextDecorator)
-        self.assertTrue(ssi.context.context is csi.context)
+        self.assertIs(ssi.context.context, csi.context)
         self.assertEqual(ssi.context.info, 'SUBINFO')
         self.assertEqual(ssi.handler, wn.testing)
         self.assertEqual(ssi.argdata, (ISubSchema, {}))
@@ -1505,12 +1505,12 @@ class GroupingContextDecoratorTests(
     def test_ctor_no_kwargs(self):
         context = FauxContext()
         gcd = self._makeOne(context)
-        self.assertTrue(gcd.context is context)
+        self.assertIs(gcd.context, context)
 
     def test_ctor_w_kwargs(self):
         context = FauxContext()
         gcd = self._makeOne(context, foo='bar', baz=42)
-        self.assertTrue(gcd.context is context)
+        self.assertIs(gcd.context, context)
         self.assertEqual(gcd.foo, 'bar')
         self.assertEqual(gcd.baz, 42)
 
@@ -1616,7 +1616,7 @@ class Test_defineSimpleDirective(unittest.TestCase):
         self.assertEqual(name, (NS, NAME))
         sub = object()
         ssi = factory(sub, {'a': 1}, 'SUBINFO')
-        self.assertTrue(ssi.context.context is sub)
+        self.assertIs(ssi.context.context, sub)
         self.assertEqual(ssi.context.info, 'SUBINFO')
         self.assertEqual(ssi.handler, _handler)
 
@@ -1655,7 +1655,7 @@ class Test_defineSimpleDirective(unittest.TestCase):
         self.assertEqual(name, NAME)
         sub = object()
         ssi = factory(sub, {'a': 1}, 'SUBINFO')
-        self.assertTrue(ssi.context.context is sub)
+        self.assertIs(ssi.context.context, sub)
         self.assertEqual(ssi.context.info, 'SUBINFO')
         self.assertEqual(ssi.handler, _handler)
 
@@ -1716,7 +1716,7 @@ class Test_defineGroupingDirective(unittest.TestCase):
         self.assertEqual(name, (NS, NAME))
         sub = object()
         gsi = factory(sub, {'arg': 'val'}, 'SUBINFO')
-        self.assertTrue(gsi.context is newcontext)
+        self.assertIs(gsi.context, newcontext)
         self.assertEqual(newcontext.info, 'SUBINFO')
         self.assertEqual(_called_with, [(sub, {'arg': 'val'})])
 
@@ -1759,7 +1759,7 @@ class Test_defineGroupingDirective(unittest.TestCase):
         self.assertEqual(name, NAME)
         sub = object()
         gsi = factory(sub, {'arg': 'val'}, 'SUBINFO')
-        self.assertTrue(gsi.context is newcontext)
+        self.assertIs(gsi.context, newcontext)
         self.assertEqual(newcontext.info, 'SUBINFO')
         self.assertEqual(_called_with, [(sub, {'arg': 'val'})])
 
