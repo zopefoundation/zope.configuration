@@ -544,6 +544,50 @@ class ConfigurationContext:
         """
         self._features.add(feature)
 
+    def hasEnvironmentVariable(self, envvar):
+        """
+        Check whether an environment variable is set to a "truthy" value.
+
+        Examples:
+
+            >>> from zope.configuration.config import ConfigurationContext
+            >>> c = ConfigurationContext()
+            >>> c.hasEnvironmentVariable('SAMPLE_ZOPE_ENV_VAR')
+            False
+
+        An empty environment variable is false.
+
+            >>> try:
+            ...     os.environ['SAMPLE_ZOPE_ENV_VAR'] = ''
+            ...     c.hasEnvironmentVariable('SAMPLE_ZOPE_ENV_VAR')
+            ... finally:
+            ...     del os.environ['SAMPLE_ZOPE_ENV_VAR']
+            False
+
+        A "falsy" environment variable is false.
+
+            >>> try:
+            ...     os.environ['SAMPLE_ZOPE_ENV_VAR'] = '0'
+            ...     c.hasEnvironmentVariable('SAMPLE_ZOPE_ENV_VAR')
+            ... finally:
+            ...     del os.environ['SAMPLE_ZOPE_ENV_VAR']
+            False
+
+        Other values of the environment variable are true.
+
+            >>> try:
+            ...     os.environ['SAMPLE_ZOPE_ENV_VAR'] = '1'
+            ...     c.hasEnvironmentVariable('SAMPLE_ZOPE_ENV_VAR')
+            ... finally:
+            ...     del os.environ['SAMPLE_ZOPE_ENV_VAR']
+            True
+
+        """
+        value = os.getenv(envvar)
+        if not value:
+            return False
+        return value.lower() not in ('0', 'false', 'no', 'f', 'n')
+
 
 class ConfigurationAdapterRegistry:
     """

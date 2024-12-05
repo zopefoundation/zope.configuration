@@ -278,7 +278,7 @@ class ConfigurationHandler(ContentHandler):
         ``expression`` is a string of the form "verb arguments".
 
         Currently the supported verbs are ``have``, ``not-have``,
-        ``installed`` and ``not-installed``.
+        ``installed``, ``not-installed``, ``envvar`` and ``not-envvar``.
 
         The ``have`` and ``not-have`` verbs each take one argument:
         the name of a feature:
@@ -342,6 +342,44 @@ class ConfigurationHandler(ContentHandler):
             Traceback (most recent call last):
               ...
             ValueError: Package name missing: 'installed'
+
+        The ``envvar`` and ``not-envvar`` verbs each take one argument:
+        the name of an environment variable:
+
+            >>> from zope.configuration.config import ConfigurationContext
+            >>> from zope.configuration.xmlconfig import ConfigurationHandler
+            >>> context = ConfigurationContext()
+            >>> c = ConfigurationHandler(context, testing=True)
+            >>> c.evaluateCondition("envvar SAMPLE_ZOPE_ENV_VAR")
+            False
+            >>> c.evaluateCondition("not-envvar SAMPLE_ZOPE_ENV_VAR")
+            True
+            >>> try:
+            ...     os.environ['SAMPLE_ZOPE_ENV_VAR'] = '1'
+            ...     c.evaluateCondition("envvar SAMPLE_ZOPE_ENV_VAR")
+            ... finally:
+            ...     del os.environ['SAMPLE_ZOPE_ENV_VAR']
+            True
+            >>> try:
+            ...     os.environ['SAMPLE_ZOPE_ENV_VAR'] = '1'
+            ...     c.evaluateCondition("not-envvar SAMPLE_ZOPE_ENV_VAR")
+            ... finally:
+            ...     del os.environ['SAMPLE_ZOPE_ENV_VAR']
+            False
+
+        Ill-formed expressions raise an error:
+
+            >>> c.evaluateCondition("envvar x y")
+            Traceback (most recent call last):
+              ...
+            ValueError: Only one environment variable name allowed: \
+            'envvar x y'
+
+            >>> c.evaluateCondition("envvar")
+            Traceback (most recent call last):
+              ...
+            ValueError: Environment variable name missing: 'envvar'
+
         """
         arguments = expression.split(None)
         verb = arguments.pop(0)
@@ -373,6 +411,23 @@ class ConfigurationHandler(ContentHandler):
                 return installed
             elif verb == 'not-installed':
                 return not installed
+
+        elif verb in ('envvar', 'not-envvar'):
+            if not arguments:
+                raise ValueError(
+                    "Environment variable name missing: %r" % expression
+                )
+            if len(arguments) > 1:
+                raise ValueError(
+                    "Only one environment variable name allowed: %r"
+                    % expression
+                )
+
+            if verb == 'envvar':
+                return self.context.hasEnvironmentVariable(arguments[0])
+            elif verb == 'not-envvar':
+                return not self.context.hasEnvironmentVariable(arguments[0])
+
         else:
             raise ValueError("Invalid ZCML condition: %r" % expression)
 
