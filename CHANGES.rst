@@ -4,15 +4,13 @@ Changes
 6.0 (unreleased)
 ----------------
 
-- Add support for Python 3.13.
+- Add support for checking environment variables in zcml conditions. Use
+  ``envvar`` or ``not-envvar``. ``not-envvar`` is true when the variable is not
+  set, is empty, or has one of the usual 'false' values like '0'.
 
-- Add support for checking environment variables in zcml conditions.
-  Use ``envvar`` or ``not-envvar``.
-  ``not-envvar`` is true when the variable is not set, is empty, or has one of the usual 'false' values like '0'.
+- Add support for Python 3.12, 3.13.
 
 - Drop support for Python 3.7.
-
-- Add support for Python 3.12.
 
 
 5.0.1 (2024-02-12)
