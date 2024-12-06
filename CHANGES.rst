@@ -1,7 +1,7 @@
 Changes
 =======
 
-6.0 (unreleased)
+6.0 (2024-12-06)
 ----------------
 
 - Add support for checking environment variables in zcml conditions. Use
