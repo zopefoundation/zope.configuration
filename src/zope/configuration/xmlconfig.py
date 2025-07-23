@@ -746,13 +746,13 @@ _context = None
 
 
 def _clearContext():
-    global _context
+    global _context  # noqa:F824 `global _context` is unused
     _context = ConfigurationMachine()
     registerCommonDirectives(_context)
 
 
 def _getContext():
-    global _context
+    global _context  # noqa:F824 `global _context` is unused
     if _context is None:
         _clearContext()
         try:
