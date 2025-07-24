@@ -19,7 +19,6 @@
 
 import os
 
-from setuptools import find_packages
 from setuptools import setup
 
 
@@ -60,13 +59,10 @@ setup(name='zope.configuration',
       ],
       url='https://github.com/zopefoundation/zope.configuration',
       license='ZPL-2.1',
-      packages=find_packages('src'),
-      package_dir={'': 'src'},
-      namespace_packages=['zope'],
       python_requires='>=3.9',
       extras_require={
           'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
-          'test': ['zope.testing', 'zope.testrunner']
+          'test': ['zope.testing', 'zope.testrunner >= 6.4']
       },
       install_requires=[
           'setuptools',
