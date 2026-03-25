@@ -4,6 +4,8 @@ Changes
 7.1 (unreleased)
 ----------------
 
+- Drop support for Python 3.9.
+
 - Remove run-time dependency on ``setuptools``.
 
 
