@@ -16,59 +16,8 @@
 # When developing and releasing this package, please follow the documented
 # Zope Toolkit policies as described by this documentation.
 ##############################################################################
-
-import os
-
 from setuptools import setup
 
 
-def read(*rnames):
-    with open(os.path.join(os.path.dirname(__file__), *rnames)) as f:
-        return f.read()
-
-
-setup(name='zope.configuration',
-      version='7.1.dev0',
-      author='Zope Foundation and Contributors',
-      author_email='zope-dev@zope.dev',
-      description='Zope Configuration Markup Language (ZCML)',
-      long_description=(
-          read('README.rst')
-          + '\n\n' +
-          read('CHANGES.rst')
-      ),
-      keywords="zope configuration zcml",
-      classifiers=[
-          'Development Status :: 5 - Production/Stable',
-          'Environment :: Web Environment',
-          'Intended Audience :: Developers',
-          'License :: OSI Approved :: Zope Public License',
-          'Programming Language :: Python',
-          'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.10',
-          'Programming Language :: Python :: 3.11',
-          'Programming Language :: Python :: 3.12',
-          'Programming Language :: Python :: 3.13',
-          'Programming Language :: Python :: 3.14',
-          'Programming Language :: Python :: Implementation :: CPython',
-          'Programming Language :: Python :: Implementation :: PyPy',
-          'Natural Language :: English',
-          'Operating System :: OS Independent',
-          'Topic :: Internet :: WWW/HTTP',
-          'Framework :: Zope :: 3',
-      ],
-      url='https://github.com/zopefoundation/zope.configuration',
-      license='ZPL-2.1',
-      python_requires='>=3.10',
-      extras_require={
-          'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
-          'test': ['zope.testing', 'zope.testrunner >= 6.4']
-      },
-      install_requires=[
-          'zope.i18nmessageid',
-          'zope.interface',
-          'zope.schema >= 4.9',
-      ],
-      include_package_data=True,
-      zip_safe=False,
-      )
+# See pyproject.toml for package metadata
+setup()
