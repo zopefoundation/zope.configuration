@@ -16,7 +16,7 @@
 
   </meta:directive>
 
-  <files:register 
+  <files:register
       path="simple.py"
       title="How to create a simple directive"
       >
@@ -25,13 +25,13 @@
 
   <files:register path="simple.zcml">
     Shows the ZCML directives needed to register a simple directive.
-    
+
     Also show some usage examples,
   </files:register>
 
   <files:register path="__init__.py" title="Make this a package" />
- 
+
 
 </configure>
 
-  
+

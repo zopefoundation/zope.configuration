@@ -1,5 +1,5 @@
 <configure xmlns="http://namespaces.zope.org/test">
-   
+
   <foo x="blah" y="0" />
   <foo x="blah" y="2" />
 
