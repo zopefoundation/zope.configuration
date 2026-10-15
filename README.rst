@@ -21,5 +21,3 @@ language that express configuration choices. The intent is that the
 language be pluggable.  An XML language is provided by default.
 
 Please see http://zopeconfiguration.readthedocs.io/en/latest/ for the documentation.
-
-

@@ -111,18 +111,18 @@ you can see how well the tests cover the code:
    ...
    Name                               Stmts   Miss  Cover   Missing
    ----------------------------------------------------------------
-   zope.configuration                     3      0   100%   
-   zope.configuration._compat             2      0   100%   
-   zope.configuration.config            439      0   100%   
-   zope.configuration.docutils           34      0   100%   
-   zope.configuration.exceptions          2      0   100%   
-   zope.configuration.fields            111      0   100%   
-   zope.configuration.interfaces         18      0   100%   
-   zope.configuration.name               54      0   100%   
-   zope.configuration.xmlconfig         269      0   100%   
-   zope.configuration.zopeconfigure      17      0   100%   
+   zope.configuration                     3      0   100%
+   zope.configuration._compat             2      0   100%
+   zope.configuration.config            439      0   100%
+   zope.configuration.docutils           34      0   100%
+   zope.configuration.exceptions          2      0   100%
+   zope.configuration.fields            111      0   100%
+   zope.configuration.interfaces         18      0   100%
+   zope.configuration.name               54      0   100%
+   zope.configuration.xmlconfig         269      0   100%
+   zope.configuration.zopeconfigure      17      0   100%
    ----------------------------------------------------------------
-   TOTAL                                955      0   100%   
+   TOTAL                                955      0   100%
    ----------------------------------------------------------------------
    Ran 256 tests in 1.063s
 
@@ -214,7 +214,7 @@ tool designed to run tests against multiple Python versions.  It creates
 a ``virtualenv`` for each configured version, installs the current package
 and configured dependencies into each ``virtualenv``, and then runs the
 configured commands.
-   
+
 :mod:`zope.configuration` configures the following :mod:`tox` environments via
 its ``tox.ini`` file:
 

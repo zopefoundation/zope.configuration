@@ -2,7 +2,7 @@
                xmlns:meta="http://namespaces.zope.org/meta"
                xmlns:test="http://namespaces.zope.org/test"
   >
-  <meta:directive 
+  <meta:directive
       namespace="http://namespaces.zope.org/test"
       name="foo"
       schema="zope.configuration.tests.samplepackage.foo.S1"
